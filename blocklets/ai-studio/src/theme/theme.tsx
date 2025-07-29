@@ -1,6 +1,5 @@
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
-import { loadingButtonClasses } from '@mui/lab';
 import {
   Box,
   BoxProps,
@@ -16,6 +15,7 @@ import {
   svgIconClasses,
   switchClasses,
 } from '@mui/material';
+import buttonClasses from '@mui/material/Button/buttonClasses';
 import { createTheme } from '@mui/material/styles';
 
 export const lightThemeRoot = `
@@ -753,7 +753,7 @@ export const theme = createTheme({
             backgroundColor: '#030712',
           },
 
-          [`&.${loadingButtonClasses.loading}`]: {
+          [`&.${buttonClasses.loading}`]: {
             color: 'grey',
           },
         },

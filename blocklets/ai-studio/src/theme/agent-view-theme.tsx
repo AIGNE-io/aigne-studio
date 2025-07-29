@@ -1,5 +1,5 @@
-import { loadingButtonClasses } from '@mui/lab/LoadingButton';
 import { createTheme } from '@mui/material';
+import buttonClasses from '@mui/material/Button/buttonClasses';
 
 export const agentViewTheme = createTheme({
   typography: { button: { textTransform: 'none' } } as any,
@@ -24,7 +24,7 @@ export const agentViewTheme = createTheme({
             backgroundColor: '#030712',
           },
 
-          [`&.${loadingButtonClasses.loading}`]: {
+          [`&.${buttonClasses.loading}`]: {
             color: 'grey',
           },
         },

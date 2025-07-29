@@ -81,22 +81,27 @@ export default function OutputSettings({
       <Stack
         direction="row"
         sx={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 1,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
           }}>
-          <Box component={AigneLogoOutput} sx={{
-            fontSize: 14
-          }} />
-          <Typography variant="subtitle2" sx={{
-            mb: 0
-          }}>
+          <Box
+            component={AigneLogoOutput}
+            sx={{
+              fontSize: 14,
+            }}
+          />
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0,
+            }}>
             {t('outputs')}
           </Typography>
         </Box>
@@ -132,25 +137,28 @@ export default function OutputSettings({
           <Table size="small">
             <TableHead>
               <TableRow>
-                <Box component={TableCell} sx={{
-                  width: "30%"
-                }}>
+                <TableCell
+                  sx={{
+                    width: '30%',
+                  }}>
                   {t('name')}
-                </Box>
-                <Box component={TableCell}>{t('from')}</Box>
-                <Box component={TableCell}>{t('description')}</Box>
-                <Box component={TableCell}>{t('format')}</Box>
-                <Box component={TableCell} sx={{
-                  width: 74
-                }}>
+                </TableCell>
+                <TableCell>{t('from')}</TableCell>
+                <TableCell>{t('description')}</TableCell>
+                <TableCell>{t('format')}</TableCell>
+                <TableCell
+                  sx={{
+                    width: 74,
+                  }}>
                   {t('required')}
-                </Box>
-                <Box component={TableCell} sx={{
-                  width: 74
-                }}>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    width: 74,
+                  }}>
                   {t('appearance')}
-                </Box>
-                <Box component={TableCell} align="right" />
+                </TableCell>
+                <TableCell align="right" />
               </TableRow>
             </TableHead>
 
@@ -165,11 +173,15 @@ export default function OutputSettings({
                     <VariableRow
                       className="output-variable-row"
                       key={item.id}
-                      rowRef={(ref) => params.drop(params.preview(ref))}
+                      rowRef={(ref) => {
+                        params.drop(params.preview(ref));
+                      }}
                       firstColumnChildren={
                         <Stack
                           className="hover-visible"
-                          ref={params.drag}
+                          ref={(v) => {
+                            params.drag(v);
+                          }}
                           sx={{
                             display: 'none',
                             p: 0.5,

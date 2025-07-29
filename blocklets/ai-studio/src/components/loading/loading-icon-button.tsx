@@ -6,17 +6,15 @@ interface LoadingIconButtonProps extends IconButtonProps {
   size?: IconButtonProps['size'];
 }
 
-const LoadingIconButton = (
-  {
-    ref,
-    onClick,
-    icon,
-    size,
-    ...props
-  }: LoadingIconButtonProps & {
-    ref: React.RefObject<HTMLButtonElement | null>;
-  }
-) => {
+const LoadingIconButton = ({
+  ref,
+  onClick,
+  icon,
+  size,
+  ...props
+}: LoadingIconButtonProps & {
+  ref?: React.Ref<HTMLButtonElement>;
+}) => {
   const [loading, setLoading] = useState(false);
 
   const handleClick = useCallback(

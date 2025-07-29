@@ -228,14 +228,18 @@ export default function InputTable({
               <Box
                 sx={{
                   height: 33,
-                  display: "flex",
-                  alignItems: "center",
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
-                  color: parameter.hidden ? 'text.disabled' : undefined
+                  color: parameter.hidden ? 'text.disabled' : undefined,
                 }}>
-                <Box component={Icon} icon={iconMap[parameter.key]} sx={{
-                  fontSize: 16
-                }} />
+                <Box
+                  component={Icon}
+                  icon={iconMap[parameter.key]}
+                  sx={{
+                    fontSize: 16,
+                  }}
+                />
                 <Box>{parameter.key}</Box>
               </Box>
             );
@@ -245,13 +249,17 @@ export default function InputTable({
             <Stack
               direction="row"
               sx={{
-                alignItems: "center",
+                alignItems: 'center',
                 gap: 0.5,
-                color: parameter.hidden ? 'text.disabled' : undefined
+                color: parameter.hidden ? 'text.disabled' : undefined,
               }}>
-              <Box component={Icon} icon={FormsIcon} sx={{
-                fontSize: 16
-              }} />
+              <Box
+                component={Icon}
+                icon={FormsIcon}
+                sx={{
+                  fontSize: 16,
+                }}
+              />
               <WithAwareness
                 projectId={projectId}
                 gitRef={gitRef}
@@ -318,8 +326,8 @@ export default function InputTable({
                 <Stack
                   direction="row"
                   sx={{
-                    alignItems: "center",
-                    color: parameter.hidden ? 'text.disabled' : undefined
+                    alignItems: 'center',
+                    color: parameter.hidden ? 'text.disabled' : undefined,
                   }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={BracesIcon} />
@@ -338,8 +346,8 @@ export default function InputTable({
                 <Stack
                   direction="row"
                   sx={{
-                    alignItems: "center",
-                    color: parameter.hidden ? 'text.disabled' : undefined
+                    alignItems: 'center',
+                    color: parameter.hidden ? 'text.disabled' : undefined,
                   }}>
                   {variable?.type?.type ? (
                     <>
@@ -358,8 +366,8 @@ export default function InputTable({
                 <Stack
                   direction="row"
                   sx={{
-                    alignItems: "center",
-                    color: parameter.hidden ? 'text.disabled' : undefined
+                    alignItems: 'center',
+                    color: parameter.hidden ? 'text.disabled' : undefined,
                   }}>
                   <ListItemIcon sx={{ minWidth: 20 }}>
                     <Icon icon={CursorTextIcon} />
@@ -527,7 +535,9 @@ export default function InputTable({
                             {index === 0 && (
                               <Stack
                                 className="hover-visible center"
-                                ref={params.drag}
+                                ref={(v) => {
+                                  params.drag(v);
+                                }}
                                 sx={{
                                   p: 0.5,
                                   cursor: 'move',
@@ -549,10 +559,10 @@ export default function InputTable({
                     <TableCell sx={{ px: 0, ...getDiffBackground('parameters', parameter.id) }} align="right">
                       <Box
                         sx={{
-                          display: "flex",
-                          alignItems: "center",
+                          display: 'flex',
+                          alignItems: 'center',
                           gap: 1,
-                          justifyContent: "flex-end"
+                          justifyContent: 'flex-end',
                         }}>
                         {!idReferenced && (
                           <Button
@@ -584,9 +594,11 @@ export default function InputTable({
           />
         </Table>
       </Box>
-      <Stack direction="row" sx={{
-        mt: 1
-      }}>
+      <Stack
+        direction="row"
+        sx={{
+          mt: 1,
+        }}>
         {!readOnly && <AddInputButton assistant={assistant} data-testid="add-input-button" />}
       </Stack>
     </Box>
@@ -670,12 +682,16 @@ function SelectFromSource({
                 className="center"
                 sx={{
                   gap: 1,
-                  justifyContent: "flex-start"
+                  justifyContent: 'flex-start',
                 }}>
                 <Box>{fromTitle}</Box>
-                <Box component={Icon} icon={ChevronDownIcon} sx={{
-                  width: 15
-                }} />
+                <Box
+                  component={Icon}
+                  icon={ChevronDownIcon}
+                  sx={{
+                    width: 15,
+                  }}
+                />
               </Box>
             </Box>
           ),
@@ -706,9 +722,12 @@ function SelectFromSource({
                 }
               }}>
               {/* <ListItemIcon>{value}</ListItemIcon> */}
-              <Box sx={{
-                flex: 1
-              }}>{value}</Box>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
+                {value}
+              </Box>
               <Box sx={{ width: 40, textAlign: 'right' }}>
                 {key === currentKey && <Box component={Icon} icon={CheckIcon} />}
               </Box>
@@ -923,9 +942,12 @@ function SelectFromSourceDialog({
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <Stack sx={{
-          gap: 1.5
-        }}>{renderParameterSettings(parameter)}</Stack>
+        <Stack
+          sx={{
+            gap: 1.5,
+          }}>
+          {renderParameterSettings(parameter)}
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button
@@ -994,9 +1016,10 @@ function HistoryParameter({
 }) {
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'history') {
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <History projectId={projectId} gitRef={gitRef} value={value} parameter={parameter} />
       </Stack>
     );
@@ -1131,9 +1154,10 @@ function KnowledgeParameter({
     const unusedVariables = difference(splitVariables, keys);
 
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <Box>
           <Typography variant="subtitle2">{t('knowledge.menu')}</Typography>
 
@@ -1155,8 +1179,8 @@ function KnowledgeParameter({
                       p: 2,
                       py: 1,
                       pl: 1,
-                      lineHeight: "20px",
-                      color: "#9CA3AF"
+                      lineHeight: '20px',
+                      color: '#9CA3AF',
                     }}>
                     {params.group}
                   </Typography>
@@ -1187,9 +1211,10 @@ function KnowledgeParameter({
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-            <Stack sx={{
-              gap: 1
-            }}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}>
               {(parameters || [])?.map((data) => {
                 if (!data) return null;
 
@@ -1259,9 +1284,10 @@ function DatastoreParameter({
     );
 
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <Box>
           <Typography variant="subtitle2">{t('memory.title')}</Typography>
           <Box>
@@ -1343,9 +1369,10 @@ function SecretParameterView({ parameter }: { parameter: ParameterYjs }) {
 
   if (parameter.type === 'source' && parameter?.source?.variableFrom === 'secret') {
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <Box>
           <Typography variant="subtitle2">{t('name')}</Typography>
 
@@ -1401,9 +1428,10 @@ function AgentParameter({ value, parameter }: { value: AssistantYjs; parameter: 
     const { source } = parameter;
 
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <Box>
           <Typography variant="subtitle2">{t('chooseObject', { object: t('agent') })}</Typography>
 
@@ -1466,9 +1494,10 @@ function AgentParametersForm({
   if (!agent) return null;
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <AuthorizeButton agent={agent} />
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
@@ -1538,13 +1567,17 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
           gap: 0.5,
-          my: 0.5
+          my: 0.5,
         }}>
-        <Box component={Icon} icon={InfoCircleIcon} sx={{
-          color: "text.secondary"
-        }} />
+        <Box
+          component={Icon}
+          icon={InfoCircleIcon}
+          sx={{
+            color: 'text.secondary',
+          }}
+        />
 
         <Typography variant="caption" sx={{ flex: 1 }}>
           {t('authorizeApiKeyTip')}
@@ -1599,9 +1632,10 @@ function AuthorizeParametersFormDialog({
         {t('authorize')} - {agent.name}
       </DialogTitle>
       <DialogContent>
-        <Stack sx={{
-          gap: 1
-        }}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {authInputs?.map((item, index) => (
             <Stack key={item.id}>
               <Typography variant="caption">
@@ -1675,9 +1709,10 @@ function PopperButton({
             parameterSettingPopperState.close();
           }}>
           <Paper sx={{ p: 0, minWidth: 140, maxWidth: 320, maxHeight: '80vh', overflow: 'auto' }}>
-            <Stack sx={{
-              gap: 2
-            }}>
+            <Stack
+              sx={{
+                gap: 2,
+              }}>
               <List>
                 {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
                   <MenuItem onClick={() => (parameter.hidden = !parameter.hidden)}>
@@ -1750,9 +1785,10 @@ function APIParameter({
     const parameters = option && getAllParameters(option);
 
     return (
-      <Stack sx={{
-        gap: 2
-      }}>
+      <Stack
+        sx={{
+          gap: 2,
+        }}>
         <Box>
           <Typography variant="subtitle2">{t('chooseObject', { object: t('api') })}</Typography>
 
@@ -1780,9 +1816,11 @@ function APIParameter({
               return (
                 <MenuItem {...props} key={option.name}>
                   <Box>{option.name || t('unnamed')}</Box>
-                  <Typography variant="subtitle5" sx={{
-                    ml: 1
-                  }}>
+                  <Typography
+                    variant="subtitle5"
+                    sx={{
+                      ml: 1,
+                    }}>
                     {(option.id || '').split(':')?.[0]}
                   </Typography>
                 </MenuItem>
@@ -1794,9 +1832,10 @@ function APIParameter({
           <Box>
             <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-            <Stack sx={{
-              gap: 1.5
-            }}>
+            <Stack
+              sx={{
+                gap: 1.5,
+              }}>
               {(parameters || [])?.map((parameter) => {
                 if (!parameter.name) return null;
 
@@ -1824,9 +1863,11 @@ function APIParameter({
                             />
                           }
                           label={
-                            <Typography variant="caption" sx={{
-                              mb: 0.5
-                            }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                mb: 0.5,
+                              }}>
                               {getOpenApiTextFromI18n(parameter, 'description', locale) ||
                                 getOpenApiTextFromI18n(parameter, 'name', locale)}
                             </Typography>
@@ -1845,7 +1886,7 @@ function APIParameter({
                         mb: 0.5,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 0.5
+                        gap: 0.5,
                       }}>
                       <Typography variant="subtitle4">
                         {getOpenApiTextFromI18n(parameter, 'description', locale) ||
@@ -1937,7 +1978,7 @@ function OpenAPIObjectParameter({
     <Stack
       sx={{
         ml: 1,
-        gap: 1
+        gap: 1,
       }}>
       {Object.entries(parameter.properties || {}).map(([key, property]: [string, any]) => {
         return (
@@ -1947,7 +1988,7 @@ function OpenAPIObjectParameter({
                 mb: 0.5,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 0.5
+                gap: 0.5,
               }}>
               <Typography variant="subtitle5">{key}</Typography>
               <Typography variant="subtitle5">{`(${t(property?.type)})`}</Typography>
@@ -2014,16 +2055,16 @@ function OpenAPIArrayParameter({
     <Stack
       sx={{
         ml: 1,
-        gap: 1
+        gap: 1,
       }}>
       {(value || [])?.map((elementValue, index) => (
         <Stack key={index}>
           <Stack
             direction="row"
             sx={{
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 1
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
             }}>
             <Typography variant="subtitle5">
               {`[${t('arrayItem')}]`} ({t(type)})

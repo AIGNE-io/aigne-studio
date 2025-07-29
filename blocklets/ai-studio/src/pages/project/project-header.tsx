@@ -6,7 +6,7 @@ import CloseIcon from '@iconify-icons/material-symbols/close';
 import MenuIcon from '@iconify-icons/material-symbols/menu';
 import BookIcon from '@iconify-icons/tabler/book-2';
 import BrainIcon from '@iconify-icons/tabler/brain';
-import { Box, CircularProgress, Drawer, Hidden, IconButton, Stack, Theme, Typography } from '@mui/material';
+import { Box, CircularProgress, Drawer, IconButton, Stack, Theme, Typography } from '@mui/material';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Suspense, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams, useRoutes } from 'react-router-dom';
@@ -52,37 +52,46 @@ export default function ProjectHeader() {
       {
         value: 'prompts',
         label: t('agent'),
-        icon: <Box
-          data-testid="prompts"
-          component={AigneLogo}
-          sx={{
-            fontSize: 15,
-            mr: 1
-          }} />,
+        icon: (
+          <Box
+            data-testid="prompts"
+            component={AigneLogo}
+            sx={{
+              fontSize: 15,
+              mr: 1,
+            }}
+          />
+        ),
       },
       {
         value: 'knowledge',
         label: t('knowledge.menu'),
-        icon: <Box
-          data-testid="knowledge"
-          component={Icon}
-          icon={BookIcon}
-          sx={{
-            fontSize: 15,
-            mr: 1
-          }} />,
+        icon: (
+          <Box
+            data-testid="knowledge"
+            component={Icon}
+            icon={BookIcon}
+            sx={{
+              fontSize: 15,
+              mr: 1,
+            }}
+          />
+        ),
       },
       {
         value: 'variables',
         label: t('memory.title'),
-        icon: <Box
-          data-testid="memory"
-          component={Icon}
-          icon={BrainIcon}
-          sx={{
-            fontSize: 15,
-            mr: 1
-          }} />,
+        icon: (
+          <Box
+            data-testid="memory"
+            component={Icon}
+            icon={BrainIcon}
+            sx={{
+              fontSize: 15,
+              mr: 1,
+            }}
+          />
+        ),
       },
     ];
   }, [t]);
@@ -92,15 +101,15 @@ export default function ProjectHeader() {
       <Stack
         sx={{
           height: 1,
-          overflow: "hidden"
+          overflow: 'hidden',
         }}>
         <FontFamilyHelmet />
         <Box
           className="between"
           sx={{
             height: 64,
-            borderBottom: "1px solid #E5E7EB",
-            px: { xs: 2, md: 3 }
+            borderBottom: '1px solid #E5E7EB',
+            px: { xs: 2, md: 3 },
           }}>
           <Box
             sx={{
@@ -109,49 +118,43 @@ export default function ProjectHeader() {
               maxWidth: {
                 md: '33.3%',
                 xs: 'calc(100% - 64px)',
-              }
+              },
             }}>
             <ProjectBrand />
           </Box>
-
-          <Hidden mdDown>
-            <Box
-              sx={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "center"
-              }}>
-              <SegmentedControl
-                value={current}
-                options={options}
-                onChange={(value) => {
-                  if (value) navigate(joinURL('..', projectId || '', value));
-                }}
-              />
-            </Box>
-
-            <Box
-              sx={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "flex-end"
-              }}>
-              <ActionRoutes />
-            </Box>
-          </Hidden>
-          <Hidden mdUp>
-            <IconButton onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: -1.5 }}>
-              {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
-            </IconButton>
-          </Hidden>
+          <Box
+            sx={{
+              flex: 1,
+              display: { xs: 'none', md: 'flex' },
+              justifyContent: 'center',
+            }}>
+            <SegmentedControl
+              value={current}
+              options={options}
+              onChange={(value) => {
+                if (value) navigate(joinURL('..', projectId || '', value));
+              }}
+            />
+          </Box>
+          <Box
+            sx={{
+              flex: 1,
+              display: { xs: 'none', md: 'flex' },
+              justifyContent: 'flex-end',
+            }}>
+            <ActionRoutes />
+          </Box>
+          <IconButton onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: -1.5, display: { md: 'none' } }}>
+            {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
+          </IconButton>
         </Box>
 
         <Box
           sx={{
             flex: 1,
             height: 0,
-            overflow: "hidden",
-            bgcolor: "background.default"
+            overflow: 'hidden',
+            bgcolor: 'background.default',
           }}>
           <Suspense
             fallback={
@@ -160,7 +163,7 @@ export default function ProjectHeader() {
                 sx={{
                   flex: 1,
                   width: 1,
-                  height: 1
+                  height: 1,
                 }}>
                 <CircularProgress size={30} />
               </Box>
@@ -189,7 +192,7 @@ export default function ProjectHeader() {
                   bottom: 0,
                   boxShadow: 'none',
                 },
-              }
+              },
             }}>
             <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
               <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
@@ -202,7 +205,7 @@ export default function ProjectHeader() {
                         navigate(joinURL('..', projectId || '', option.value));
                       }}
                       sx={{
-                        justifyContent: "flex-start"
+                        justifyContent: 'flex-start',
                       }}>
                       <Box className="center">{option.icon}</Box>
                       <Typography
@@ -210,8 +213,8 @@ export default function ProjectHeader() {
                         sx={{
                           fontWeight: 500,
                           fontSize: 16,
-                          lineHeight: "28px",
-                          color: "#030712"
+                          lineHeight: '28px',
+                          color: '#030712',
                         }}>
                         {option.label}
                       </Typography>

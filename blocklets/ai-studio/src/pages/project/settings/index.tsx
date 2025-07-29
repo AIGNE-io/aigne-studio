@@ -220,12 +220,17 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   }
 
   const isMultiTenant = window.blocklet?.tenantMode === 'multiple';
+  const boxSx = boxProps?.sx ?? {};
+
   return (
     <Box
       {...boxProps}
-      sx={[{
-        overflow: "auto"
-      }, ...(Array.isArray(boxProps.sx) ? boxProps.sx : [boxProps.sx])]}>
+      sx={[
+        {
+          overflow: 'auto',
+        },
+        ...(Array.isArray(boxSx) ? boxSx : [boxSx]),
+      ]}>
       {onClose && !isMobile && (
         <Box
           sx={{
@@ -275,12 +280,14 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
               <Stack
                 sx={{
                   gap: 2,
-                  mt: 2
+                  mt: 2,
                 }}>
                 <Box>
-                  <Typography variant="subtitle2" sx={{
-                    mb: 0.5
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      mb: 0.5,
+                    }}>
                     {t('avatar')}
                   </Typography>
                   <Avatar
@@ -300,9 +307,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                 </Box>
 
                 <Box>
-                  <Typography variant="subtitle2" sx={{
-                    mb: 0.5
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      mb: 0.5,
+                    }}>
                     {t('projectSetting.name')}
                   </Typography>
 
@@ -316,15 +325,17 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       });
                     }}
                     slotProps={{
-                      input: { readOnly }
+                      input: { readOnly },
                     }}
                   />
                 </Box>
 
                 <Box>
-                  <Typography variant="subtitle2" sx={{
-                    mb: 0.5
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      mb: 0.5,
+                    }}>
                     {t('projectSetting.description')}
                   </Typography>
                   <TextField
@@ -339,7 +350,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       });
                     }}
                     slotProps={{
-                      input: { readOnly }
+                      input: { readOnly },
                     }}
                   />
                 </Box>
@@ -358,9 +369,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       okText: t('close'),
                     });
                   }}>
-                  <Typography variant="subtitle2" sx={{
-                    mb: 0.5
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      mb: 0.5,
+                    }}>
                     {t('projectSetting.readme')}
                   </Typography>
 
@@ -398,7 +411,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       rows={5}
                       hiddenLabel
                       slotProps={{
-                        input: { readOnly: true }
+                        input: { readOnly: true },
                       }}
                     />
                   )}
@@ -408,40 +421,46 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'modelInfo' && (
-            <Box sx={{
-              mt: 2
-            }}>
+            <Box
+              sx={{
+                mt: 2,
+              }}>
               <ModelSettings projectId={projectId} projectRef={projectRef} model={model} />
             </Box>
           )}
 
           {currentTabIndex === 'appearance' && (
-            <Box sx={{
-              mt: 2
-            }}>
+            <Box
+              sx={{
+                mt: 2,
+              }}>
               <AppearanceSetting />
             </Box>
           )}
 
           {currentTabIndex === 'git' && (
-            <Box sx={{
-              overflow: "auto"
-            }}>
+            <Box
+              sx={{
+                overflow: 'auto',
+              }}>
               <Form>
                 <Stack
                   sx={{
                     gap: 2,
-                    mt: 2
+                    mt: 2,
                   }}>
-                  <Stack sx={{
-                    gap: 2
-                  }}>
+                  <Stack
+                    sx={{
+                      gap: 2,
+                    }}>
                     <Box>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 0.5 }}>
                         {isMultiTenant && <PlanAlert>{t('upgradePrompts.git.desc')}</PlanAlert>}
-                        <Typography variant="subtitle2" sx={{
-                          mb: 0
-                        }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            mb: 0,
+                          }}>
                           {t('Git Version')}
                         </Typography>
                       </Box>
@@ -461,7 +480,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                                   <Box
                                     sx={{
                                       mt: 0.25,
-                                      ml: 0.5
+                                      ml: 0.5,
                                     }}>
                                     <Box className="title">{version.title}</Box>
                                     <Box className="subTitle">{version.subTitle}</Box>
@@ -493,9 +512,10 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'didSpaces' && (
-            <Box sx={{
-              mt: 2
-            }}>
+            <Box
+              sx={{
+                mt: 2,
+              }}>
               <Form>
                 <DidSpacesSetting projectId={projectId} />
               </Form>
@@ -503,9 +523,10 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'integrations' && (
-            <Box sx={{
-              mt: 2
-            }}>
+            <Box
+              sx={{
+                mt: 2,
+              }}>
               <IntegrationSetting />
             </Box>
           )}

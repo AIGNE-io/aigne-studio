@@ -34,9 +34,11 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
   return (
     <Stack>
       <Box className="between">
-        <Typography variant="subtitle2" sx={{
-          mb: 0.5
-        }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 0.5,
+          }}>
           {t('openingQuestion')}
         </Typography>
 
@@ -114,10 +116,12 @@ function EntryItemView({
   return (
     <Stack
       direction="row"
-      ref={drop}
+      ref={(v) => {
+        drop(v);
+      }}
       sx={{
         gap: 0.5,
-        alignItems: "center",
+        alignItems: 'center',
         borderRadius: 1,
         bgcolor: isDragging ? 'grey.200' : 'none',
 
@@ -127,19 +131,25 @@ function EntryItemView({
           '.hover-visible': {
             display: 'flex',
           },
-        }
+        },
       }}>
-      <Button ref={drag} sx={{ minWidth: 24, minHeight: 24, p: 0, cursor: 'move' }}>
+      <Button
+        ref={(v) => {
+          drag(v);
+        }}
+        sx={{ minWidth: 24, minHeight: 24, p: 0, cursor: 'move' }}>
         <DragVertical />
       </Button>
       <Typography
         noWrap
-        ref={preview}
+        ref={(v) => {
+          preview(v);
+        }}
         onClick={onClick}
         sx={{
           flex: 1,
           borderRadius: 1,
-          color: entry.title ? 'unset' : 'text.disabled'
+          color: entry.title ? 'unset' : 'text.disabled',
         }}>
         {entry.title || t('untitled')}
       </Typography>
@@ -148,7 +158,7 @@ function EntryItemView({
         className="hover-visible"
         sx={{
           gap: 0.5,
-          display: 'none'
+          display: 'none',
         }}>
         {onDelete && (
           <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onDelete}>
@@ -175,9 +185,10 @@ function PublishEntriesForm({
   );
 
   return (
-    <Stack sx={{
-      gap: 1
-    }}>
+    <Stack
+      sx={{
+        gap: 1,
+      }}>
       <TextField
         label={t('openingQuestion')}
         multiline

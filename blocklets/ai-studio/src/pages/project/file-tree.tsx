@@ -51,16 +51,7 @@ import {
 import { useLocalStorageState } from 'ahooks';
 import uniqBy from 'lodash/uniqBy';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
-import {
-  ReactNode,
-  SyntheticEvent,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type JSX,
-} from 'react';
+import { JSX, ReactNode, SyntheticEvent, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
 import { Balancer } from 'react-wrap-balancer';
@@ -115,17 +106,22 @@ export interface ImperativeFileTree {
 
 const DOUBLE_CLICK_RENAME_TIME_GAP = 200;
 
-const FileTree = (
-  {
-    ref,
-    projectId,
-    gitRef,
-    current,
-    mutable,
-    onLaunch,
-    ...props
-  }
-) => {
+const FileTree = ({
+  ref,
+  projectId,
+  gitRef,
+  current,
+  mutable,
+  onLaunch,
+  ...props
+}: {
+  ref: React.Ref<ImperativeFileTree>;
+  projectId: string;
+  gitRef: string;
+  current?: string;
+  mutable?: boolean;
+  onLaunch?: (assistant: AssistantYjs) => any;
+} & Omit<BoxProps, 'onClick' | 'ref'>) => {
   const theme = useTheme();
   const { t } = useLocaleContext();
   const navigate = useNavigate();
@@ -189,9 +185,10 @@ const FileTree = (
       maxWidth: 'sm',
       title: t('importObject', { object: t('agents') }),
       content: (
-        <Box sx={{
-          maxHeight: 500
-        }}>
+        <Box
+          sx={{
+            maxHeight: 500,
+          }}>
           <ImportFrom
             projectId={projectId}
             gitRef={gitRef}
@@ -331,17 +328,17 @@ const FileTree = (
         {dialog}
         <Stack
           sx={{
-            color: "text.disabled",
-            alignItems: "center",
+            color: 'text.disabled',
+            alignItems: 'center',
             my: 8.5,
-            gap: 3
+            gap: 3,
           }}>
           <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
           <Typography
             sx={{
               px: 2,
-              width: "100%",
-              textAlign: "center"
+              width: '100%',
+              textAlign: 'center',
             }}>
             <Balancer>{t('agentEmptySubTitle')}</Balancer>
           </Typography>
@@ -487,9 +484,12 @@ const FileTree = (
                       maxWidth: 'xs',
                       title: `${t('restore')}`,
                       content: (
-                        <Box sx={{
-                          maxHeight: 500
-                        }}>{t('restoreConform', { path: meta.name || t('alert.unnamed') })}</Box>
+                        <Box
+                          sx={{
+                            maxHeight: 500,
+                          }}>
+                          {t('restoreConform', { path: meta.name || t('alert.unnamed') })}
+                        </Box>
                       ),
                       onOk: () => {
                         const assistant = getOriginTemplate(meta);
@@ -595,12 +595,12 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
     <Stack
       direction="row"
       sx={{
-        alignItems: "center",
+        alignItems: 'center',
         px: 1,
         borderRadius: 1,
         minHeight: 28,
         maxWidth: 140,
-        bgcolor: 'action.selected'
+        bgcolor: 'action.selected',
       }}>
       <Box
         sx={{
@@ -780,13 +780,20 @@ function TreeItemMenus({
       onDeleteFile && (
         <MenuItem key="deleteFile" onClick={() => onDeleteFile(item)} data-testid="delete-file">
           <ListItemIcon>
-            <Box component={Icon} icon={TrashIcon} sx={{
-              color: "warning.main"
-            }} />
+            <Box
+              component={Icon}
+              icon={TrashIcon}
+              sx={{
+                color: 'warning.main',
+              }}
+            />
           </ListItemIcon>
-          <ListItemText primary={t('alert.delete')} slotProps={{
-            primary: { color: 'warning.main' }
-          }} />
+          <ListItemText
+            primary={t('alert.delete')}
+            slotProps={{
+              primary: { color: 'warning.main' },
+            }}
+          />
         </MenuItem>
       ),
     ],
@@ -929,18 +936,21 @@ function TreeItem({
         ref={ref}
         {...props}
         direction="row"
-        sx={[{
-          alignItems: "center",
-          gap: 0.5,
-          position: 'relative',
-          pl: depth * 2 + 1.5,
-          pr: 1.5,
-          py: 0.5,
-          flex: 1,
-          cursor: 'pointer',
-          overflow: 'hidden',
-          ...props.sx
-        }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+        sx={[
+          {
+            alignItems: 'center',
+            gap: 0.5,
+            position: 'relative',
+            pl: depth * 2 + 1.5,
+            pr: 1.5,
+            py: 0.5,
+            flex: 1,
+            cursor: 'pointer',
+            overflow: 'hidden',
+            ...props.sx,
+          },
+          ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+        ]}>
         <Box
           sx={{
             display: 'flex',
@@ -969,18 +979,18 @@ function TreeItem({
       </Stack>
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center"
+          display: 'flex',
+          alignItems: 'center',
         }}>
         {actions && (
           <Stack
             component="span"
             className="hover-visible"
             sx={{
-              justifyContent: "center",
-              alignItems: "flex-end",
-              overflow: "hidden",
-              maxWidth: open ? '100%' : 0
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              overflow: 'hidden',
+              maxWidth: open ? '100%' : 0,
             }}>
             <Tooltip
               open={open}
@@ -1011,9 +1021,13 @@ function TreeItem({
                 data-testid="tree-item-actions-button"
                 onClick={() => setOpen(true)}
                 sx={{ padding: 0.5, minWidth: 0, bgcolor: open ? 'action.hover' : undefined }}>
-                <Box component={Icon} icon={DotsVerticalIcon} sx={{
-                  fontSize: 16
-                }} />
+                <Box
+                  component={Icon}
+                  icon={DotsVerticalIcon}
+                  sx={{
+                    fontSize: 16,
+                  }}
+                />
               </Button>
             </Tooltip>
           </Stack>
@@ -1022,8 +1036,8 @@ function TreeItem({
         {otherActions && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center"
+              display: 'flex',
+              alignItems: 'center',
             }}>
             {otherActions}
           </Box>
@@ -1101,8 +1115,8 @@ function DeletedTemplates({
           noWrap
           sx={{
             flex: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis"
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>
           {t('diff.deleted')}
         </Typography>
@@ -1110,8 +1124,8 @@ function DeletedTemplates({
       <AccordionDetails sx={{ py: 1, px: 0 }}>
         <Box
           sx={{
-            maxHeight: "120px",
-            overflow: "auto"
+            maxHeight: '120px',
+            overflow: 'auto',
           }}>
           {list.map((item) => {
             const icon = <FileIcon assistant={item} />;

@@ -60,26 +60,28 @@ return {
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF'
+        bgcolor: '#EFF6FF',
       }}>
       <Box
         key={`${projectId}-${gitRef}-${value.id}`}
         sx={{
-          border: "1px solid #3B82F6",
+          border: '1px solid #3B82F6',
           borderRadius: 1,
-          bgcolor: "background.paper",
+          bgcolor: 'background.paper',
           minHeight: '300px',
 
           '.monaco-editor': {
-            borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-            borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+            borderRadius: 2,
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
             '.overflow-guard': {
-              borderBottomLeftRadius: (theme) => theme.shape.borderRadius * 2,
-              borderBottomRightRadius: (theme) => theme.shape.borderRadius * 2,
+              borderRadius: 2,
+              borderTopLeftRadius: 0,
+              borderTopRightRadius: 0,
               backgroundColor: getDiffBackground('code'),
             },
             backgroundColor: getDiffBackground('code'),
-          }
+          },
         }}>
         <CodeEditor
           keyId={`${projectId}-${gitRef}-${value.id}`}

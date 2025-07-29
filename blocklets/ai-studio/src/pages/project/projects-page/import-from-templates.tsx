@@ -55,10 +55,10 @@ export default function ImportFromTemplates({
         <DialogContent>
           <Stack
             sx={{
-              overflow: "auto",
-              flexWrap: "wrap",
-              m: "-6px",
-              flexDirection: "row"
+              overflow: 'auto',
+              flexWrap: 'wrap',
+              m: '-6px',
+              flexDirection: 'row',
             }}>
             {templates.map((x) => {
               const { name, description, createdAt, id, users, updatedAt } = x;
@@ -79,8 +79,8 @@ export default function ImportFromTemplates({
                       content: (
                         <Stack
                           sx={{
-                            overflow: "auto",
-                            gap: 1.5
+                            overflow: 'auto',
+                            gap: 1.5,
                           }}>
                           <Box>
                             <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
@@ -133,7 +133,7 @@ export default function ImportFromTemplates({
                     direction="row"
                     sx={{
                       gap: 1.5,
-                      alignItems: "center"
+                      alignItems: 'center',
                     }}>
                     <Box className="logo" sx={{ width: '72px', height: '72px' }}>
                       <Box
@@ -146,19 +146,19 @@ export default function ImportFromTemplates({
                     <Box
                       sx={{
                         flex: 1,
-                        alignSelf: "flex-start"
+                        alignSelf: 'flex-start',
                       }}>
                       <Box
                         sx={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center"
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
                         }}>
                         <Box
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
                           }}>
                           <Box className="name" sx={{ fontWeight: 600, fontSize: 18, lineHeight: '28px' }}>
                             {name || t('unnamed')}
@@ -176,23 +176,23 @@ export default function ImportFromTemplates({
                     sx={{
                       gap: 2,
                       height: 20,
-                      alignItems: "center",
-                      justifyContent: "space-between"
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}>
                     <Box
                       sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: 1
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: 1,
                       }}>
                       <Stack
                         direction="row"
                         sx={{
                           gap: 2,
-                          alignItems: "center",
+                          alignItems: 'center',
                           fontSize: '12px',
-                          color: 'text.disabled'
+                          color: 'text.disabled',
                         }}>
                         {/* @ts-ignore */}
                         {createdAt && <RelativeTime value={createdAt} locale={locale} />}
@@ -233,7 +233,7 @@ export default function ImportFromTemplates({
 const ProjectItemRoot = styled(Stack)`
   cursor: pointer;
   overflow: hidden;
-  padding: ${({ theme }) => theme.shape.borderRadius * 2}px;
+  padding: ${({ theme }) => (theme.shape.borderRadius as number) * 2}px;
   position: relative;
   border-width: 1px;
   border-style: solid;

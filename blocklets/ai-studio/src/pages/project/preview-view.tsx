@@ -31,7 +31,7 @@ import {
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import React, { ComponentProps, ReactNode, useCallback } from 'react';
+import React, { ComponentProps, ReactElement, ReactNode, useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -97,12 +97,15 @@ function SettingsDialog({ children }: { children?: ReactNode }) {
       onClose={onClose}
       disableEnforceFocus
       slotProps={{
-        paper: { sx: { maxWidth: 'none', height: '100%' } }
+        paper: { sx: { maxWidth: 'none', height: '100%' } },
       }}>
       <DialogTitle sx={{ display: 'flex' }}>
-        <Box sx={{
-          flex: 1
-        }}>{t('appearance')}</Box>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
+          {t('appearance')}
+        </Box>
 
         <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={onClose}>
           <Icon icon={CloseIcon} />
@@ -143,12 +146,15 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
     outputId ?? getOrAddOutputByName({ agent: agent!, outputName: RuntimeOutputVariable.appearancePage }).data.id;
 
   return (
-    <Stack direction="row" sx={{
-      height: "100%"
-    }}>
-      <Box sx={{
-        py: 2
+    <Stack
+      direction="row"
+      sx={{
+        height: '100%',
       }}>
+      <Box
+        sx={{
+          py: 2,
+        }}>
         <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3, pb: 2 }}>
           {agent?.name || t('unnamed')}
         </Box>
@@ -167,7 +173,7 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
       <Stack
         sx={{
           flex: 2,
-          height: "100%"
+          height: '100%',
         }}>
         {children}
       </Stack>
@@ -175,9 +181,9 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
         sx={{
           flex: 1,
           p: 2,
-          height: "100%",
+          height: '100%',
           overflow: 'auto',
-          overscrollBehavior: 'contain'
+          overscrollBehavior: 'contain',
         }}>
         {outputIdWithDefault && <AppearanceSettings agentId={agentId} outputId={outputIdWithDefault} />}
       </Box>
@@ -199,14 +205,16 @@ const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: Hove
       {React.Children.map(props.children, (child) => {
         if (!React.isValidElement(child)) return child;
 
-        return React.cloneElement(child, {
+        const childProps = child.props as TabProps;
+
+        return React.cloneElement<TabProps>(child as ReactElement<TabProps>, {
           ...TabProps,
-          onMouseEnter: () => onTabHover?.(child.props.value),
+          onMouseEnter: () => onTabHover?.(childProps.value),
           onMouseLeave: () => onTabMouseLeave?.(),
-          ...child.props,
+          ...childProps,
           sx: {
-            backgroundColor: hoveredTabId === child.props.value ? 'action.hover' : undefined,
-            ...child.props.sx,
+            backgroundColor: hoveredTabId === childProps.value ? 'action.hover' : undefined,
+            ...childProps.sx,
           },
         });
       })}

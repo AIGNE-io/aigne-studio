@@ -2,14 +2,12 @@ import { Icon } from '@iconify-icon/react';
 import { IconButton, InputAdornment, TextField, TextFieldProps } from '@mui/material';
 import { useState } from 'react';
 
-const PasswordField = (
-  {
-    ref,
-    ...props
-  }: TextFieldProps & {
-    ref: React.RefObject<HTMLDivElement | null>;
-  }
-) => {
+const PasswordField = ({
+  ref,
+  ...props
+}: TextFieldProps & {
+  ref: React.Ref<HTMLDivElement>;
+}) => {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -27,7 +25,7 @@ const PasswordField = (
             </InputAdornment>
           ),
           ...props.InputProps,
-        }
+        },
       }}
     />
   );

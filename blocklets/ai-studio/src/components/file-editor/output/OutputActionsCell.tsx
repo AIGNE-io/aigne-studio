@@ -79,7 +79,7 @@ export default function OutputActionsCell({
       direction="row"
       sx={{
         gap: 1,
-        justifyContent: "flex-end"
+        justifyContent: 'flex-end',
       }}>
       {v.type === 'object' && (
         <Button
@@ -158,23 +158,21 @@ export const createOutputSettingsState = ({ agentId, outputId }: { agentId: stri
   return OutputSettingsCache[key]!;
 };
 
-const PopperButton = (
-  {
-    ref,
-    depth,
-    assistant,
-    variables,
-    variable,
-    isSaveAs,
-    runtimeVariable,
-    output,
-    disabled,
-    onDelete,
-    children
-  }: PopperButtonProps & {
-    ref: React.RefObject<PopperButtonImperative | null>;
-  }
-) => {
+const PopperButton = ({
+  ref,
+  depth,
+  assistant,
+  variables,
+  variable,
+  isSaveAs,
+  runtimeVariable,
+  output,
+  disabled,
+  onDelete,
+  children,
+}: PopperButtonProps & {
+  ref?: React.Ref<PopperButtonImperative>;
+}) => {
   const { t } = useLocaleContext();
   const dialogState = createOutputSettingsState({ agentId: assistant.id, outputId: output.id })();
   const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
@@ -192,9 +190,11 @@ const PopperButton = (
     if (currentSetting === 'save') {
       return (
         <Box>
-          <Typography variant="subtitle2" sx={{
-            mb: 0
-          }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0,
+            }}>
             {t('memory.saveMemory')}
           </Typography>
           <Box>
@@ -294,9 +294,7 @@ const PopperButton = (
             children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
           }}
           PopperProps={{ placement: 'bottom-end' }}>
-          <MenuItem
-            disabled={Boolean(output.from?.type === 'output')}
-            onClick={() => (output.hidden = !output.hidden)}>
+          <MenuItem disabled={Boolean(output.from?.type === 'output')} onClick={() => (output.hidden = !output.hidden)}>
             {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
           </MenuItem>
 
@@ -354,9 +352,10 @@ const PopperButton = (
           </DialogTitle>
 
           <DialogContent>
-            <Stack sx={{
-              gap: 1
-            }}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}>
               {currentSetting !== 'save' && (
                 <>
                   <OutputActiveWhen agent={assistant} output={output} />
@@ -512,9 +511,10 @@ function AgentParametersForm({ agent, output }: { agent: AssistantYjs; output: O
   if (!tool) return null;
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <AuthorizeButton agent={tool} />
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>

@@ -10,22 +10,20 @@ export interface ImperativeColumnsLayout {
   expandRight: () => void;
 }
 
-const ColumnsLayout = (
-  {
-    ref,
-    onLeftCollapse,
-    onRightCollapse,
-    ...props
-  }: {
-    left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
-    onLeftCollapse?: (collapsed: boolean) => void;
-    onRightCollapse?: (collapsed: boolean) => void;
-  } & {
-    ref: React.RefObject<ImperativeColumnsLayout | null>;
-  }
-) => {
+const ColumnsLayout = ({
+  ref,
+  onLeftCollapse,
+  onRightCollapse,
+  ...props
+}: {
+  left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+  right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+  children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
+  onLeftCollapse?: (collapsed: boolean) => void;
+  onRightCollapse?: (collapsed: boolean) => void;
+} & {
+  ref: React.RefObject<ImperativeColumnsLayout | null>;
+}) => {
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
 
@@ -71,9 +69,9 @@ const ColumnsLayout = (
     return (
       <Box
         sx={{
-          height: "100%",
-          overflow: "auto",
-          bgcolor: "background.paper"
+          height: '100%',
+          overflow: 'auto',
+          bgcolor: 'background.paper',
         }}>
         {children}
         <Drawer
@@ -81,7 +79,7 @@ const ColumnsLayout = (
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
           onClose={() => setLeftDrawerOpen(false)}
           slotProps={{
-            paper: { sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+            paper: { sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } },
           }}>
           {left}
         </Drawer>
@@ -91,7 +89,7 @@ const ColumnsLayout = (
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
           onClose={() => setRightDrawerOpen(false)}
           slotProps={{
-            paper: { sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+            paper: { sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } },
           }}>
           {right}
         </Drawer>
@@ -102,8 +100,8 @@ const ColumnsLayout = (
   return (
     <Box
       sx={{
-        height: "100%",
-        bgcolor: "background.paper"
+        height: '100%',
+        bgcolor: 'background.paper',
       }}>
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         {left && (
@@ -173,7 +171,7 @@ function ResizeHandle({ collapsed, ...props }: { collapsed?: boolean } & BoxProp
   );
 }
 
-const ResizeHandleRoot = styled(Box)`
+const ResizeHandleRoot = styled(Box)<BoxProps>`
   width: 0;
   border-left: 1px solid ${({ theme }) => theme.palette.background.default};
   height: 100%;

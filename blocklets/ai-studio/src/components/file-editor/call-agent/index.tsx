@@ -32,7 +32,7 @@ import {
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ForwardedRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -67,7 +67,7 @@ export default function CallAgentEditor({
       <Stack
         sx={{
           gap: 1,
-          width: 1
+          width: 1,
         }}>
         <DragSortListYjs
           sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
@@ -104,8 +104,8 @@ export default function CallAgentEditor({
 
         <Box
           sx={{
-            display: "flex",
-            ml: -0.5
+            display: 'flex',
+            ml: -0.5,
           }}>
           <Button
             disabled={disabled}
@@ -180,24 +180,22 @@ export default function CallAgentEditor({
 export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
-export const ToolDialog = (
-  {
-    ref,
-    assistant,
-    projectId,
-    gitRef,
-    onSubmit,
-    DialogProps
-  }: {
-    projectId: string;
-    gitRef: string;
-    onSubmit: (value: ToolDialogForm) => any;
-    DialogProps?: DialogProps;
-    assistant: AssistantYjs;
-  } & {
-    ref: React.RefObject<ToolDialogImperative | null>;
-  }
-) => {
+export const ToolDialog = ({
+  ref,
+  assistant,
+  projectId,
+  gitRef,
+  onSubmit,
+  DialogProps,
+}: {
+  projectId: string;
+  gitRef: string;
+  onSubmit: (value: ToolDialogForm) => any;
+  DialogProps?: DialogProps;
+  assistant: AssistantYjs;
+} & {
+  ref: React.RefObject<ToolDialogImperative | null>;
+}) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -223,12 +221,14 @@ export const ToolDialog = (
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
       <DialogContent>
-        <Stack sx={{
-          gap: 2
-        }}>
-          <Stack sx={{
-            gap: 1
+        <Stack
+          sx={{
+            gap: 2,
           }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             <Controller
               name="id"
               control={form.control}
@@ -310,29 +310,27 @@ export const ToolDialog = (
   );
 };
 
-export const AgentItemView = (
-  {
-    ref,
-    projectId,
-    gitRef,
-    agent,
-    assistant,
-    readOnly,
-    onEdit,
-    CallAssistantIndex,
-    dragRef,
-    ...props
-  }: {
-    assistant: CallAssistantYjs;
-    projectId: string;
-    gitRef: string;
-    agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
-    readOnly?: boolean;
-    onEdit: () => void;
-    CallAssistantIndex?: number;
-    dragRef?: (el: HTMLElement | null) => void;
-  } & StackProps
-) => {
+export const AgentItemView = ({
+  ref,
+  projectId,
+  gitRef,
+  agent,
+  assistant,
+  readOnly,
+  onEdit,
+  CallAssistantIndex,
+  dragRef,
+  ...props
+}: {
+  assistant: CallAssistantYjs;
+  projectId: string;
+  gitRef: string;
+  agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
+  readOnly?: boolean;
+  onEdit: () => void;
+  CallAssistantIndex?: number;
+  dragRef?: (el: HTMLElement | null) => void;
+} & StackProps) => {
   const navigate = useNavigate();
 
   const { t } = useLocaleContext();
@@ -389,9 +387,10 @@ export const AgentItemView = (
         }}>
         <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
       </Box>
-      <Stack sx={{
-        width: 1
-      }}>
+      <Stack
+        sx={{
+          width: 1,
+        }}>
         <TextField
           onClick={(e) => e.stopPropagation()}
           hiddenLabel
@@ -423,7 +422,7 @@ export const AgentItemView = (
             input: { fontSize: '10px', color: 'text.disabled' },
           }}
           slotProps={{
-            input: { readOnly: true }
+            input: { readOnly: true },
           }}
         />
 
@@ -440,7 +439,7 @@ export const AgentItemView = (
             input: { fontSize: '10px', color: 'text.disabled' },
           }}
           slotProps={{
-            htmlInput: { readOnly: true }
+            htmlInput: { readOnly: true },
           }}
         />
 
@@ -449,14 +448,14 @@ export const AgentItemView = (
             <Stack
               direction="row"
               sx={{
-                justifyContent: "space-between",
-                alignItems: "center"
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}>
               <Typography
                 variant="subtitle5"
                 sx={{
-                  color: "text.secondary",
-                  mb: 0
+                  color: 'text.secondary',
+                  mb: 0,
                 }}>
                 {t('parameters')}
               </Typography>
@@ -465,9 +464,10 @@ export const AgentItemView = (
             </Stack>
           </Tooltip>
 
-          <Stack sx={{
-            gap: 1
-          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             {parameters?.map((parameter) => {
               if (!parameter?.key) return null;
               if (!isValidInput(parameter)) return null;
@@ -481,13 +481,15 @@ export const AgentItemView = (
                   }}>
                   <Stack
                     sx={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      mb: 0.5
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      mb: 0.5,
                     }}>
-                    <Typography variant="caption" sx={{
-                      mx: 1
-                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mx: 1,
+                      }}>
                       {parameter.label || parameter.key}
                     </Typography>
 
@@ -535,7 +537,7 @@ export const AgentItemView = (
           position: 'absolute',
           right: 10,
           top: 10,
-          display: 'none'
+          display: 'none',
         }}>
         <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
           <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />

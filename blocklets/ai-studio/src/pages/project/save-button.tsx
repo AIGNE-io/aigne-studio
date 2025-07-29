@@ -135,7 +135,7 @@ export function SaveButtonDialog({
   dialogState: PopupState;
   setGithubLoading: (data: any) => void;
   setDidSpaceLoading: (data: any) => void;
-  form: UseFormReturn<CommitForm, any, undefined>;
+  form: UseFormReturn<CommitForm, any, any>;
   dialogProps?: Omit<DialogProps, 'open'>;
   dialogContent?: any;
 }) {
@@ -238,7 +238,9 @@ export function SaveButtonDialog({
     }
   );
 
-  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>(undefined);
+  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>(
+    undefined
+  );
 
   useEffect(() => {
     saveButtonState.getState().setSaveHandler(async (options) => {
@@ -334,9 +336,10 @@ export function SaveButtonDialog({
         <DialogContent>
           {dialogContent || null}
 
-          <Stack sx={{
-            gap: 1
-          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             {!simpleMode && (
               <Box>
                 <Controller
@@ -428,8 +431,8 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
           <Stack
             direction="row"
             sx={{
-              alignItems: "center",
-              gap: 1
+              alignItems: 'center',
+              gap: 1,
             }}>
             <WarningRounded color="warning" fontSize="large" /> {t('mergeConflict')}
           </Stack>
@@ -439,21 +442,25 @@ export function useMergeConflictDialog({ projectId }: { projectId: string }) {
           <Stack
             sx={{
               gap: 0.25,
-              b: { color: 'warning.main', mx: 0.25 }
+              b: { color: 'warning.main', mx: 0.25 },
             }}>
             <Typography variant="subtitle2">{t('mergeConflictTip')}</Typography>
             <Box>
-              <Typography component="span" sx={{
-                fontWeight: "bold"
-              }}>
+              <Typography
+                component="span"
+                sx={{
+                  fontWeight: 'bold',
+                }}>
                 {t('useRemote')}:{' '}
               </Typography>
               <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useRemoteTip') }} />
             </Box>
             <Box>
-              <Typography component="span" sx={{
-                fontWeight: "bold"
-              }}>
+              <Typography
+                component="span"
+                sx={{
+                  fontWeight: 'bold',
+                }}>
                 {t('useLocal')}:{' '}
               </Typography>
               <Typography component="span" dangerouslySetInnerHTML={{ __html: t('useLocalTip') }} />
@@ -507,17 +514,20 @@ function GitSettingContent() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <Alert severity="warning" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {t('remoteGitRepoUnauthorizedTip')}
       </Alert>
       <>
         <Box>
-          <Typography variant="subtitle2" sx={{
-            mb: 0.5
-          }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0.5,
+            }}>
             {`${t('url')}*`}
           </Typography>
 
@@ -560,14 +570,17 @@ function GitSettingContent() {
             helperText={form.formState.errors.url?.message}
             slotProps={{
               htmlInput: { readOnly: true },
-              inputLabel: { shrink: form.watch('url') ? true : undefined }
-            }} />
+              inputLabel: { shrink: form.watch('url') ? true : undefined },
+            }}
+          />
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" sx={{
-            mb: 0.5
-          }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0.5,
+            }}>
             {t('username')}
           </Typography>
 
@@ -579,14 +592,17 @@ function GitSettingContent() {
             helperText={form.formState.errors.username?.message}
             slotProps={{
               htmlInput: { readOnly: true },
-              inputLabel: { shrink: form.watch('username') ? true : undefined }
-            }} />
+              inputLabel: { shrink: form.watch('username') ? true : undefined },
+            }}
+          />
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" sx={{
-            mb: 0.5
-          }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0.5,
+            }}>
             {t('accessToken')}
           </Typography>
 
@@ -622,8 +638,9 @@ function GitSettingContent() {
                 ),
               },
 
-              inputLabel: { shrink: form.watch('password') ? true : undefined }
-            }} />
+              inputLabel: { shrink: form.watch('password') ? true : undefined },
+            }}
+          />
         </Box>
       </>
     </Stack>
@@ -691,8 +708,8 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
           <Stack
             direction="row"
             sx={{
-              alignItems: "center",
-              gap: 1
+              alignItems: 'center',
+              gap: 1,
             }}>
             <WarningRounded color="warning" fontSize="large" /> {t('remoteGitRepoUnauthorized')}
           </Stack>

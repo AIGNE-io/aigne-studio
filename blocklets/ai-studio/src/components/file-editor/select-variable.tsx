@@ -77,7 +77,11 @@ function SelectVariable({
                     <Typography variant="subtitle2" mb={0} mr={0.5} mt={-0.25} fontWeight={400}>
                       {option.key}
                     </Typography>
-                    <Typography fontSize={11} color={(theme) => theme.palette.grey[400]}>
+                    <Typography
+                      fontSize={11}
+                      sx={{
+                        color: (theme) => theme.palette.grey[400],
+                      }}>
                       {t('variableParameter.tip', {
                         scope: t(`variableParameter.${option?.scope}`),
                         type: option?.type?.type ? map[option?.type?.type || ''] : '-',
@@ -119,7 +123,11 @@ function SelectVariable({
       {variable?.scope && (
         <Box>
           <Box>
-            <Typography fontSize={10} color={(theme) => theme.palette.grey[400]}>
+            <Typography
+              fontSize={10}
+              sx={{
+                color: (theme) => theme.palette.grey[400],
+              }}>
               {t('variableParameter.tip', {
                 scope: t(`variableParameter.${variable?.scope}`),
                 type: map[variable?.type?.type || ''],

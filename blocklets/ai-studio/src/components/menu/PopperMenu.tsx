@@ -18,22 +18,20 @@ export interface PopperMenuImperative {
   close: () => void;
 }
 
-const PopperMenu = (
-  {
-    ref,
-    children,
-    ButtonProps,
-    BoxProps,
-    PopperProps
-  }: {
-    children?: ReactNode;
-    ButtonProps?: ButtonProps;
-    BoxProps?: BoxProps;
-    PopperProps?: Partial<PopperProps>;
-  } & {
-    ref: React.RefObject<PopperMenuImperative | null>;
-  }
-) => {
+const PopperMenu = ({
+  ref,
+  children,
+  ButtonProps,
+  BoxProps,
+  PopperProps,
+}: {
+  children?: ReactNode;
+  ButtonProps?: ButtonProps;
+  BoxProps?: BoxProps;
+  PopperProps?: Partial<PopperProps>;
+} & {
+  ref?: React.Ref<PopperMenuImperative>;
+}) => {
   const state = usePopupState({ variant: 'popper' });
 
   useImperativeHandle(ref, () => ({ open: state.open, close: state.close }), [state]);

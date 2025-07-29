@@ -57,14 +57,12 @@ export function UploaderButton({
   );
 }
 
-const UploaderProvider = (
-  {
-    ref,
-    ...props
-  }: UploaderProviderProps & {
-    ref: React.RefObject<HTMLDivElement | null>;
-  }
-) => {
+const UploaderProvider = ({
+  ref,
+  ...props
+}: UploaderProviderProps & {
+  ref?: React.Ref<HTMLDivElement>;
+}) => {
   const {
     children,
     restrictions,

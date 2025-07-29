@@ -212,9 +212,11 @@ export function DragSortItemContainer({
   const { t } = useLocaleContext();
 
   return (
+    // @ts-ignore
     <Box ref={drop} {...props} sx={{ ':hover .hover-visible': { maxHeight: 'unset' }, ...props.sx }}>
       <Box sx={{ position: 'relative' }}>
         <Box
+          // @ts-ignore
           ref={preview}
           sx={{
             flex: 1,
@@ -253,6 +255,7 @@ export function DragSortItemContainer({
                 },
               }}>
               <Tooltip title={t('dragSort')} disableInteractive placement="top">
+                {/* @ts-ignore */}
                 <Button ref={drag}>
                   <Box component={Icon} icon={GripVerticalIcon} sx={{ color: 'grey.500' }} />
                 </Button>

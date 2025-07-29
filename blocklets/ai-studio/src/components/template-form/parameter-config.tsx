@@ -26,9 +26,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
   const stringValue = !value.type || value.type === 'string' ? (value as typeof value & { type: 'string' }) : undefined;
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <Box>
         <Typography variant="subtitle2">{t('name')}</Typography>
 
@@ -40,7 +41,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           value={value.label || ''}
           onChange={(e) => (value.label = e.target.value)}
           slotProps={{
-            input: { readOnly }
+            input: { readOnly },
           }}
         />
       </Box>
@@ -55,7 +56,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           value={value.placeholder || ''}
           onChange={(e) => (value.placeholder = e.target.value)}
           slotProps={{
-            input: { readOnly }
+            input: { readOnly },
           }}
         />
       </Box>
@@ -66,9 +67,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
               labelPlacement="start"
               label={
-                <Typography variant="subtitle2" sx={{
-                  my: 0
-                }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    my: 0,
+                  }}>
                   {t('multiple')}
                 </Typography>
               }
@@ -136,7 +139,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               value={value.buttonTitle || ''}
               onChange={(e) => (value.buttonTitle = e.target.value)}
               slotProps={{
-                input: { readOnly }
+                input: { readOnly },
               }}
             />
           </Box>
@@ -150,7 +153,7 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               value={value.buttonTitleVerified || ''}
               onChange={(e) => (value.buttonTitleVerified = e.target.value)}
               slotProps={{
-                input: { readOnly }
+                input: { readOnly },
               }}
             />
           </Box>
@@ -222,15 +225,16 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
       )}
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
         }}>
         {stringValue && (
           <>
-            <Box sx={{
-              flex: 1
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('minLength')}</Typography>
 
               <NumberField
@@ -247,9 +251,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               />
             </Box>
 
-            <Box sx={{
-              flex: 1
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('maxLength')}</Typography>
 
               <NumberField
@@ -270,9 +275,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
 
         {value.type === 'number' && (
           <>
-            <Box sx={{
-              flex: 1
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('min')}</Typography>
 
               <NumberField
@@ -287,9 +293,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 }}
               />
             </Box>
-            <Box sx={{
-              flex: 1
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('max')}</Typography>
 
               <NumberField
@@ -313,9 +320,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
             sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
             labelPlacement="start"
             label={
-              <Typography variant="subtitle2" sx={{
-                my: 0
-              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  my: 0,
+                }}>
                 {t('required')}
               </Typography>
             }

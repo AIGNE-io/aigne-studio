@@ -110,15 +110,15 @@ export default function ProjectsPage() {
   return (
     <Stack
       sx={{
-        minHeight: "100%",
-        overflow: "auto",
-        bgcolor: "#F9FAFB"
+        minHeight: '100%',
+        overflow: 'auto',
+        bgcolor: '#F9FAFB',
       }}>
       <Stack
         sx={{
           m: 2.5,
           flexGrow: 1,
-          gap: 2.5
+          gap: 2.5,
         }}>
         <ProjectMenu />
 
@@ -135,8 +135,8 @@ export default function ProjectsPage() {
             <Stack
               direction="row"
               sx={{
-                flexWrap: "wrap",
-                gap: 2.5
+                flexWrap: 'wrap',
+                gap: 2.5,
               }}>
               <ProjectItemSkeleton
                 width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
@@ -152,9 +152,9 @@ export default function ProjectsPage() {
           ) : (
             <Stack
               sx={{
-                alignItems: "center",
-                mt: "15%",
-                gap: 4
+                alignItems: 'center',
+                mt: '15%',
+                gap: 4,
               }}>
               <Typography variant="h4">{t('projectToGetStart')}</Typography>
               <ProjectsActionButton />
@@ -176,7 +176,7 @@ function ProjectsActionButton() {
       <Stack
         sx={{
           gap: 1,
-          flexDirection: "row"
+          flexDirection: 'row',
         }}>
         <ButtonPopper
           onClick={checkProjectLimit}
@@ -339,8 +339,8 @@ function ProjectMenu() {
               content: (
                 <Stack
                   sx={{
-                    overflow: "auto",
-                    gap: 2
+                    overflow: 'auto',
+                    gap: 2,
                   }}>
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
@@ -430,9 +430,15 @@ function ProjectMenu() {
         {
           dataTestId: 'projects-item-delete-button',
           visible: () => menuAnchor.section === 'projects',
-          icon: <Box component={Icon} icon={TrashIcon} sx={{
-            color: "warning.main"
-          }} />,
+          icon: (
+            <Box
+              component={Icon}
+              icon={TrashIcon}
+              sx={{
+                color: 'warning.main',
+              }}
+            />
+          ),
           title: t('delete'),
           color: 'warning.main',
           onClick: () => {
@@ -443,9 +449,15 @@ function ProjectMenu() {
         {
           dataTestId: 'projects-item-reset-button',
           visible: () => menuAnchor.section === 'examples' && !item.blockletDid && !!item.duplicateFrom,
-          icon: <Box component={Icon} icon={RefreshIcon} sx={{
-            color: "warning.main"
-          }} />,
+          icon: (
+            <Box
+              component={Icon}
+              icon={RefreshIcon}
+              sx={{
+                color: 'warning.main',
+              }}
+            />
+          ),
           title: t('reset'),
           color: 'warning.main',
           onClick: () => {
@@ -530,14 +542,15 @@ function Section({
   const [templatesVisible, setTemplatesVisible] = useState(true);
 
   return (
-    <Stack sx={{
-      gap: 1.5
-    }}>
+    <Stack
+      sx={{
+        gap: 1.5,
+      }}>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}>
         <Stack
           direction="row"
@@ -637,8 +650,8 @@ function ProjectList({
                     content: (
                       <Stack
                         sx={{
-                          overflow: "auto",
-                          gap: 2
+                          overflow: 'auto',
+                          gap: 2,
                         }}>
                         <TextField
                           autoFocus
@@ -749,9 +762,13 @@ function ProjectList({
                       e.stopPropagation();
                       setMenuAnchor({ section, anchor: e.currentTarget, id: item.id!, blockletDid: item.blockletDid });
                     }}>
-                    <Box component={Icon} icon={DotsVerticalIcon} sx={{
-                      fontSize: 20
-                    }} />
+                    <Box
+                      component={Icon}
+                      icon={DotsVerticalIcon}
+                      sx={{
+                        fontSize: 20,
+                      }}
+                    />
                   </IconButton>
                 )
               }
@@ -776,21 +793,23 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
         direction="row"
         sx={{
           gap: 1,
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: 2
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
         }}>
         <Skeleton width="100%" variant="text" height={28} />
       </Stack>
-      <Stack direction="row" sx={{
-        gap: 2
-      }}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: 2,
+        }}>
         <Skeleton variant="rectangular" width={64} height={64} />
 
         <Stack
           sx={{
             width: 0,
-            flex: 1
+            flex: 1,
           }}>
           <Skeleton width="100%" variant="text" height={28} />
           <Skeleton width="100%" variant="text" height={28} />
@@ -861,7 +880,7 @@ function ProjectItem({
         direction="row"
         sx={{
           gap: 1.5,
-          alignItems: "center"
+          alignItems: 'center',
         }}>
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
           <Box component="img" alt="" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
@@ -871,21 +890,21 @@ function ProjectItem({
           sx={{
             flex: 1,
             width: 0,
-            alignSelf: "flex-start"
+            alignSelf: 'flex-start',
           }}>
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center"
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 gap: 0.5,
                 flex: 1,
-                width: 0
+                width: 0,
               }}>
               <Box className="name" sx={{ fontWeight: 600, fontSize: 18, lineHeight: '28px' }}>
                 {name || t('unnamed')}
@@ -904,7 +923,7 @@ function ProjectItem({
               className="center"
               sx={{
                 ml: 1,
-                width: 24
+                width: 24,
               }}>
               <Box className="action">{actions}</Box>
             </Box>
@@ -926,23 +945,23 @@ function ProjectItem({
         sx={{
           gap: 2,
           height: 20,
-          alignItems: "center",
-          justifyContent: "space-between"
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            width: 1
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: 1,
           }}>
           <Stack
             direction="row"
             sx={{
               gap: 2,
-              alignItems: "center",
+              alignItems: 'center',
               fontSize: '12px',
-              color: 'text.disabled'
+              color: 'text.disabled',
             }}>
             {/* @ts-ignore */}
             {createdAt && <RelativeTime value={createdAt} locale={locale} />}
@@ -958,12 +977,16 @@ function ProjectItem({
                     e.stopPropagation();
                   }}
                   sx={{
-                    display: "inline-flex",
-                    alignItems: "center"
+                    display: 'inline-flex',
+                    alignItems: 'center',
                   }}>
-                  <Box component={Icon} icon={BrandGithubFilledIcon} sx={{
-                    fontSize: 16
-                  }} />
+                  <Box
+                    component={Icon}
+                    icon={BrandGithubFilledIcon}
+                    sx={{
+                      fontSize: 16,
+                    }}
+                  />
                 </Box>
               </Tooltip>
             )}
@@ -979,9 +1002,9 @@ function ProjectItem({
                     e.stopPropagation();
                   }}
                   sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    ml: projectDataUrlInSpace ? -1.5 : 'inherit'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    ml: projectDataUrlInSpace ? -1.5 : 'inherit',
                   }}>
                   <DidSpacesLogo sx={{ fontSize: 16 }} />
                 </Box>
@@ -1013,15 +1036,15 @@ function ProjectItem({
       {loading && (
         <Box
           sx={{
-            position: "absolute",
+            position: 'absolute',
             top: 0,
             bottom: 0,
             left: 0,
             right: 0,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: (theme) => theme.zIndex.tooltip
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: (theme) => theme.zIndex.tooltip,
           }}>
           <CircularProgress size={16} />
         </Box>
@@ -1034,7 +1057,7 @@ const ProjectItemRoot = styled(Stack)`
   width: 100%;
   cursor: pointer;
   overflow: hidden;
-  padding: ${({ theme }) => theme.shape.borderRadius * 2}px;
+  padding: ${({ theme }) => (theme.shape.borderRadius as number) * 2}px;
   position: relative;
   border-width: 1px;
   border-style: solid;
@@ -1109,8 +1132,8 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
           flex: 1,
           width: 16,
           height: 16,
-          textAlign: "right",
-          ml: 1
+          textAlign: 'right',
+          ml: 1,
         }}>
         {loading && <CircularProgress size={16} />}
       </Box>
