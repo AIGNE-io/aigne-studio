@@ -21,7 +21,7 @@ export const Typescript: Story = {
       <Box
         sx={{
           width: 1,
-          height: 1000
+          height: 1000,
         }}>
         <CodeEditor
           keyId="typescript"
@@ -44,7 +44,7 @@ export const Javascript: Story = {
       <Box
         sx={{
           width: 1,
-          height: 1000
+          height: 1000,
         }}>
         <CodeEditor
           keyId="javascript"
@@ -67,7 +67,7 @@ export const HTML: Story = {
       <Box
         sx={{
           width: 1,
-          height: 1000
+          height: 1000,
         }}>
         <CodeEditor
           keyId="html"
@@ -99,7 +99,7 @@ export const CSS: Story = {
       <Box
         sx={{
           width: 1,
-          height: 1000
+          height: 1000,
         }}>
         <CodeEditor
           keyId="css"

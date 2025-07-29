@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import Editor from '@monaco-editor/react';
+import Editor, { EditorProps } from '@monaco-editor/react';
 
-function TestCodeEditor({ language = 'javascript', ...props }: any) {
-  return <Editor language={language} {...props} />;
+// Editor 类型与 ReactComponent 不兼容
+const MonacoEditor = Editor as unknown as React.ComponentType<EditorProps>;
+
+function TestCodeEditor({ language = 'javascript', ...props }: EditorProps) {
+  return <MonacoEditor language={language} {...props} />;
 }
 
 export default TestCodeEditor;

@@ -12,7 +12,7 @@ import CloudUploadIcon from '@iconify-icons/tabler/cloud-upload';
 import SettingIcon from '@iconify-icons/tabler/settings';
 import XIcon from '@iconify-icons/tabler/x';
 import XBoxIcon from '@iconify-icons/tabler/xbox-x';
-import Editor, { Monaco } from '@monaco-editor/react';
+import Editor, { EditorProps, Monaco } from '@monaco-editor/react';
 import {
   Box,
   BoxProps,
@@ -102,30 +102,30 @@ const useGlobalEditorSettings = () => {
   });
 };
 
-const CodeEditor = (
-  {
-    ref,
-    keyId,
-    readOnly,
-    maxHeight,
-    locale = 'en',
+type MonacoEditor = React.ComponentType<EditorProps>;
 
-    fullScreenOptions = {
-      enableEscExit: true,
-      targetContainer: null,
-    },
+const CodeEditor = ({
+  ref,
+  keyId,
+  readOnly,
+  maxHeight,
+  locale = 'en',
 
-    ...props
-  }: {
-    keyId: string;
-    readOnly?: boolean;
-    maxHeight?: number;
-    locale: string;
-    typeScriptNoValidation?: boolean;
-    onUpload?: (callback: (url: string) => void) => void;
-    fullScreenOptions?: FullScreenOptions;
-  } & BoxProps<typeof Editor>
-) => {
+  fullScreenOptions = {
+    enableEscExit: true,
+    targetContainer: null,
+  },
+
+  ...props
+}: {
+  keyId: string;
+  readOnly?: boolean;
+  maxHeight?: number;
+  locale: string;
+  typeScriptNoValidation?: boolean;
+  onUpload?: (callback: (url: string) => void) => void;
+  fullScreenOptions?: FullScreenOptions;
+} & BoxProps<MonacoEditor>) => {
   const statusRef = useRef<HTMLElement>(null);
   const dialogState = usePopupState({ variant: 'dialog' });
 
@@ -259,11 +259,11 @@ const CodeEditor = (
             sx={{
               flex: 1,
               height: 0,
-              p: 1
+              p: 1,
             }}>
             <Box
               className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
-              component={Editor}
+              component={Editor as unknown as MonacoEditor}
               {...props}
               onChange={onCodeChange}
               sx={{
@@ -338,8 +338,8 @@ const CodeEditor = (
                     <Box
                       sx={{
                         maxHeight: 200,
-                        overflow: "auto",
-                        whiteSpace: 'pre-wrap'
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap',
                       }}>
                       {codeSyntaxError}
                     </Box>
@@ -507,23 +507,23 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
         width: 1,
         height: 1,
         overflow: 'hidden',
-        boxSize: 'border-box'
+        boxSize: 'border-box',
       }}>
       <Box
         className="between"
         sx={{
-          whiteSpace: "nowrap",
-          gap: 2
+          whiteSpace: 'nowrap',
+          gap: 2,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 0.5,
             minHeight: 32,
             width: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis"
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{t('editor')}</Box>
         </Box>
@@ -534,16 +534,16 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
           flex: 1,
           gap: 1,
           borderRadius: 1,
-          bgcolor: '#EFF6FF'
+          bgcolor: '#EFF6FF',
         }}>
         <Box
           sx={{
-            border: "1px solid #3B82F6",
+            border: '1px solid #3B82F6',
             borderRadius: 1,
-            bgcolor: "background.paper",
+            bgcolor: 'background.paper',
             width: 1,
             height: 1,
-            zIndex: (theme) => theme.zIndex.tooltip
+            zIndex: (theme) => theme.zIndex.tooltip,
           }}>
           {children}
         </Box>
