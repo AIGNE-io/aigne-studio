@@ -78,7 +78,7 @@ export default function TagsAutoComplete({
                   {params.InputProps.endAdornment}
                 </>
               ),
-            }
+            },
           }}
         />
       )}

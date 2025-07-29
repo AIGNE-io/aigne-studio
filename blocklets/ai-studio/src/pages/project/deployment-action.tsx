@@ -119,15 +119,17 @@ export default function DeploymentAction() {
         hideBackdrop
         sx={{ mt: '65px' }}
         slotProps={{
-          paper: { elevation: 0 }
+          paper: { elevation: 0 },
         }}>
         <DialogContent sx={{ px: '0 !important' }}>
-          <Stack sx={{
-            gap: 2
-          }}>
-            <Box sx={{
-              px: 1
+          <Stack
+            sx={{
+              gap: 2,
             }}>
+            <Box
+              sx={{
+                px: 1,
+              }}>
               <Button
                 sx={{ p: 0 }}
                 onClick={deploymentDialogState.close}
@@ -204,15 +206,19 @@ function DeployApp({
   return (
     <Box sx={sx} data-testid="create-deploy-popper">
       {dialog}
-      <Box sx={{
-        p: 3
-      }}>
-        <Stack sx={{
-          gap: 0.75
+      <Box
+        sx={{
+          p: 3,
         }}>
-          <Box component="h3" sx={{
-            m: 0
+        <Stack
+          sx={{
+            gap: 0.75,
           }}>
+          <Box
+            component="h3"
+            sx={{
+              m: 0,
+            }}>
             {t('deployments.title')}
           </Box>
           <Typography variant="caption">{t('deployments.deployDescription')}</Typography>
@@ -221,11 +227,12 @@ function DeployApp({
       <Box
         sx={{
           p: 3,
-          pt: 0
+          pt: 0,
         }}>
-        <Stack sx={{
-          gap: 1
-        }}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           <Typography variant="body1">{t('deployments.visibility')}</Typography>
 
           <Card sx={{ width: 1, boxShadow: 0 }}>
@@ -240,15 +247,17 @@ function DeployApp({
                       <Box
                         data-testid="public-visibility-label"
                         sx={{
-                          display: "flex",
-                          alignItems: "center"
+                          display: 'flex',
+                          alignItems: 'center',
                         }}>
                         <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('public')}</Typography>
-                          <Typography variant="body2" sx={{
-                            color: "text.secondary"
-                          }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                            }}>
                             {t('deployments.publicDescription')}
                           </Typography>
                         </Box>
@@ -264,15 +273,17 @@ function DeployApp({
                       <Box
                         data-testid="private-visibility-label"
                         sx={{
-                          display: "flex",
-                          alignItems: "center"
+                          display: 'flex',
+                          alignItems: 'center',
                         }}>
                         <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('private')}</Typography>
-                          <Typography variant="body2" sx={{
-                            color: "text.secondary"
-                          }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                            }}>
                             {t('deployments.privateDescription')}
                           </Typography>
                         </Box>
@@ -289,18 +300,18 @@ function DeployApp({
       <Stack
         sx={{
           p: 3,
-          pt: 0
+          pt: 0,
         }}>
         <Stack
           sx={{
-            flexDirection: "row",
-            justifyContent: "space-between"
+            flexDirection: 'row',
+            justifyContent: 'space-between',
           }}>
           <Box
             sx={{
-              display: "flex",
+              display: 'flex',
               gap: 1,
-              alignItems: "center"
+              alignItems: 'center',
             }}>
             <PublishButton />
           </Box>
@@ -341,12 +352,15 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
   return (
     <Stack sx={sx} data-testid="update-deploy-dialog">
       {dialog}
-      <Box sx={{
-        px: 3
-      }}>
-        <Box component="h3" sx={{
-          m: 0
+      <Box
+        sx={{
+          px: 3,
         }}>
+        <Box
+          component="h3"
+          sx={{
+            m: 0,
+          }}>
           {t('deployments.updateApp')}
         </Box>
 
@@ -355,7 +369,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
       <Stack
         sx={{
           px: 3,
-          gap: 0.5
+          gap: 0.5,
         }}>
         <Typography variant="subtitle1">{t('deployments.visibility')}</Typography>
 
@@ -371,15 +385,17 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                     <Box
                       data-testid="public-visibility-label"
                       sx={{
-                        display: "flex",
-                        alignItems: "center"
+                        display: 'flex',
+                        alignItems: 'center',
                       }}>
                       <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('public')}</Typography>
-                        <Typography variant="body2" sx={{
-                          color: "text.secondary"
-                        }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'text.secondary',
+                          }}>
                           {t('deployments.publicDescription')}
                         </Typography>
                       </Box>
@@ -395,15 +411,17 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                     <Box
                       data-testid="private-visibility-label"
                       sx={{
-                        display: "flex",
-                        alignItems: "center"
+                        display: 'flex',
+                        alignItems: 'center',
                       }}>
                       <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('private')}</Typography>
-                        <Typography variant="body2" sx={{
-                          color: "text.secondary"
-                        }}>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'text.secondary',
+                          }}>
                           {t('deployments.privateDescription')}
                         </Typography>
                       </Box>
@@ -415,9 +433,11 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           </CardContent>
 
           {!isAdmin && (
-            <Typography variant="caption" sx={{
-              mt: 2
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 2,
+              }}>
               {t('deployments.toEnablePrivateProjects')}
               <Box
                 component="a"
@@ -433,7 +453,7 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
       <Stack
         sx={{
           px: 3,
-          gap: 0.5
+          gap: 0.5,
         }}>
         <Typography variant="subtitle1">{t('deployments.currentDeployment')}</Typography>
 
@@ -505,18 +525,18 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
       <Box
         sx={{
           px: 3,
-          pt: 0
+          pt: 0,
         }}>
         <Stack
           sx={{
-            flexDirection: "row",
-            justifyContent: "space-between"
+            flexDirection: 'row',
+            justifyContent: 'space-between',
           }}>
           <Box
             sx={{
-              display: "flex",
+              display: 'flex',
               gap: 1,
-              alignItems: "center"
+              alignItems: 'center',
             }}>
             <PublishButton />
           </Box>

@@ -37,9 +37,10 @@ export default function WithAwareness({
   }, [onMount, path.join('.')]);
 
   return (
-    <Box sx={{
-      position: "relative"
-    }}>
+    <Box
+      sx={{
+        position: 'relative',
+      }}>
       {cloneElement(children, {
         onFocus: (e: any) => {
           setState();

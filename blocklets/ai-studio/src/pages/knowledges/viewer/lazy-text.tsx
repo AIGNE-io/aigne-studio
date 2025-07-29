@@ -13,7 +13,7 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
         className="center"
         sx={{
           width: 1,
-          height: 1
+          height: 1,
         }}>
         <CircularProgress />
       </Box>
@@ -26,7 +26,7 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
     <Box
       sx={{
         height: 1,
-        overflow: "auto"
+        overflow: 'auto',
       }}>
       <CodeMirror value={String(data)} editable={false} height="100%" />
     </Box>

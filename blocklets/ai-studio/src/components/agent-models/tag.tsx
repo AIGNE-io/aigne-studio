@@ -39,9 +39,13 @@ export function TagFilter({ value, onChange, prepend, tags }: TagFilterProps) {
     onChange(tag);
   };
   return (
-    <Stack direction="row" useFlexGap spacing={1} sx={{
-      flexWrap: "wrap"
-    }}>
+    <Stack
+      direction="row"
+      useFlexGap
+      spacing={1}
+      sx={{
+        flexWrap: 'wrap',
+      }}>
       {prepend}
       {tags.map((tag) => (
         <Tag key={tag} label={tag} selected={value === tag} onClick={() => handleTagClick(tag)} />

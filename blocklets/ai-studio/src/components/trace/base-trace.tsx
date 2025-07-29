@@ -24,11 +24,11 @@ export function JsonDisplay({ children }: { children: ReactNode }) {
       sx={{
         mb: 1,
         maxHeight: 250,
-        overflow: "auto",
-        bgcolor: "grey.50",
-        whiteSpace: "pre-wrap",
+        overflow: 'auto',
+        bgcolor: 'grey.50',
+        whiteSpace: 'pre-wrap',
         borderRadius: 1,
-        px: 1
+        px: 1,
       }}>
       {children}
     </Box>

@@ -61,26 +61,24 @@ interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
-const ToolDialog = (
-  {
-    ref,
-    assistant,
-    projectId,
-    gitRef,
-    onSubmit,
-    DialogProps,
-    openApis
-  }: {
-    projectId: string;
-    gitRef: string;
-    onSubmit: (value: ToolDialogForm) => any;
-    DialogProps?: DialogProps;
-    assistant: RouterAssistantYjs;
-    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  } & {
-    ref: React.RefObject<ToolDialogImperative | null>;
-  }
-) => {
+const ToolDialog = ({
+  ref,
+  assistant,
+  projectId,
+  gitRef,
+  onSubmit,
+  DialogProps,
+  openApis,
+}: {
+  projectId: string;
+  gitRef: string;
+  onSubmit: (value: ToolDialogForm) => any;
+  DialogProps?: DialogProps;
+  assistant: RouterAssistantYjs;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+} & {
+  ref: React.RefObject<ToolDialogImperative | null>;
+}) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -122,12 +120,14 @@ const ToolDialog = (
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
       <DialogContent>
-        <Stack sx={{
-          gap: 2
-        }}>
-          <Stack sx={{
-            gap: 1
+        <Stack
+          sx={{
+            gap: 2,
           }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             <Controller
               name="id"
               control={form.control}
@@ -302,23 +302,24 @@ const AgentParameters = ({
   }, [target]);
 
   return (
-    <Stack sx={{
-      gap: 1
-    }}>
+    <Stack
+      sx={{
+        gap: 1,
+      }}>
       {!!parameters?.length && (
         <Box>
           <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
             <Stack
               direction="row"
               sx={{
-                justifyContent: "space-between",
-                alignItems: "center"
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}>
               <Typography
                 variant="subtitle2"
                 sx={{
-                  color: "text.secondary",
-                  mb: 0
+                  color: 'text.secondary',
+                  mb: 0,
                 }}>
                 {t('parameters')}
               </Typography>
@@ -367,9 +368,11 @@ const AgentParameters = ({
 
         return (
           <Stack key={parameter.id}>
-            <Typography variant="caption" sx={{
-              mx: 1
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                mx: 1,
+              }}>
               {parameter.label || parameter.key}
             </Typography>
             <Controller

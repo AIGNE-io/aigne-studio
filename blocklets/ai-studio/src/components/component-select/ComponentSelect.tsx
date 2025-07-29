@@ -199,7 +199,7 @@ export default function ComponentSelect({
           size={{
             xs: 12,
             sm: 6,
-            md: 4
+            md: 4,
           }}>
           <ComponentSelectItem output={output} customComponent={i} />
         </Grid>
@@ -209,7 +209,7 @@ export default function ComponentSelect({
           size={12}
           sx={{
             py: 4,
-            textAlign: "center"
+            textAlign: 'center',
           }}>
           <CircularProgress size={24} />
         </Grid>
@@ -273,7 +273,7 @@ function ComponentSelectItem({
           // @ts-ignore React types doesn't support inert attribute https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/inert
           inert="ignore"
           sx={{
-            p: 1
+            p: 1,
           }}>
           <ComponentPreviewImagePreviewer customComponent={customComponent} />
         </Box>
@@ -317,16 +317,16 @@ function ComponentPreviewImagePreviewer({
   return (
     <Box
       sx={{
-        position: "relative",
-        paddingBottom: "100%"
+        position: 'relative',
+        paddingBottom: '100%',
       }}>
       <Box
         sx={{
-          position: "absolute",
+          position: 'absolute',
           left: 0,
           top: 0,
           right: 0,
-          bottom: 0
+          bottom: 0,
         }}>
         {previewImage ? (
           <Box

@@ -32,8 +32,8 @@ export default function CommitSelect({
   return (
     <Box
       sx={{
-        height: "50vh",
-        overflow: "auto"
+        height: '50vh',
+        overflow: 'auto',
       }}>
       <Box sx={{ mb: 2, position: 'sticky', top: 0, pt: 1, zIndex: 1, bgcolor: 'background.paper' }}>
         <FormControl fullWidth>

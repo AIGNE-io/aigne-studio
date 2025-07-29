@@ -91,9 +91,10 @@ function ImportWayItem({
         icon={ArrowRightAltRoundedIcon}
         className="other-item-icon"
         sx={{
-          fontSize: "1.3rem",
-          color: "rgba(19, 125, 250, 1)"
-        }} />
+          fontSize: '1.3rem',
+          color: 'rgba(19, 125, 250, 1)',
+        }}
+      />
     </Box>
   );
 }
@@ -178,8 +179,8 @@ export function SelectDidSpacesImportWay({ onClose = () => undefined }: { onClos
       <DialogContent>
         <Stack
           sx={{
-            overflow: "auto",
-            gap: 1.5
+            overflow: 'auto',
+            gap: 1.5,
           }}>
           {hasDidSpace && (
             <ImportWayItem
@@ -323,9 +324,10 @@ export default function FromDidSpacesImport() {
         </DialogTitle>
 
         <DialogContent>
-          <Stack sx={{
-            gap: 2
-          }}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Box>
               <Typography variant="subtitle2">{t('projectSetting.selectProject')}</Typography>
               <TextField
@@ -372,7 +374,7 @@ export default function FromDidSpacesImport() {
                   input: {
                     readOnly: true,
                     onFocus: (e) => (e.currentTarget.readOnly = false),
-                  }
+                  },
                 }}
               />
             </Box>

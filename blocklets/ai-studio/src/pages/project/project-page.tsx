@@ -161,9 +161,11 @@ function ProjectPageView() {
             <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
-              <Box sx={{
-                flex: 1
-              }} />
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              />
 
               {project?.homePageUrl && (
                 <Button
@@ -176,8 +178,9 @@ function ProjectPageView() {
                     icon={PlayerPlayIcon}
                     sx={{
                       fontSize: 20,
-                      color: "#3B82F6"
-                    }} />
+                      color: '#3B82F6',
+                    }}
+                  />
                 </Button>
               )}
 
@@ -193,8 +196,9 @@ function ProjectPageView() {
                       icon={TableImportIcon}
                       sx={{
                         fontSize: 20,
-                        color: "#3B82F6"
-                      }} />
+                        color: '#3B82F6',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -214,8 +218,9 @@ function ProjectPageView() {
                       icon={FolderPlusIcon}
                       sx={{
                         fontSize: 20,
-                        color: "#3B82F6"
-                      }} />
+                        color: '#3B82F6',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -239,8 +244,9 @@ function ProjectPageView() {
                       icon={PlusIcon}
                       sx={{
                         fontSize: 20,
-                        color: "#3B82F6"
-                      }} />
+                        color: '#3B82F6',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -316,7 +322,7 @@ function ProjectPageView() {
                   },
                 }}
                 slotProps={{
-                  indicator: { children: <Box component="span" /> }
+                  indicator: { children: <Box component="span" /> },
                 }}>
                 <Tab value="preview" label={t('preview')} data-testid="debug-preview-view" />
                 <Tab value="debug" label={t('debug')} data-testid="debug-view-debug" />
@@ -324,9 +330,11 @@ function ProjectPageView() {
                 <Tab value="discuss" label={t('discuss')} data-testid="debug-view-collaboration" />
               </Tabs>
 
-              <Box sx={{
-                flex: 1
-              }} />
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              />
 
               <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
             </Box>
@@ -366,9 +374,11 @@ function ProjectPageView() {
                   />
                 )}
 
-                <Box sx={{
-                  flex: 1
-                }} />
+                <Box
+                  sx={{
+                    flex: 1,
+                  }}
+                />
 
                 {!rightOpen && (
                   <PanelToggleButton
@@ -381,9 +391,10 @@ function ProjectPageView() {
             )}
           </Box>
 
-          <Box sx={{
-            flexGrow: 1
-          }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+            }}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -419,8 +430,9 @@ function PanelToggleButton({
           icon={placement === 'left' ? SidebarLeft : SidebarRight}
           sx={{
             fontSize: 20,
-            color: "#3B82F6"
-          }} />
+            color: '#3B82F6',
+          }}
+        />
       </Button>
     </Tooltip>
   );
@@ -432,17 +444,17 @@ function EmptyView() {
   return (
     <Stack
       sx={{
-        color: "text.disabled",
-        alignItems: "center",
+        color: 'text.disabled',
+        alignItems: 'center',
         my: 13,
-        gap: 3
+        gap: 3,
       }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
       <Typography
         sx={{
           px: 2,
-          width: "100%",
-          textAlign: "center"
+          width: '100%',
+          textAlign: 'center',
         }}>
         <Balancer>{t('notOpenFile')}</Balancer>
       </Typography>
@@ -456,17 +468,17 @@ function DebugEmptyView() {
   return (
     <Stack
       sx={{
-        color: "text.disabled",
-        alignItems: "center",
+        color: 'text.disabled',
+        alignItems: 'center',
         my: 8,
-        gap: 3
+        gap: 3,
       }}>
       <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
       <Typography
         sx={{
-          width: "100%",
+          width: '100%',
           px: 2,
-          textAlign: "center"
+          textAlign: 'center',
         }}>
         <Balancer>{t('notOpenFile')}</Balancer>
       </Typography>

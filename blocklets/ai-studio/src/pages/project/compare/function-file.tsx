@@ -21,8 +21,8 @@ export default function CompareFunctionAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <FunctionAssistantEditorPrepare
             projectId={projectId}
@@ -37,8 +37,8 @@ export default function CompareFunctionAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <FunctionAssistantEditorPrepare
             projectId={projectId}
@@ -53,8 +53,8 @@ export default function CompareFunctionAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <FunctionCodeEditor projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
@@ -62,8 +62,8 @@ export default function CompareFunctionAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <FunctionCodeEditor
             projectId={projectId}

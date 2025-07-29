@@ -61,7 +61,7 @@ function ObjectLazyDocxViewer({ url }: { url: string }) {
             className="center"
             sx={{
               width: 1,
-              height: 1
+              height: 1,
             }}>
             <CircularProgress />
           </Box>

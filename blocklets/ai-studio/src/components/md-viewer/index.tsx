@@ -57,17 +57,19 @@ function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
           p: 0.5,
           pl: 1.5,
           borderBottom: 1,
-          borderColor: "grey.200"
+          borderColor: 'grey.200',
         }}>
         <Box>{language}</Box>
 
-        <Box sx={{
-          flex: 1
-        }} />
+        <Box
+          sx={{
+            flex: 1,
+          }}
+        />
       </Stack>
       <Suspense>
         <Box

@@ -109,21 +109,23 @@ export default function DeploymentDialog({
         {categoriesLoading ? (
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: 400
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: 400,
             }}>
             <CircularProgress />
           </Box>
         ) : (
-          <Stack sx={{
-            gap: 1
-          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             {showVisibility && (
-              <Stack sx={{
-                gap: 1
-              }}>
+              <Stack
+                sx={{
+                  gap: 1,
+                }}>
                 <Typography variant="body1">{t('deployments.visibility')}</Typography>
                 <Card sx={{ width: 1, boxShadow: 0 }}>
                   <CardContent sx={{ p: 0, m: 0 }}>
@@ -131,9 +133,11 @@ export default function DeploymentDialog({
                   </CardContent>
 
                   {!isAdmin && (
-                    <Typography variant="caption" sx={{
-                      mt: 2
-                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mt: 2,
+                      }}>
                       {t('deployments.toEnablePrivateProjects')}
                       <Box
                         component="a"
@@ -148,16 +152,18 @@ export default function DeploymentDialog({
               </Stack>
             )}
 
-            <Stack sx={{
-              gap: 1
-            }}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}>
               <Typography variant="body1">{t('category.title')}</Typography>
               <CategorySelect control={control} name="categories" categories={data?.list || []} />
             </Stack>
 
-            <Stack sx={{
-              gap: 1
-            }}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}>
               <Typography variant="body1">Order Index (ASC)</Typography>
               <TextField
                 {...register('orderIndex', { valueAsNumber: true })}
@@ -175,8 +181,8 @@ export default function DeploymentDialog({
       <DialogActions>
         <Stack
           sx={{
-            flexDirection: "row",
-            gap: 1
+            flexDirection: 'row',
+            gap: 1,
           }}>
           <Button variant="outlined" onClick={dialogState.close}>
             {t('cancel')}
@@ -209,15 +215,17 @@ function VisibilitySelect({ control, name }: { control: Control<UpdateType>; nam
               label={
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center"
+                    display: 'flex',
+                    alignItems: 'center',
                   }}>
                   <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                   <Box>
                     <Typography variant="body1">{t('public')}</Typography>
-                    <Typography variant="body2" sx={{
-                      color: "text.secondary"
-                    }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                      }}>
                       {t('deployments.publicDescription')}
                     </Typography>
                   </Box>
@@ -232,15 +240,17 @@ function VisibilitySelect({ control, name }: { control: Control<UpdateType>; nam
               label={
                 <Box
                   sx={{
-                    display: "flex",
-                    alignItems: "center"
+                    display: 'flex',
+                    alignItems: 'center',
                   }}>
                   <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                   <Box>
                     <Typography variant="body1">{t('private')}</Typography>
-                    <Typography variant="body2" sx={{
-                      color: "text.secondary"
-                    }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'text.secondary',
+                      }}>
                       {t('deployments.privateDescription')}
                     </Typography>
                   </Box>
@@ -310,7 +320,7 @@ function CategorySelect({
                       {params.InputProps.endAdornment}
                     </>
                   ),
-                }
+                },
               }}
             />
           )}
@@ -324,9 +334,10 @@ function ProductHuntFields({ control }: { control: Control<UpdateType> }) {
   const { t } = useLocaleContext();
 
   return (
-    <Stack sx={{
-      gap: 1
-    }}>
+    <Stack
+      sx={{
+        gap: 1,
+      }}>
       <Typography variant="body1">{t('deployments.productHunt')}</Typography>
       <Controller
         name="productHuntUrl"

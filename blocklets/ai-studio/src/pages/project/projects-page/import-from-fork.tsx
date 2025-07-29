@@ -61,12 +61,12 @@ export default function ImportFromFork({
         <Stack
           sx={{
             flexDirection: { xs: 'column', md: 'row' },
-            gap: { xs: 2.5, md: 4 }
+            gap: { xs: 2.5, md: 4 },
           }}>
           <Stack
             sx={{
               flex: 1,
-              gap: 2.5
+              gap: 2.5,
             }}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>

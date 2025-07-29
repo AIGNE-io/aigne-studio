@@ -14,14 +14,14 @@ export function PrivateRoute({ roles, children }: PropsWithChildren<Props>) {
     return (
       <Box
         sx={{
-          position: "fixed",
+          position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
         <CircularProgress />
       </Box>

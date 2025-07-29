@@ -59,15 +59,7 @@ import { useRequest } from 'ahooks';
 import axios from 'axios';
 import { cloneDeep, isNil, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
@@ -842,30 +834,28 @@ export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
-export const ToolDialog = (
-  {
-    ref,
-    openApis,
-    datasets,
-    executeBlock,
-    assistant,
-    projectId,
-    gitRef,
-    onSubmit,
-    DialogProps
-  }: {
-    executeBlock?: ExecuteBlockYjs;
-    projectId: string;
-    gitRef: string;
-    onSubmit: (value: ToolDialogForm) => any;
-    DialogProps?: DialogProps;
-    assistant: AssistantYjs;
-    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  } & {
-    ref: React.RefObject<ToolDialogImperative | null>;
-  }
-) => {
+export const ToolDialog = ({
+  ref,
+  openApis,
+  datasets,
+  executeBlock,
+  assistant,
+  projectId,
+  gitRef,
+  onSubmit,
+  DialogProps,
+}: {
+  executeBlock?: ExecuteBlockYjs;
+  projectId: string;
+  gitRef: string;
+  onSubmit: (value: ToolDialogForm) => any;
+  DialogProps?: DialogProps;
+  assistant: AssistantYjs;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+} & {
+  ref: React.RefObject<ToolDialogImperative | null>;
+}) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -1275,7 +1265,7 @@ export const ToolDialog = (
                             />
                           </Tooltip>
                         ),
-                      }
+                      },
                     }}
                   />
                 )}
@@ -1406,7 +1396,7 @@ const AsyncSelect: React.FC<AsyncSelectProps> = memo(
                     {params.InputProps.endAdornment}
                   </>
                 ),
-              }
+              },
             }}
           />
         )}

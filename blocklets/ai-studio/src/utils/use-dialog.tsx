@@ -128,7 +128,7 @@ export default function useDialog() {
                 direction="row"
                 sx={{
                   gap: 1,
-                  alignItems: "center"
+                  alignItems: 'center',
                 }}>
                 <Button
                   data-testid="dialog-cancel-button"

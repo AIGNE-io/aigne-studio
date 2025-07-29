@@ -6,7 +6,7 @@ export default function NotFoundView() {
       sx={{
         gap: 2,
         my: 10,
-        alignItems: "center"
+        alignItems: 'center',
       }}>
       <Alert severity="error">Not Found</Alert>
     </Stack>

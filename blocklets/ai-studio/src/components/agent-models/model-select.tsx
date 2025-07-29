@@ -58,8 +58,8 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                 onChange(option.model === value ? null : option.model);
               }}
               sx={{
-                alignItems: "center",
-                justifyContent: "space-between",
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 width: '100%',
                 height: 72,
                 mt: 2,
@@ -69,11 +69,14 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                 borderRadius: 1.5,
                 cursor: 'pointer',
                 ...(isSelected && { bgcolor: 'action.selected', borderColor: 'primary.main' }),
-                ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } })
+                ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
               }}>
-              <Stack direction="row" spacing={1} sx={{
-                alignItems: "center"
-              }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}>
                 <ModelBrandIcon model={option.model} url={option.icon} size="large" />
                 <Box>{option.name}</Box>
                 {'maxTokensMax' in option && option.maxTokensMax && (

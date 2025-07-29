@@ -35,22 +35,23 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   );
 
   return (
-    <Stack sx={{
-      gap: 2.5
-    }}>
+    <Stack
+      sx={{
+        gap: 2.5,
+      }}>
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
-          justifyContent: "flex-end",
-          gap: 1
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 1,
         }}>
         <Stack
           direction="row"
           sx={{
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
           }}>
           <FormControlLabel
             sx={{ m: 0 }}
@@ -67,10 +68,10 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
           {authSyncUpdating ? (
             <Stack
               sx={{
-                justifyContent: "center",
-                alignItems: "center",
+                justifyContent: 'center',
+                alignItems: 'center',
                 width: 24,
-                height: 24
+                height: 24,
               }}>
               {authSyncUpdating === true ? (
                 <CircularProgress size={16} />
@@ -86,8 +87,8 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
-          gap: 1
+          alignItems: 'center',
+          gap: 1,
         }}>
         <SpaceCard
           sx={{ flex: 1 }}

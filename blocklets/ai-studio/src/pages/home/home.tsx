@@ -20,22 +20,22 @@ export default function Home() {
       }}>
       <Box
         sx={{
-          mx: "auto",
+          mx: 'auto',
           flexGrow: 1,
           my: 4,
-          maxWidth: 800
+          maxWidth: 800,
         }}>
         {blocklet && (
           <Stack
             sx={{
-              alignItems: "center",
+              alignItems: 'center',
               gap: 2,
-              mt: "30%"
+              mt: '30%',
             }}>
             <Box
               sx={{
                 my: 2,
-                transform: 'scale(2)'
+                transform: 'scale(2)',
               }}>
               <AigneLogo />
             </Box>
@@ -47,9 +47,11 @@ export default function Home() {
               {blocklet.appDescription}
             </Typography>
 
-            <Stack direction="row" sx={{
-              gap: 3
-            }}>
+            <Stack
+              direction="row"
+              sx={{
+                gap: 3,
+              }}>
               {!isAdmin && (
                 <Button onClick={session.user ? session.switchDid : session.login} variant="contained">
                   {window.blocklet?.tenantMode === 'multiple' ? t('login') : t('loginAsAdminButton')}

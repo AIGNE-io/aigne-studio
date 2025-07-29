@@ -47,7 +47,7 @@ export default function AgentEditor({
     <Stack
       sx={{
         p: 2.5,
-        position: "relative"
+        position: 'relative',
       }}>
       <Box sx={{ mx: -1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
@@ -55,8 +55,9 @@ export default function AgentEditor({
       <Box
         sx={{
           height: 20,
-          width: 1
-        }} />
+          width: 1,
+        }}
+      />
       <Box sx={{ borderRadius: 1 }}>
         <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} openApis={openApis} />
       </Box>
@@ -64,13 +65,13 @@ export default function AgentEditor({
         sx={{
           height: 20,
           width: 1,
-          position: "relative"
+          position: 'relative',
         }}>
         <Box
           sx={{
-            position: "absolute",
+            position: 'absolute',
             left: 20,
-            top: -4
+            top: -4,
           }}>
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
@@ -98,9 +99,10 @@ export default function AgentEditor({
           ) : isImageBlenderAssistant(value) ? (
             <ImageBlenderAssistantEditor value={value} />
           ) : (
-            <Stack sx={{
-              alignItems: "center"
-            }}>
+            <Stack
+              sx={{
+                alignItems: 'center',
+              }}>
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
                 <Icon icon={ZZZIcon} />
               </Box>
@@ -114,13 +116,13 @@ export default function AgentEditor({
         sx={{
           height: 20,
           width: 1,
-          position: "relative"
+          position: 'relative',
         }}>
         <Box
           sx={{
-            position: "absolute",
+            position: 'absolute',
             left: 20,
-            top: -4
+            top: -4,
           }}>
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>

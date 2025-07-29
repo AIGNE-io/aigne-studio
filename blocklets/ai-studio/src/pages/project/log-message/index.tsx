@@ -125,8 +125,8 @@ const LogMessages = () => {
     <>
       <Box
         sx={{
-          overflow: "auto",
-          height: "100%"
+          overflow: 'auto',
+          height: '100%',
         }}>
         <Container maxWidth="lg" sx={{ height: '100%' }}>
           {hasAppHistory && (
@@ -165,7 +165,7 @@ const LogMessages = () => {
             <Stack
               sx={{
                 flex: 1,
-                overflowX: 'auto'
+                overflowX: 'auto',
               }}>
               <Table
                 sx={{
@@ -195,13 +195,15 @@ const LogMessages = () => {
                 loading={loading}
                 slots={{
                   noRowsOverlay: () => (
-                    <Box className="center" sx={{
-                      height: 200
-                    }}>
+                    <Box
+                      className="center"
+                      sx={{
+                        height: 200,
+                      }}>
                       <Typography
                         sx={{
-                          color: "text.secondary",
-                          fontSize: 16
+                          color: 'text.secondary',
+                          fontSize: 16,
                         }}>
                         {t('noLogs')}
                       </Typography>

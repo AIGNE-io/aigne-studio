@@ -23,8 +23,8 @@ export default function DiscussView({
   const fallback = (
     <Stack
       sx={{
-        alignItems: "center",
-        my: 10
+        alignItems: 'center',
+        my: 10,
       }}>
       <Alert severity="warning">Add discuss-kit to continue</Alert>
     </Stack>
@@ -40,8 +40,8 @@ export default function DiscussView({
         fallback={
           <Box
             sx={{
-              textAlign: "center",
-              py: 4
+              textAlign: 'center',
+              py: 4,
             }}>
             <CircularProgress size={24} />
           </Box>

@@ -98,9 +98,9 @@ function CategoriesSidebar({
           <Box
             sx={{
               px: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
             }}>
             <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={onClose}>
               <Box component={Icon} icon="tabler:x" sx={{ fontSize: 20 }} />
@@ -119,7 +119,7 @@ function CategoriesSidebar({
             px: 2,
             mb: 2,
             width: 1,
-            button: { width: 1 }
+            button: { width: 1 },
           }}>
           <CreateProject />
         </Box>
@@ -129,17 +129,17 @@ function CategoriesSidebar({
           sx={{
             flex: 1,
             height: 0,
-            justifyContent: "center",
-            alignItems: "center"
+            justifyContent: 'center',
+            alignItems: 'center',
           }}>
           <Box
             data-testid="no-categories"
             onClick={() => navigate('/admin/category')}
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 1
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1,
             }}>
             <Box component={Icon} icon="tabler:plus" sx={{ fontSize: 24, color: 'text.disabled' }} />
             <Typography sx={{ color: 'text.disabled' }}>{t('category.noCategories')}</Typography>
@@ -205,9 +205,9 @@ export default function ExploreCategoryLayout() {
         sx={{
           width: 1,
           height: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
         <CircularProgress />
       </Box>
@@ -220,16 +220,16 @@ export default function ExploreCategoryLayout() {
       sx={{
         width: 1,
         height: 1,
-        overflow: "hidden",
-        bgcolor: "background.paper"
+        overflow: 'hidden',
+        bgcolor: 'background.paper',
       }}>
       {!isMobile && (
         <Box
           sx={{
             minWidth: 300,
             maxWidth: 500,
-            width: "20%",
-            borderRight: '1px solid #EFF1F5'
+            width: '20%',
+            borderRight: '1px solid #EFF1F5',
           }}>
           <CategoriesSidebar categories={categories} isMobile={isMobile} onClose={() => {}} />
         </Box>
@@ -265,16 +265,16 @@ export function MobileSidebarHeader({ categories = [] }: { categories: Category[
     <>
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          p: 2
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 2,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
           }}>
           <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={toggleDrawer}>
             <Box component={Icon} icon="tabler:menu-2" sx={{ fontSize: 20 }} />
@@ -293,7 +293,7 @@ export function MobileSidebarHeader({ categories = [] }: { categories: Category[
             minWidth: 300,
             maxWidth: 500,
             width: isMobile ? '100%' : '20%',
-            height: 1
+            height: 1,
           }}>
           <CategoriesSidebar categories={categories} isMobile={isMobile} onClose={() => setDrawerOpen(false)} />
         </Box>

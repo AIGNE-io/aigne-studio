@@ -10,9 +10,12 @@ import { useRef } from 'react';
 
 function CustomTextField(props: any) {
   return (
-    <TextField {...props} slotProps={{
-      input: { startAdornment: null, endAdornment: props?.InputProps?.endAdornment }
-    }} />
+    <TextField
+      {...props}
+      slotProps={{
+        input: { startAdornment: null, endAdornment: props?.InputProps?.endAdornment },
+      }}
+    />
   );
 }
 

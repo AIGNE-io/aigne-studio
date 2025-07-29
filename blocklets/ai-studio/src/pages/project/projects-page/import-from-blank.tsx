@@ -110,12 +110,12 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
         <Stack
           sx={{
             flexDirection: { xs: 'column', md: 'row' },
-            gap: { xs: 2.5, md: 4 }
+            gap: { xs: 2.5, md: 4 },
           }}>
           <Stack
             sx={{
               flex: 1,
-              gap: 2.5
+              gap: 2.5,
             }}>
             <Box>
               <Typography variant="subtitle2">{t('choose')}</Typography>
@@ -154,9 +154,12 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                           const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
                           if (!selectedItem) {
                             return (
-                              <Stack direction="row" spacing={1} sx={{
-                                alignItems: "center"
-                              }}>
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                sx={{
+                                  alignItems: 'center',
+                                }}>
                                 <DidAvatar did={window.blocklet.appId} size={20} src="" />
                                 <Typography variant="subtitle2" noWrap>
                                   {t('blankTemplate')}
@@ -166,9 +169,12 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                           }
 
                           return (
-                            <Stack direction="row" spacing={1} sx={{
-                              alignItems: "center"
-                            }}>
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              sx={{
+                                alignItems: 'center',
+                              }}>
                               <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
                               <Typography variant="body2" noWrap>
                                 {selectedItem?.name || t('unnamed')}
@@ -176,20 +182,20 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                             </Stack>
                           );
                         },
-                      }
+                      },
                     }}>
                     <MenuItem value="">
                       <Stack
                         direction="row"
                         sx={{
-                          alignItems: "stretch",
-                          gap: 1
+                          alignItems: 'stretch',
+                          gap: 1,
                         }}>
                         <DidAvatar did={window.blocklet.appId} size={40} src="" />
                         <Stack
                           sx={{
                             flex: 1,
-                            width: 1
+                            width: 1,
                           }}>
                           <Typography variant="subtitle2" noWrap>
                             {t('blankTemplate')}
@@ -203,14 +209,14 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                         <Stack
                           direction="row"
                           sx={{
-                            alignItems: "stretch",
-                            gap: 1
+                            alignItems: 'stretch',
+                            gap: 1,
                           }}>
                           <DidAvatar did={item.blockletDid} size={40} src="" />
                           <Stack
                             sx={{
                               flex: 1,
-                              width: 1
+                              width: 1,
                             }}>
                             <Typography variant="subtitle2" noWrap>
                               {item?.name || t('unnamed')}
@@ -233,9 +239,11 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                 )}
               />
 
-              <Typography variant="caption" sx={{
-                color: "text.disabled"
-              }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.disabled',
+                }}>
                 {t('selectTemplate')}
               </Typography>
             </Box>
@@ -250,7 +258,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
           <Stack
             sx={{
               flex: 1,
-              gap: 2.5
+              gap: 2.5,
             }}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>

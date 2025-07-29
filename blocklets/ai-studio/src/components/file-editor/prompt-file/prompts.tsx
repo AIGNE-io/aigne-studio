@@ -48,7 +48,7 @@ export default function PromptPrompts({
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF'
+        bgcolor: '#EFF6FF',
       }}>
       <>
         {value.prompts && (
@@ -128,9 +128,11 @@ export default function PromptPrompts({
         )}
 
         {!disabled && (
-          <Stack direction="row" sx={{
-            gap: 1.5
-          }}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1.5,
+            }}>
             <Button
               startIcon={<Box component={Icon} icon={PlusIcon} />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
@@ -175,11 +177,11 @@ function PromptItemMessage({
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
           gap: 1,
           p: 1,
           px: 1.5,
-          borderBottom: "1px solid #BFDBFE"
+          borderBottom: '1px solid #BFDBFE',
         }}>
         <RoleSelectField
           projectId={projectId}

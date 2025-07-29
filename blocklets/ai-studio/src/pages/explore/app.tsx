@@ -80,8 +80,8 @@ function Loading() {
     <Stack
       sx={{
         my: 10,
-        alignItems: "center",
-        justifyContent: "center"
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
       <CircularProgress size={24} />
     </Stack>

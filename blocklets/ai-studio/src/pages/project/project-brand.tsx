@@ -29,16 +29,16 @@ export default function ProjectBrand() {
   return (
     <Box
       sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
       }}>
       {gitRef && (
         <Stack
           sx={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 1
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 1,
           }}>
           <ProjectIcon
             projectId={projectId}

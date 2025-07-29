@@ -108,29 +108,35 @@ export default function ImportKnowledge({
       {
         id: 'file',
         label: t('knowledge.import'),
-        icon: <Box
-          component={Icon}
-          icon={FileIcon}
-          className="center"
-          sx={{
-            width: 14,
-            height: 14,
-            borderRadius: 1
-          }} />,
+        icon: (
+          <Box
+            component={Icon}
+            icon={FileIcon}
+            className="center"
+            sx={{
+              width: 14,
+              height: 14,
+              borderRadius: 1,
+            }}
+          />
+        ),
         disabled: !!documentId,
       },
       {
         id: 'custom',
         label: t('knowledge.custom'),
-        icon: <Box
-          component={Icon}
-          icon={PencilIcon}
-          className="center"
-          sx={{
-            width: 14,
-            height: 14,
-            borderRadius: 1
-          }} />,
+        icon: (
+          <Box
+            component={Icon}
+            icon={PencilIcon}
+            className="center"
+            sx={{
+              width: 14,
+              height: 14,
+              borderRadius: 1,
+            }}
+          />
+        ),
       },
       getDiscussionStatus() && isAdmin
         ? {
@@ -142,7 +148,7 @@ export default function ImportKnowledge({
                 sx={{
                   width: 14,
                   height: 14,
-                  borderRadius: 1
+                  borderRadius: 1,
                 }}>
                 <Discuss sx={{ width: '100%', height: '100%' }} />
               </Box>
@@ -161,8 +167,9 @@ export default function ImportKnowledge({
             sx={{
               width: 14,
               height: 14,
-              borderRadius: 1
-            }} />
+              borderRadius: 1,
+            }}
+          />
         ),
         disabled: !!documentId,
       },
@@ -227,7 +234,7 @@ export default function ImportKnowledge({
       maxWidth="xl"
       fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}
       slotProps={{
-        paper: { sx: { height: '100%' } }
+        paper: { sx: { height: '100%' } },
       }}>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -252,15 +259,17 @@ export default function ImportKnowledge({
           <Stack
             sx={{
               gap: 2.5,
-              height: 1
+              height: 1,
             }}>
             <Stack>
               <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500, mb: 0.5 }}>
                 {t('knowledge.importKnowledge.title')}
               </Typography>
-              <Typography variant="body2" sx={{
-                color: "text.secondary"
-              }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}>
                 {t('knowledge.importKnowledge.description')}
               </Typography>
             </Stack>
@@ -270,7 +279,7 @@ export default function ImportKnowledge({
             <Box
               sx={{
                 flexGrow: 1,
-                pb: 1.25
+                pb: 1.25,
               }}>
               <Suspense>
                 {sourceType === 'file' ? (
@@ -371,16 +380,14 @@ interface FileViewProps {
   onChange: (value?: FileType) => void;
 }
 
-export const FileView = (
-  {
-    ref,
-    fileName,
-    size,
-    onChange
-  }: FileViewProps & {
-    ref: React.RefObject<HTMLDivElement | null>;
-  }
-) => {
+export const FileView = ({
+  ref,
+  fileName,
+  size,
+  onChange,
+}: FileViewProps & {
+  ref: React.RefObject<HTMLDivElement | null>;
+}) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver] = useState(false);
@@ -411,10 +418,10 @@ export const FileView = (
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 1,
-            color: "#4B5563"
+            color: '#4B5563',
           }}>
           <Box component={Icon} icon={ArrowBarToUpIcon} />
           <Typography sx={{ fontWeight: 500 }}>{t('knowledge.importKnowledge.fileImport')}</Typography>
@@ -429,20 +436,20 @@ export const FileView = (
           direction="row"
           sx={{
             gap: 1,
-            justifyContent: "space-between",
-            alignItems: "center",
+            justifyContent: 'space-between',
+            alignItems: 'center',
             border: '1px solid rgba(6,7,9, 0.10)',
             p: '8px 10px',
             overflow: 'hidden',
             background: '#fff',
             borderRadius: '8px',
-            mt: 2
+            mt: 2,
           }}>
           <Stack
             direction="row"
             sx={{
               gap: 1,
-              alignItems: "center"
+              alignItems: 'center',
             }}>
             <DocumentIcon document={{ name: fileName, type: 'file' } as DatasetDocument} />
             <Box>
@@ -477,7 +484,7 @@ const CustomView = ({
         onSubmit?.();
       }}
       sx={{
-        gap: 2.5
+        gap: 2.5,
       }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box
@@ -545,13 +552,13 @@ const CrawlView = ({
         onSubmit?.();
       }}
       sx={{
-        gap: 2.5
+        gap: 2.5,
       }}>
       <Stack
         sx={{
           gap: 2.5,
-          flexDirection: "row",
-          alignItems: "center"
+          flexDirection: 'row',
+          alignItems: 'center',
         }}>
         <Typography
           component="label"

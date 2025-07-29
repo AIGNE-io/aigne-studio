@@ -92,14 +92,15 @@ export default function RouterAssistantEditor({
   };
 
   return (
-    <Stack sx={{
-      gap: 1.5
-    }}>
+    <Stack
+      sx={{
+        gap: 1.5,
+      }}>
       <Stack
         ref={ref}
         sx={{
           gap: 1,
-          width: 1
+          width: 1,
         }}>
         <Tooltip title={value.prompt ? undefined : t('promptRequired')}>
           <Box sx={{ borderRadius: 1, flex: 1 }}>
@@ -112,16 +113,16 @@ export default function RouterAssistantEditor({
                 borderColor: '#1976d2',
                 borderRadius: 1,
                 background: '#fff',
-                overflow: 'hidden'
+                overflow: 'hidden',
               }}>
               <Stack
                 direction="row"
                 sx={{
-                  alignItems: "center",
+                  alignItems: 'center',
                   gap: 1,
                   p: 1,
                   px: 1.5,
-                  borderBottom: "1px solid #BFDBFE"
+                  borderBottom: '1px solid #BFDBFE',
                 }}>
                 {t('prompt')}
               </Stack>
@@ -157,13 +158,15 @@ export default function RouterAssistantEditor({
           </Box>
         </Tooltip>
 
-        <Stack sx={{
-          gap: 1
-        }}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           <QueryBuilderMaterial>
-            <Stack sx={{
-              gap: 1
-            }}>
+            <Stack
+              sx={{
+                gap: 1,
+              }}>
               {(routes || [])?.map(({ data: agent }) => (
                 <React.Fragment key={agent.id}>
                   <AgentItemView
@@ -190,8 +193,8 @@ export default function RouterAssistantEditor({
             <Typography
               variant="subtitle5"
               sx={{
-                color: "warning.main",
-                ml: 1
+                color: 'warning.main',
+                ml: 1,
               }}>
               {checkOutputVariables?.error}
             </Typography>
@@ -346,47 +349,50 @@ export function AgentItemView({
   return (
     <Box
       sx={{
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
         gap: 0.5,
-        width: 1
+        width: 1,
       }}>
       <Box
         className="center"
         sx={{
           width: 16,
-          height: 16
+          height: 16,
         }}>
         <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: !target ? red : '#1976d2' }} />
       </Box>
       <Stack
         key={`${projectId}-${projectRef}-${assistant.id}-${agent.id}`}
         {...props}
-        sx={[{
-          width: 1,
-          background: '#F9FAFB',
-          py: 1,
-          px: 1.5,
-          minHeight: 40,
-          gap: 1,
-          alignItems: 'center',
-          cursor: 'pointer',
-          borderRadius: 1,
-          border: `1px solid ${!target ? red : '#1976d2'}`,
+        sx={[
+          {
+            width: 1,
+            background: '#F9FAFB',
+            py: 1,
+            px: 1.5,
+            minHeight: 40,
+            gap: 1,
+            alignItems: 'center',
+            cursor: 'pointer',
+            borderRadius: 1,
+            border: `1px solid ${!target ? red : '#1976d2'}`,
 
-          ':hover': {
-            '.hover-visible': {
-              display: 'flex',
+            ':hover': {
+              '.hover-visible': {
+                display: 'flex',
+              },
             },
-          },
 
-          backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) }
-        }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+            backgroundColor: { ...getDiffBackground('prepareExecutes', `${assistant.id}.data.routes.${agent.id}`) },
+          },
+          ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+        ]}>
         <Stack
           sx={{
             width: 1,
             gap: 1.5,
-            position: 'relative'
+            position: 'relative',
           }}>
           <Stack>
             <TextField
@@ -407,7 +413,7 @@ export function AgentItemView({
                 },
               }}
               slotProps={{
-                input: { readOnly: true }
+                input: { readOnly: true },
               }}
             />
 
@@ -441,16 +447,18 @@ export function AgentItemView({
           <Stack
             className="hover-visible"
             sx={{
-              justifyContent: "center",
-              alignItems: "center",
+              justifyContent: 'center',
+              alignItems: 'center',
               display: 'none',
               position: 'absolute',
               right: 0,
-              top: 0
+              top: 0,
             }}>
-            <Stack direction="row" sx={{
-              gap: 0.5
-            }}>
+            <Stack
+              direction="row"
+              sx={{
+                gap: 0.5,
+              }}>
               {target && (
                 <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
                   <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
@@ -584,13 +592,13 @@ function AddSelectAgentPopperButton({
         children: (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               gap: 0.5,
               width: 1,
               py: 1,
               cursor: 'pointer',
-              color: '#3B82F6'
+              color: '#3B82F6',
             }}>
             <Box className="center">
               <Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16, mt: -0.25 }} />
@@ -603,7 +611,7 @@ function AddSelectAgentPopperButton({
       <Stack
         sx={{
           maxHeight: 300,
-          overflow: "auto"
+          overflow: 'auto',
         }}>
         <>
           <GroupView name={project.name || ''} description="Select Agent">
@@ -621,9 +629,12 @@ function AddSelectAgentPopperButton({
             {agentOptions.map((x) => {
               return (
                 <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
-                  <Box sx={{
-                    flex: 1
-                  }}>{x.name || t('unnamed')}</Box>
+                  <Box
+                    sx={{
+                      flex: 1,
+                    }}>
+                    {x.name || t('unnamed')}
+                  </Box>
                   <Box sx={{ width: 40, textAlign: 'right' }}>
                     {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
                   </Box>
@@ -649,9 +660,12 @@ function AddSelectAgentPopperButton({
             {openApiOptions.map((x) => {
               return (
                 <MenuItem selected={exists.has(x.id)} key={x.id} onClick={() => onSelect?.(x)} sx={{ my: 0.25 }}>
-                  <Box sx={{
-                    flex: 1
-                  }}>{x.name || t('unnamed')}</Box>
+                  <Box
+                    sx={{
+                      flex: 1,
+                    }}>
+                    {x.name || t('unnamed')}
+                  </Box>
                   <Box sx={{ width: 40, textAlign: 'right' }}>
                     {exists.has(x.id) && <Box component={Icon} icon={CheckIcon} />}
                   </Box>
@@ -664,9 +678,12 @@ function AddSelectAgentPopperButton({
         {!(agentOptions.length + openApiOptions.length) && (
           <>
             <MenuItem>
-              <Box sx={{
-                color: "#9CA3AF"
-              }}>{t('noAgent')}</Box>
+              <Box
+                sx={{
+                  color: '#9CA3AF',
+                }}>
+                {t('noAgent')}
+              </Box>
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -681,9 +698,12 @@ function AddSelectAgentPopperButton({
                 const { file: template } = createFile({ ...options, store });
                 onSelect?.(pick(template, 'id', 'name', 'type'));
               }}>
-              <Box sx={{
-                color: "#3B82F6"
-              }}>{t('addAgent')}</Box>
+              <Box
+                sx={{
+                  color: '#3B82F6',
+                }}>
+                {t('addAgent')}
+              </Box>
             </MenuItem>
           </>
         )}
@@ -706,20 +726,23 @@ function GroupView({
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
           mt: 2,
-          gap: 2
+          gap: 2,
         }}>
         {children}
 
         <Stack
           sx={{
             flex: 1,
-            width: 1
+            width: 1,
           }}>
-          <Typography variant="subtitle2" noWrap sx={{
-            mb: 0
-          }}>
+          <Typography
+            variant="subtitle2"
+            noWrap
+            sx={{
+              mb: 0,
+            }}>
             {name || t('unnamed')}
           </Typography>
           {description && (
@@ -791,14 +814,14 @@ function AgentItemViewParameters({
         <Stack
           direction="row"
           sx={{
-            justifyContent: "space-between",
-            alignItems: "center"
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}>
           <Typography
             variant="subtitle5"
             sx={{
-              color: "text.secondary",
-              mb: 0
+              color: 'text.secondary',
+              mb: 0,
             }}>
             {t('parameters')}
           </Typography>
@@ -806,9 +829,10 @@ function AgentItemViewParameters({
           <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
         </Stack>
       </Tooltip>
-      <Stack sx={{
-        gap: 1
-      }}>
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         {filteredParameters?.map((parameter) => {
           if (!parameter?.key) return null;
 
@@ -821,13 +845,15 @@ function AgentItemViewParameters({
               }}>
               <Stack
                 sx={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  mb: 0.5
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  mb: 0.5,
                 }}>
-                <Typography variant="caption" sx={{
-                  mx: 1
-                }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    mx: 1,
+                  }}>
                   {parameter.label || parameter.key}
                 </Typography>
 

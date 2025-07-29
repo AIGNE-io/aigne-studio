@@ -61,9 +61,11 @@ export function CronSettingsSummary({ agent }: { agent: AssistantYjs }) {
   if (!jobs.length) return null;
 
   return (
-    <Typography variant="caption" sx={{
-      color: "text.secondary"
-    }}>
+    <Typography
+      variant="caption"
+      sx={{
+        color: 'text.secondary',
+      }}>
       {t('cronJobsSummary', { jobs: jobs.length, enabledJobs: enabledJobs.length })}
     </Typography>
   );
@@ -117,7 +119,7 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
         sx={{
           gap: 1,
           py: 1.5,
-          alignItems: "center"
+          alignItems: 'center',
         }}>
         <PlanAlert>{t('upgradePrompts.cronJobs.desc')}</PlanAlert>
       </Stack>
@@ -129,13 +131,13 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
         sx={{
           gap: 1,
           p: 2,
-          alignItems: "center"
+          alignItems: 'center',
         }}>
         <Typography
           variant="caption"
           sx={{
-            color: "text.secondary",
-            textAlign: "center"
+            color: 'text.secondary',
+            textAlign: 'center',
           }}>
           {t('emptyObjectTip', { object: t('cronJob') })}
         </Typography>
@@ -195,9 +197,10 @@ export function CronSettings({ agent }: { agent: AssistantYjs }) {
           </TableBody>
         </Table>
 
-        <Box sx={{
-          m: 0.5
-        }}>
+        <Box
+          sx={{
+            m: 0.5,
+          }}>
           <Button startIcon={<Icon icon={PlusIcon} />} onClick={newJob}>
             {t('new')}
           </Button>
@@ -269,13 +272,15 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
   const doc = (getYjsValue(agent) as Map<any>).doc!;
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
-      <TextField label={t('name')} value={job.name || ''} onChange={(e) => (job.name = e.target.value)} />
-      <Stack sx={{
-        gap: 1
+    <Stack
+      sx={{
+        gap: 2,
       }}>
+      <TextField label={t('name')} value={job.name || ''} onChange={(e) => (job.name = e.target.value)} />
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         <Typography variant="subtitle2">{t('time')}</Typography>
         <GlobalStyles
           styles={(theme) => ({
@@ -413,24 +418,30 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
             {data?.list.map((item) => (
               <TableRow key={item.id} hover onClick={() => openDialog(item)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
-                  <Typography noWrap sx={{
-                    maxWidth: 150
-                  }}>
+                  <Typography
+                    noWrap
+                    sx={{
+                      maxWidth: 150,
+                    }}>
                     {JSON.stringify(item.inputs)}
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography noWrap sx={{
-                    maxWidth: 150
-                  }}>
+                  <Typography
+                    noWrap
+                    sx={{
+                      maxWidth: 150,
+                    }}>
                     {JSON.stringify(item.outputs)}
                   </Typography>
                 </TableCell>
                 <TableCell>
                   {item.error && (
-                    <Typography noWrap sx={{
-                      maxWidth: 100
-                    }}>
+                    <Typography
+                      noWrap
+                      sx={{
+                        maxWidth: 100,
+                      }}>
                       {JSON.stringify(item.error)}
                     </Typography>
                   )}
@@ -450,8 +461,8 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
       {loading && !data?.list.length && (
         <Stack
           sx={{
-            alignItems: "center",
-            my: 4
+            alignItems: 'center',
+            my: 4,
           }}>
           <CircularProgress size={24} />
         </Stack>
@@ -459,12 +470,14 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
       {data?.count === 0 && (
         <Stack
           sx={{
-            alignItems: "center",
-            my: 4
+            alignItems: 'center',
+            my: 4,
           }}>
-          <Typography variant="caption" sx={{
-            color: "text.secondary"
-          }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+            }}>
             {t('noData')}
           </Typography>
         </Stack>
@@ -472,8 +485,8 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
       {data && (
         <Stack
           sx={{
-            alignItems: "flex-end",
-            mt: 4
+            alignItems: 'flex-end',
+            mt: 4,
           }}>
           <Pagination count={Math.ceil(data.count / limit)} page={page} onChange={(_, page) => setPage(page)} />
         </Stack>
@@ -486,7 +499,7 @@ function CronJobHistories({ agent, job }: { agent: AssistantYjs; job: CronJob })
             <Stack
               sx={{
                 gap: 2,
-                pre: { whiteSpace: 'pre-wrap' }
+                pre: { whiteSpace: 'pre-wrap' },
               }}>
               <Typography variant="caption">{t('input')}</Typography>
               <MdViewer content={`${'```json'}\n${JSON.stringify(selectedHistory.inputs, null, 2)}${'\n```'}`} />

@@ -47,23 +47,28 @@ export default function InputSettings({
       <Stack
         direction="row"
         sx={{
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 1
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 1,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
           }}>
-          <Box component={AigneLogoInput} sx={{
-            fontSize: 14
-          }} />
+          <Box
+            component={AigneLogoInput}
+            sx={{
+              fontSize: 14,
+            }}
+          />
 
-          <Typography variant="subtitle2" sx={{
-            mb: 0
-          }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0,
+            }}>
             {t('inputs')}
           </Typography>
 
@@ -80,12 +85,16 @@ export default function InputSettings({
         </Box>
       </Stack>
       {noInputs ? (
-        <Stack sx={{
-          alignItems: "center"
-        }}>
-          <Typography sx={{
-            color: "text.disabled"
-          }}>{t('noInputsTip')}</Typography>
+        <Stack
+          sx={{
+            alignItems: 'center',
+          }}>
+          <Typography
+            sx={{
+              color: 'text.disabled',
+            }}>
+            {t('noInputsTip')}
+          </Typography>
         </Stack>
       ) : (
         <InputTable

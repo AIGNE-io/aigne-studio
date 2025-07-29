@@ -9,8 +9,8 @@ export default function FunctionCodeSetting() {
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
-          gap: 2
+          alignItems: 'center',
+          gap: 2,
         }}>
         <Typography variant="subtitle2">{t('callFunction')}</Typography>
       </Stack>

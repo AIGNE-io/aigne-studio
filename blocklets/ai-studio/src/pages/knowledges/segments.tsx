@@ -81,12 +81,14 @@ export default function KnowledgeSegments() {
     return (
       <Stack
         sx={{
-          overflow: "hidden",
-          height: 1
+          overflow: 'hidden',
+          height: 1,
         }}>
-        <Box className="center" sx={{
-          flex: 1
-        }}>
+        <Box
+          className="center"
+          sx={{
+            flex: 1,
+          }}>
           <CircularProgress size={20} />
         </Box>
       </Stack>
@@ -97,19 +99,20 @@ export default function KnowledgeSegments() {
     <>
       <Stack
         sx={{
-          overflow: "hidden",
+          overflow: 'hidden',
           height: 1,
-          bgcolor: "#fff"
+          bgcolor: '#fff',
         }}>
         <Box
           className="between"
           sx={{
             py: 2,
-            px: 2.5
+            px: 2.5,
           }}>
-          <Stack sx={{
-            gap: 1
-          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             <Breadcrumbs sx={{ color: '#9CA3AF' }}>
               <Typography sx={{ cursor: 'pointer' }} onClick={() => navigate(`../${knowledgeId}`)}>
                 {state?.dataset?.name || t('unnamed')}
@@ -141,8 +144,8 @@ export default function KnowledgeSegments() {
               px: 2.5,
               flex: 1,
               height: 0,
-              overflow: "hidden",
-              py: 2
+              overflow: 'hidden',
+              py: 2,
             }}>
             {!loading && filename && (
               <Container sx={{ height: 1 }}>
@@ -155,13 +158,13 @@ export default function KnowledgeSegments() {
                 sx={{
                   flex: 1,
                   height: 0,
-                  py: 2
+                  py: 2,
                 }}>
                 <Box
                   className="center"
                   sx={{
                     width: 1,
-                    height: 1
+                    height: 1,
                   }}>
                   <CircularProgress size={20} />
                 </Box>
@@ -176,12 +179,13 @@ export default function KnowledgeSegments() {
               px: 2.5,
               flex: 1,
               height: 0,
-              overflow: "auto",
-              py: 2
+              overflow: 'auto',
+              py: 2,
             }}>
-            <Stack sx={{
-              flex: 1
-            }}>
+            <Stack
+              sx={{
+                flex: 1,
+              }}>
               {!segments?.length && <EmptyDocument />}
 
               {segments?.length && (
@@ -216,12 +220,12 @@ export default function KnowledgeSegments() {
                       ref={loadingRef}
                       sx={{
                         width: 1,
-                        height: 60
+                        height: 60,
                       }}>
                       <Box
                         sx={{
-                          display: "flex",
-                          justifyContent: "center"
+                          display: 'flex',
+                          justifyContent: 'center',
                         }}>
                         <CircularProgress size={14} />
                       </Box>
@@ -259,8 +263,9 @@ export default function KnowledgeSegments() {
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}
                   slotProps={{
-                    input: { readOnly: true }
-                  }} />
+                    input: { readOnly: true },
+                  }}
+                />
               );
             }}
           />
@@ -277,16 +282,16 @@ function EmptyDocument() {
     <Stack
       sx={{
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 1
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 1,
       }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
       <Typography
         sx={{
-          color: "text.disabled",
+          color: 'text.disabled',
           whiteSpace: 'break-spaces',
-          textAlign: 'center'
+          textAlign: 'center',
         }}>
         {t('knowledge.segments.empty')}
       </Typography>
@@ -357,9 +362,10 @@ export function SegmentsItem({
           </IconButton>
         </Box> */}
       </Box>
-      <Box sx={{
-        height: 90
-      }}>
+      <Box
+        sx={{
+          height: 90,
+        }}>
         <Box className="itemDescription">{result || ''}</Box>
       </Box>
       <Box className="itemFooter">

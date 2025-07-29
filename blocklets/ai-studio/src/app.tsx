@@ -184,7 +184,7 @@ function NotFound() {
       <Box
         sx={{
           flexGrow: 1,
-          textAlign: "center"
+          textAlign: 'center',
         }}>
         <Box data-testid="not-found">Not Found.</Box>
       </Box>

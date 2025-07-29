@@ -48,14 +48,14 @@ function NpmIntegrationSetting() {
         variant="subtitle2"
         sx={{
           fontWeight: 600,
-          mb: 0.5
+          mb: 0.5,
         }}>
         {t('packageSetting')}
       </Typography>
       <Stack
         sx={{
           gap: 3,
-          ml: 1
+          ml: 1,
         }}>
         {(['npm', 'pnpm', 'yarn'] as const).map((manager) => {
           const prefix = manager === 'pnpm' ? 'pnpm install ' : manager === 'yarn' ? 'yarn add' : 'npm install';
@@ -69,7 +69,7 @@ function NpmIntegrationSetting() {
         sx={{
           fontWeight: 600,
           mb: 0.5,
-          mt: 3
+          mt: 3,
         }}>
         AIGNE CLI
       </Typography>
@@ -108,28 +108,34 @@ function CopyLink({
 
   return (
     <Stack>
-      <Typography variant="subtitle2" sx={{
-        mb: 0.5
-      }}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          mb: 0.5,
+        }}>
         {manager}
       </Typography>
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
+          alignItems: 'center',
           gap: 1,
           border: 1,
-          borderColor: "divider",
+          borderColor: 'divider',
           borderRadius: 1,
-          pl: 1
+          pl: 1,
         }}>
-        <Typography noWrap sx={{
-          flex: 1
-        }}>
+        <Typography
+          noWrap
+          sx={{
+            flex: 1,
+          }}>
           {cmd || (
-            <Typography component="span" sx={{
-              color: "text.disabled"
-            }}>
+            <Typography
+              component="span"
+              sx={{
+                color: 'text.disabled',
+              }}>
               {t('clickToGenerateNpmLink')}
             </Typography>
           )}
@@ -193,19 +199,19 @@ function WebhookIntegrationSetting() {
         variant="subtitle2"
         sx={{
           fontWeight: 600,
-          mb: 0.5
+          mb: 0.5,
         }}>
         {t('webhookSetting')}
       </Typography>
       <Stack
         sx={{
           gap: 1,
-          ml: 1
+          ml: 1,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center"
+            display: 'flex',
+            alignItems: 'center',
           }}>
           <Switch
             disabled={loading}
@@ -225,9 +231,10 @@ function WebhookIntegrationSetting() {
 
 export default function IntegrationSetting() {
   return (
-    <Stack sx={{
-      gap: 3
-    }}>
+    <Stack
+      sx={{
+        gap: 3,
+      }}>
       <NpmIntegrationSetting />
       <WebhookIntegrationSetting />
     </Stack>

@@ -136,11 +136,11 @@ function ToolItemView({
     return (
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "center",
+          display: 'flex',
+          justifyContent: 'center',
           minHeight: 100,
-          alignItems: "center",
-          width: 1
+          alignItems: 'center',
+          width: 1,
         }}>
         <CircularProgress size="20px" />
       </Box>
@@ -154,7 +154,7 @@ function ToolItemView({
         sx={{
           px: 1.5,
           py: 1,
-          gap: 1.25
+          gap: 1.25,
         }}>
         <Box className="between">
           <Typography noWrap variant="subtitle4">
@@ -167,9 +167,10 @@ function ToolItemView({
                 component={Icon}
                 icon={PlusIcon}
                 sx={{
-                  color: "#3B82F6",
-                  fontSize: 16
-                }} />
+                  color: '#3B82F6',
+                  fontSize: 16,
+                }}
+              />
             </IconButton>
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
@@ -225,15 +226,15 @@ function ToolItemView({
         {!isNil(value.variable) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                flex: 1
+                display: 'flex',
+                alignItems: 'center',
+                flex: 1,
               }}>
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputName')}
@@ -245,14 +246,15 @@ function ToolItemView({
 
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
-              <Box sx={{
-                flex: 1
-              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <IndicatorTextField
                   projectId={projectId}
                   gitRef={gitRef}
@@ -296,9 +298,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -307,15 +310,15 @@ function ToolItemView({
         {!isNil(value.prefix) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
             }}>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                flex: 1
+                display: 'flex',
+                alignItems: 'center',
+                flex: 1,
               }}>
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputPrefix')}
@@ -326,14 +329,15 @@ function ToolItemView({
             </Box>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
-              <Box sx={{
-                flex: 1
-              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <PromptEditorField
                   readOnly={readOnly}
                   projectId={projectId}
@@ -357,9 +361,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -368,15 +373,15 @@ function ToolItemView({
         {!isNil(value.suffix) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
             }}>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
-                flex: 1
+                display: 'flex',
+                alignItems: 'center',
+                flex: 1,
               }}>
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputSuffix')}
@@ -387,14 +392,15 @@ function ToolItemView({
             </Box>
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
-              <Box sx={{
-                flex: 1
-              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <PromptEditorField
                   readOnly={readOnly}
                   projectId={projectId}
@@ -418,9 +424,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -429,14 +436,14 @@ function ToolItemView({
         {!isNil(value.role) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
             }}>
             <Box
               sx={{
-                display: "flex",
-                flex: 1
+                display: 'flex',
+                flex: 1,
               }}>
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('outputRole')}
@@ -448,16 +455,16 @@ function ToolItemView({
 
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
               <Box
                 sx={{
                   flex: 1,
-                  display: "flex",
-                  justifyContent: "flex-end"
+                  display: 'flex',
+                  justifyContent: 'flex-end',
                 }}>
                 <IndicatorTextField
                   projectId={projectId}
@@ -496,9 +503,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -507,9 +515,9 @@ function ToolItemView({
         {!isNil(value.formatResultType) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
             }}>
             <Typography
               variant="subtitle2"
@@ -518,23 +526,23 @@ function ToolItemView({
                 whiteSpace: 'nowrap',
                 mr: 0.5,
                 mb: 0,
-                fontWeight: 400
+                fontWeight: 400,
               }}>
               {t('formatResult')}
             </Typography>
 
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
               <Box
                 sx={{
                   flex: 1,
-                  display: "flex",
-                  justifyContent: "flex-end"
+                  display: 'flex',
+                  justifyContent: 'flex-end',
                 }}>
                 <IndicatorTextField
                   projectId={projectId}
@@ -566,9 +574,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -577,13 +586,14 @@ function ToolItemView({
         {!isNil(value.respondAs) && (
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}>
-            <Box sx={{
-              flex: 1
-            }}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap', mr: 0.5, mb: 0, fontWeight: 400 }}>
                 {t('respondAs')}
               </Typography>
@@ -591,16 +601,16 @@ function ToolItemView({
 
             <Box
               sx={{
-                display: "flex",
-                alignItems: "center",
+                display: 'flex',
+                alignItems: 'center',
                 flex: 1,
-                gap: 1
+                gap: 1,
               }}>
               <Box
                 sx={{
                   flex: 1,
-                  display: "flex",
-                  justifyContent: "flex-end"
+                  display: 'flex',
+                  justifyContent: 'flex-end',
                 }}>
                 <IndicatorTextField
                   projectId={projectId}
@@ -635,9 +645,10 @@ function ToolItemView({
                   component={Icon}
                   icon={TrashIcon}
                   sx={{
-                    color: "warning.main",
-                    fontSize: 18
-                  }} />
+                    color: 'warning.main',
+                    fontSize: 18,
+                  }}
+                />
               </IconButton>
             </Box>
           </Box>
@@ -648,7 +659,7 @@ function ToolItemView({
         sx={{
           m: 1.5,
           gap: 1.5,
-          mt: 1.5
+          mt: 1.5,
         }}>
         {(parameters || [])?.map((parameter: any) => {
           if (!parameter) return null;
@@ -688,9 +699,11 @@ function ToolItemView({
 
           return (
             <Stack key={parameter.name}>
-              <Typography variant="subtitle2" sx={{
-                mb: 0.5
-              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  mb: 0.5,
+                }}>
                 {getOpenApiTextFromI18n(parameter, 'description', locale) ||
                   getOpenApiTextFromI18n(parameter, 'name', locale)}
               </Typography>

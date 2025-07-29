@@ -84,8 +84,8 @@ export default function Compare({
     return (
       <Box
         sx={{
-          display: "flex",
-          gap: 1
+          display: 'flex',
+          gap: 1,
         }}>
         {!simpleMode && (
           <Select
@@ -214,16 +214,16 @@ export default function Compare({
     return (
       <Box
         sx={{
-          height: "80vh",
-          display: "flex",
-          width: 1
+          height: '80vh',
+          display: 'flex',
+          width: 1,
         }}>
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
           <CircularProgress size={24} />
         </Box>
@@ -235,16 +235,16 @@ export default function Compare({
     <Box
       sx={{
         flex: 1,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center"
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center"
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
         <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
         <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
@@ -256,15 +256,15 @@ export default function Compare({
     return (
       <Stack
         sx={{
-          height: "80vh",
-          width: 1
+          height: '80vh',
+          width: 1,
         }}>
         <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
           <Box
             sx={{
               flex: 1,
-              display: "flex",
-              flexDirection: "column"
+              display: 'flex',
+              flexDirection: 'column',
             }}>
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
@@ -278,8 +278,8 @@ export default function Compare({
           <Box
             sx={{
               flex: 1,
-              display: "flex",
-              flexDirection: "column"
+              display: 'flex',
+              flexDirection: 'column',
             }}>
             <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
 
@@ -299,8 +299,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
@@ -312,8 +312,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.current')}</Box>
         </Box>
@@ -322,8 +322,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           {state.template && <BasicInfoForm projectId={projectId} gitRef={gitRef} value={state.template} disabled />}
         </Box>
@@ -331,8 +331,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <BasicInfoForm
             projectId={projectId}
@@ -347,8 +347,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           {state.template && (
             <InputSettings
@@ -365,8 +365,8 @@ export default function Compare({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <InputSettings
             projectId={projectId}
@@ -378,9 +378,11 @@ export default function Compare({
         </Box>
       </Stack>
       {renderPromptAssistant(state.template)}
-      <Box sx={{
-        height: 2
-      }} />
+      <Box
+        sx={{
+          height: 2,
+        }}
+      />
     </Container>
   );
 }

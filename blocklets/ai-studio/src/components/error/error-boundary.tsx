@@ -53,13 +53,13 @@ function ErrorView({
   return (
     <Stack
       sx={{
-        position: "fixed",
+        position: 'fixed',
         left: 0,
         top: 0,
         right: 0,
         bottom: 0,
-        alignItems: "center",
-        justifyContent: "center"
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
       <CircularProgress size={24} />
     </Stack>
@@ -85,7 +85,7 @@ function Actions() {
       direction="row"
       sx={{
         gap: 1,
-        alignItems: "center"
+        alignItems: 'center',
       }}>
       {!isHome && (
         <Button variant="outlined" size="small" color="primary" component={Link} href="/">

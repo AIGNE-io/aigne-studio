@@ -21,7 +21,7 @@ export default function FunctionTypeSelect({ ...props }: TextFieldProps) {
             anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
             transformOrigin: { horizontal: 'right', vertical: 'top' },
           },
-        }
+        },
       }}>
       {FunctionTypes.map((i) => (
         <MenuItem key={i.type} value={i.type}>

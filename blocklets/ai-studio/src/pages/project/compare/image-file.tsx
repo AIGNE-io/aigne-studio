@@ -22,8 +22,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantEditorPrepare
             projectId={projectId}
@@ -38,8 +38,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantEditorPrepare
             projectId={projectId}
@@ -54,8 +54,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantEditorFormatPrompt projectId={projectId} gitRef={gitRef} value={remoteAssistant} disabled />
         </Box>
@@ -63,8 +63,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantEditorFormatPrompt
             gitRef={gitRef}
@@ -79,8 +79,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
@@ -88,8 +88,8 @@ export default function CompareImagesAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <ImageAssistantSetting
             projectId={projectId}

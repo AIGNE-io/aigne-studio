@@ -39,10 +39,13 @@ export default function AwarenessIndicator({
   return (
     <Box
       {...props}
-      sx={[{
-        zIndex: 1110,
-        position: "relative"
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          zIndex: 1110,
+          position: 'relative',
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       <Tooltip
         placement="top"
         arrow

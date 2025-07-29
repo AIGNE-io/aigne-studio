@@ -21,8 +21,8 @@ export default function ComparePromptAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <PromptAssistantEditorPrompts
             projectId={projectId}
@@ -37,8 +37,8 @@ export default function ComparePromptAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column"
+            display: 'flex',
+            flexDirection: 'column',
           }}>
           <PromptAssistantEditorPrompts
             projectId={projectId}
@@ -53,9 +53,9 @@ export default function ComparePromptAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
           }}>
           <PromptAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
@@ -63,9 +63,9 @@ export default function ComparePromptAssistant({
         <Box
           sx={{
             flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
           }}>
           <PromptAssistantSetting
             projectId={projectId}

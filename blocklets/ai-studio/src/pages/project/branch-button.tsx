@@ -119,8 +119,8 @@ export default function BranchButton({
                       sx={{
                         fontWeight: 500,
                         fontSize: 16,
-                        lineHeight: "28px",
-                        color: "#4B5563"
+                        lineHeight: '28px',
+                        color: '#4B5563',
                       }}>
                       This will permanently delete this branch
                     </Typography>
@@ -152,9 +152,11 @@ export default function BranchButton({
                 content: (
                   <Stack>
                     <Box>
-                      <Typography variant="subtitle2" sx={{
-                        mb: 0.5
-                      }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 0.5,
+                        }}>
                         {t('branchName')}
                       </Typography>
                       <TextField
@@ -189,22 +191,23 @@ export default function BranchButton({
           className="center"
           data-testid="branch-icon"
           sx={{
-            flexDirection: "row",
+            flexDirection: 'row',
             gap: 0.5,
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}>
           <Box
             component={Icon}
             icon={ArrowRightIcon}
             sx={{
               width: 15,
-              color: "#9CA3AF"
-            }} />
+              color: '#9CA3AF',
+            }}
+          />
           <Typography
             variant="subtitle3"
             sx={{
-              color: "#9CA3AF",
-              lineHeight: 1
+              color: '#9CA3AF',
+              lineHeight: 1,
             }}>
             {gitRef}
           </Typography>
@@ -213,8 +216,9 @@ export default function BranchButton({
             icon={ArrowDownIcon}
             sx={{
               width: 15,
-              color: "#030712"
-            }} />
+              color: '#030712',
+            }}
+          />
         </Stack>
       </Dropdown>
     </>
@@ -264,17 +268,23 @@ function BranchList({
       }}>
       {branches.map((branch) => (
         <MenuItem className="branch-item" key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          {branch === ref ? <Box
-            component={Icon}
-            icon={CheckIcon}
-            sx={{
-              mr: 1,
-              width: 15
-            }} /> : <Box
-            sx={{
-              mr: 1,
-              width: 15
-            }} />}
+          {branch === ref ? (
+            <Box
+              component={Icon}
+              icon={CheckIcon}
+              sx={{
+                mr: 1,
+                width: 15,
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                mr: 1,
+                width: 15,
+              }}
+            />
+          )}
           {branch}
         </MenuItem>
       ))}
@@ -286,8 +296,9 @@ function BranchList({
           sx={{
             mr: 1,
             width: 15,
-            color: "'#3B82F6'"
-          }} />
+            color: "'#3B82F6'",
+          }}
+        />
         {t('newObject', { object: t('branch') })}
       </MenuItem>
       {!isDefault && (
@@ -301,8 +312,9 @@ function BranchList({
               sx={{
                 mr: 1,
                 width: 15,
-                color: "#030712"
-              }} />
+                color: '#030712',
+              }}
+            />
             {t('rename')}
           </MenuItem>
 
@@ -313,8 +325,9 @@ function BranchList({
               sx={{
                 mr: 1,
                 width: 15,
-                color: "#E11D48"
-              }} />
+                color: '#E11D48',
+              }}
+            />
             {t('delete')}
           </MenuItem>
         </>
@@ -350,13 +363,16 @@ function CreateBranch({
   }, [states, rows]);
 
   return (
-    <Stack sx={{
-      gap: 1.5
-    }}>
+    <Stack
+      sx={{
+        gap: 1.5,
+      }}>
       <Box>
-        <Typography variant="subtitle2" sx={{
-          mb: 0.5
-        }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 0.5,
+          }}>
           {t('name')}
         </Typography>
         <TextField
@@ -368,9 +384,11 @@ function CreateBranch({
         />
       </Box>
       <Box>
-        <Typography variant="subtitle2" sx={{
-          mb: 0.5
-        }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 0.5,
+          }}>
           {t('sourceBranch')}
         </Typography>
         <TextField

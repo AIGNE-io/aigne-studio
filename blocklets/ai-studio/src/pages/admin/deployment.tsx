@@ -122,8 +122,8 @@ function DeploymentList() {
                           sx={{
                             fontWeight: 500,
                             fontSize: 16,
-                            lineHeight: "28px",
-                            color: "#4B5563"
+                            lineHeight: '28px',
+                            color: '#4B5563',
                           }}>
                           {t('deployments.deleteDescription')}
                         </Typography>
@@ -159,7 +159,7 @@ function DeploymentList() {
         className="between"
         sx={{
           mt: 2.5,
-          mb: 1.5
+          mb: 1.5,
         }}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployments.title')}</Box>
       </Box>
@@ -172,7 +172,7 @@ function DeploymentList() {
           <Stack
             sx={{
               flex: 1,
-              overflowX: 'auto'
+              overflowX: 'auto',
             }}>
             <Table
               sx={{
@@ -201,12 +201,15 @@ function DeploymentList() {
               loading={loading}
               slots={{
                 noRowsOverlay: () => (
-                  <Box className="center" sx={{
-                    height: 1
-                  }}>
-                    <Stack sx={{
-                      alignItems: "center"
+                  <Box
+                    className="center"
+                    sx={{
+                      height: 1,
                     }}>
+                    <Stack
+                      sx={{
+                        alignItems: 'center',
+                      }}>
                       <Typography variant="subtitle1">💻</Typography>
                       <Typography variant="subtitle4">{t('deployments.noDeployments')}</Typography>
                     </Stack>

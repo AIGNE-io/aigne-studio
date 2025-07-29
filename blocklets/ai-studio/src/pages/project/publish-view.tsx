@@ -76,13 +76,13 @@ function PublishViewContent({
         sx={{
           gap: 1,
           p: 1,
-          flexDirection: { xs: 'column', md: 'row' }
+          flexDirection: { xs: 'column', md: 'row' },
         }}>
         <Stack
           sx={{
             gap: 1,
             flex: 1,
-            justifyContent: "space-around"
+            justifyContent: 'space-around',
           }}>
           <Button variant="outlined" href={previewUrl} target="_blank" endIcon={<Icon icon={ShareIcon} />}>
             {t('previewInNewTab')}
@@ -101,9 +101,11 @@ function PublishViewContent({
           </Tooltip>
         </Stack>
 
-        <Box className="qr-code" sx={{
-          textAlign: "center"
-        }}>
+        <Box
+          className="qr-code"
+          sx={{
+            textAlign: 'center',
+          }}>
           <Box
             component={QRCode}
             value={previewUrl}

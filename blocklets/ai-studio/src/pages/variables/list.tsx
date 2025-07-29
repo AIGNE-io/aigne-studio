@@ -50,19 +50,22 @@ function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
     <Stack
       sx={{
         width: 1,
-        textAlign: "center",
-        py: 2.5
+        textAlign: 'center',
+        py: 2.5,
       }}>
-      <Box sx={{
-        lineHeight: "28px"
-      }}>🔢</Box>
+      <Box
+        sx={{
+          lineHeight: '28px',
+        }}>
+        🔢
+      </Box>
       <Typography
         variant="caption"
         sx={{
-          color: "#030712",
+          color: '#030712',
           fontSize: 13,
-          lineHeight: "22px",
-          fontWeight: 500
+          lineHeight: '22px',
+          fontWeight: 500,
         }}>
         {t('memory.empty')}
       </Typography>
@@ -209,9 +212,14 @@ function VariableList() {
       },
       {
         field: 'action',
-        headerName: <Box sx={{
-          mr: 2.5
-        }}>{t('actions')}</Box>,
+        headerName: (
+          <Box
+            sx={{
+              mr: 2.5,
+            }}>
+            {t('actions')}
+          </Box>
+        ),
         align: 'right',
         renderCell: (params: any) => {
           return (
@@ -219,7 +227,7 @@ function VariableList() {
               direction="row"
               sx={{
                 gap: 1,
-                justifyContent: "flex-end"
+                justifyContent: 'flex-end',
               }}>
               <Button
                 size="small"
@@ -262,8 +270,8 @@ function VariableList() {
                             sx={{
                               fontWeight: 500,
                               fontSize: 16,
-                              lineHeight: "28px",
-                              color: "#4B5563"
+                              lineHeight: '28px',
+                              color: '#4B5563',
                             }}>
                             {t('deleteMemoryTip', { agents: agents.join(', ') })}
                           </Typography>
@@ -330,7 +338,7 @@ function VariableList() {
         className="between"
         sx={{
           mt: 2.5,
-          mb: 1.5
+          mb: 1.5,
         }}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('memory.title')}</Box>
         <SegmentedControl
@@ -458,9 +466,10 @@ function VariableList() {
         </DialogTitle>
 
         <DialogContent>
-          <Stack sx={{
-            gap: 2
-          }}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Controller
               control={form.control}
               name="key"
@@ -581,9 +590,9 @@ function VariableList() {
                     <Typography variant="subtitle2">{t('memory.type')}</Typography>
                     <Box
                       sx={{
-                        display: "flex",
+                        display: 'flex',
                         gap: 2,
-                        alignItems: "center"
+                        alignItems: 'center',
                       }}>
                       <VariableTypeField
                         key={Boolean(value).toString()}
@@ -627,9 +636,11 @@ function VariableList() {
                       />
                     )}
                     {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" sx={{
-                        color: "warning.main"
-                      }}>
+                      <Typography
+                        variant="subtitle5"
+                        sx={{
+                          color: 'warning.main',
+                        }}>
                         {fieldState.error?.message}
                       </Typography>
                     )}
@@ -647,9 +658,11 @@ function VariableList() {
                     <Typography variant="subtitle2">{t('variableParameter.reset')}</Typography>
                     <BaseSwitch {...field} />
                     {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" sx={{
-                        color: "warning.main"
-                      }}>
+                      <Typography
+                        variant="subtitle5"
+                        sx={{
+                          color: 'warning.main',
+                        }}>
                         {fieldState.error?.message}
                       </Typography>
                     )}
@@ -713,7 +726,7 @@ function VariableTypeField({ ...props }: TextFieldProps) {
       select
       {...props}
       slotProps={{
-        select: { autoWidth: true }
+        select: { autoWidth: true },
       }}>
       <MenuItem value="string" disabled={props.disabled}>
         {t('text')}
@@ -867,7 +880,7 @@ function VariableRow({
               direction="row"
               sx={{
                 gap: 1,
-                justifyContent: "flex-end"
+                justifyContent: 'flex-end',
               }}>
               {variable.type === 'object' && (
                 <Button

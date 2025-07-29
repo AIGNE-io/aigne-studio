@@ -37,11 +37,13 @@ export default function PromptSetting({
       direction="row"
       sx={{
         gap: 2,
-        justifyContent: "flex-end"
+        justifyContent: 'flex-end',
       }}>
-      <Stack direction="row" sx={{
-        alignItems: "center"
-      }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+        }}>
         <ModelSelectLite
           type={resolveModelType(value)!}
           projectId={projectId}
@@ -65,9 +67,10 @@ export default function PromptSetting({
         </DialogTitle>
 
         <DialogContent>
-          <Stack sx={{
-            gap: 1.5
-          }}>
+          <Stack
+            sx={{
+              gap: 1.5,
+            }}>
             {(isPromptAssistant(value) || isRouterAssistant(value)) && (
               <PromptSettings projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
             )}

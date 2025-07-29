@@ -95,14 +95,14 @@ const HelperText = ({
           component="span"
           onClick={() => onDuplicateProject?.(project)}
           sx={{
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 0.2,
             fontWeight: 600,
             cursor: onDuplicateProject ? 'pointer' : 'auto',
             color: 'text.secondary',
             textDecoration: 'underline',
-            minWidth: 0
+            minWidth: 0,
           }}>
           <Box component="img" alt="" src={getProjectIconUrl(project.id, {})} sx={{ width: 24, height: 24 }} />
           <Box component="span" className="ellipsis">

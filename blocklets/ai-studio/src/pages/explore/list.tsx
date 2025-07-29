@@ -52,9 +52,11 @@ function CategoryCard({
           0px 2px 4px 0px rgba(3, 7, 18, 0.04)
         `,
       }}>
-      <Stack direction="row" sx={{
-        gap: { xs: 1.5, xl: 2 }
-      }}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: { xs: 1.5, xl: 2 },
+        }}>
         <Box
           alt=""
           component="img"
@@ -148,16 +150,16 @@ function CategoryList() {
               sx={{
                 flex: 1,
                 height: 500,
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 1
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 1,
               }}>
               <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
               <Typography
                 sx={{
-                  color: "text.disabled",
+                  color: 'text.disabled',
                   whiteSpace: 'break-spaces',
-                  textAlign: 'center'
+                  textAlign: 'center',
                 }}>
                 {t('deployments.emptyDeployment')}
               </Typography>
@@ -189,12 +191,12 @@ function CategoryList() {
               ref={loadingRef}
               sx={{
                 width: 1,
-                height: 60
+                height: 60,
               }}>
               <Box
                 sx={{
-                  display: "flex",
-                  justifyContent: "center"
+                  display: 'flex',
+                  justifyContent: 'center',
                 }}>
                 <CircularProgress size={24} />
               </Box>

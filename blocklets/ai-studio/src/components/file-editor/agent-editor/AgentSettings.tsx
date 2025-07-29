@@ -74,8 +74,8 @@ export function AgentSettings({ agent }: { agent: AssistantYjs }) {
             <Stack
               direction="row"
               sx={{
-                alignItems: "baseline",
-                gap: 1
+                alignItems: 'baseline',
+                gap: 1,
               }}>
               <Typography>{item.title}</Typography>
               <Box className="hidden-expanded">{item.summary}</Box>
@@ -85,8 +85,8 @@ export function AgentSettings({ agent }: { agent: AssistantYjs }) {
           <AccordionDetails>
             <Box
               sx={{
-                bgcolor: "background.paper",
-                borderRadius: 1
+                bgcolor: 'background.paper',
+                borderRadius: 1,
               }}>
               {item.detail}
             </Box>

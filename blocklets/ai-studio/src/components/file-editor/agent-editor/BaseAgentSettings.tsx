@@ -25,11 +25,12 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
       sx={{
         px: 1.5,
         py: 1,
-        gap: 1
+        gap: 1,
       }}>
-      <Stack sx={{
-        alignItems: "flex-start"
-      }}>
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
+        }}>
         <FormControl>
           <FormControlLabel
             labelPlacement="start"
@@ -49,12 +50,15 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
           />
         </FormControl>
       </Stack>
-      <Stack sx={{
-        alignItems: "flex-start"
-      }}>
-        <Stack direction="row" sx={{
-          alignItems: "center"
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
         }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+          }}>
           <FormControl>
             <FormControlLabel
               labelPlacement="start"

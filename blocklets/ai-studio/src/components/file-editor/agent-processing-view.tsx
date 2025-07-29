@@ -29,24 +29,26 @@ export default function AgentProcessingView({
   const { t } = useLocaleContext();
 
   return (
-    <Stack data-testid="agent-processing-view" sx={{
-      gap: 1
-    }}>
+    <Stack
+      data-testid="agent-processing-view"
+      sx={{
+        gap: 1,
+      }}>
       <Box
         className="between"
         sx={{
-          whiteSpace: "nowrap",
-          gap: 2
+          whiteSpace: 'nowrap',
+          gap: 2,
         }}>
         <Box
           sx={{
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 0.5,
             minHeight: 32,
             flex: 1,
-            overflow: "hidden",
-            textOverflow: "ellipsis"
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
             {agentTypesMap[assistant.type]?.icon ?? <Box component={Icon} icon={BrainIcon} sx={{ fontSize: 15 }} />}
@@ -59,7 +61,7 @@ export default function AgentProcessingView({
             sx={{
               flex: 1,
               width: 0,
-              minWidth: 20
+              minWidth: 20,
             }}>
             <AgentTypeSelect assistant={assistant} data-testid="agent-type-select" />
           </Stack>

@@ -36,9 +36,12 @@ export default function SliderNumberField({
     <Stack
       direction="row"
       {...props}
-      sx={[{
-        alignItems: "center"
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          alignItems: 'center',
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       <Slider
         data-testid="slider"
         disabled={disabled}
@@ -64,7 +67,7 @@ export default function SliderNumberField({
           input: {
             readOnly,
             inputProps: { type: 'number', inputMode: 'decimal', pattern: '[0-9]*[.,]?[0-9]+', min, max, step },
-          }
+          },
         }}
       />
     </Stack>

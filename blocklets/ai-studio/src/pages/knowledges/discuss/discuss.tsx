@@ -41,10 +41,13 @@ function DiscussionTable({
     }
   }, [error]);
 
-  const selection = useMemo(() => ({
-    type: 'include' as const,
-    ids: new Set(value.map((i) => i!.id).filter(isNonNullable))
-  }), [value]);
+  const selection = useMemo(
+    () => ({
+      type: 'include' as const,
+      ids: new Set(value.map((i) => i!.id).filter(isNonNullable)),
+    }),
+    [value]
+  );
 
   const onRowSelectionModelChange = useCallback(
     (rowSelectionModel: { type: 'include' | 'exclude'; ids: Set<GridRowId> }) => {
@@ -72,9 +75,10 @@ function DiscussionTable({
   return (
     <>
       {meilisearch && (
-        <Box sx={{
-          my: 1
-        }}>
+        <Box
+          sx={{
+            my: 1,
+          }}>
           <TextField
             sx={{ width: 1 }}
             label={t('alert.search')}

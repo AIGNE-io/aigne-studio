@@ -117,13 +117,13 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
         sx={{
           gap: 2,
           py: 2,
-          mt: 4
+          mt: 4,
         }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 2 }}
           sx={{
-            alignItems: { xs: 'stretch', sm: 'center' }
+            alignItems: { xs: 'stretch', sm: 'center' },
           }}>
           <Tooltip
             title={t('temperatureTip')}
@@ -157,7 +157,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 2 }}
           sx={{
-            alignItems: { xs: 'stretch', sm: 'center' }
+            alignItems: { xs: 'stretch', sm: 'center' },
           }}>
           <Tooltip
             title={t('topPTip')}
@@ -191,7 +191,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 2 }}
           sx={{
-            alignItems: { xs: 'stretch', sm: 'center' }
+            alignItems: { xs: 'stretch', sm: 'center' },
           }}>
           <Tooltip
             title={t('frequencyPenaltyTip')}
@@ -225,7 +225,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 2 }}
           sx={{
-            alignItems: { xs: 'stretch', sm: 'center' }
+            alignItems: { xs: 'stretch', sm: 'center' },
           }}>
           <Tooltip
             title={t('presencePenaltyTip')}

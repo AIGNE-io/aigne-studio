@@ -32,12 +32,15 @@ function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingIte
   const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   return (
-    <Box className="between" sx={{
-      position: "relative"
-    }}>
-      <Box sx={{
-        flex: 1
+    <Box
+      className="between"
+      sx={{
+        position: 'relative',
       }}>
+      <Box
+        sx={{
+          flex: 1,
+        }}>
         <Tooltip
           title={t(tooltip)}
           placement="top"
@@ -51,11 +54,14 @@ function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingIte
         </Tooltip>
       </Box>
       <Box
-        sx={[{
-          flex: 1,
-          display: "flex",
-          justifyContent: "flex-end"
-        }, ...(Array.isArray(sx) ? sx : [sx])]}>
+        sx={[
+          {
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}>
         <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={projectRef} path={[agentId, ...path]}>
           {children}
         </WithAwareness>
@@ -83,15 +89,17 @@ function AgentParametersForm({
   if (!agent) return null;
 
   return (
-    <Stack sx={{
-      gap: 2
-    }}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-        <Stack sx={{
-          gap: 1
-        }}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
             if (data.key === 'prompt' || data.key === 'model') return null;
@@ -157,7 +165,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={quality}
             onChange={(e) => (agent.quality = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {(model.quality || []).map((i) => (
               <MenuItem key={i} value={i}>
@@ -175,7 +183,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={size}
             onChange={(e) => (agent.size = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {model.size.map((i) => (
               <MenuItem key={i} value={i}>
@@ -193,7 +201,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={agent.style ?? model.styleDefault}
             onChange={(e) => (agent.style = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {(model.style || []).map((i) => (
               <MenuItem key={i} value={i}>
@@ -211,7 +219,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={agent.background ?? model.backgroundDefault}
             onChange={(e) => (agent.background = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {(model.background || []).map((i) => (
               <MenuItem key={i} value={i}>
@@ -233,7 +241,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={agent.outputFormat ?? model.outputFormatDefault}
             onChange={(e) => (agent.outputFormat = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {(model.outputFormat || []).map((i) => (
               <MenuItem key={i} value={i}>
@@ -251,7 +259,7 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
             value={agent.moderation ?? model.moderationDefault}
             onChange={(e) => (agent.moderation = e.target.value)}
             slotProps={{
-              select: { autoWidth: true }
+              select: { autoWidth: true },
             }}>
             {(model.moderation || []).map((i) => (
               <MenuItem key={i} value={i}>

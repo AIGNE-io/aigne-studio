@@ -60,8 +60,9 @@ function PanelToggleButton({
           icon={placement === 'left' ? SidebarLeft : SidebarRight}
           sx={{
             fontSize: 20,
-            color: "#3B82F6"
-          }} />
+            color: '#3B82F6',
+          }}
+        />
       </Button>
     </Tooltip>
   );
@@ -210,14 +211,16 @@ export default function KnowledgeDetail() {
                     },
                   }}
                   slotProps={{
-                    indicator: { children: <Box component="span" /> }
+                    indicator: { children: <Box component="span" /> },
                   }}>
                   <Tab value="playground" label={t('knowledge.playground')} data-testid="debug-preview-view" />
                 </Tabs>
 
-                <Box sx={{
-                  flex: 1
-                }} />
+                <Box
+                  sx={{
+                    flex: 1,
+                  }}
+                />
 
                 {/* <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} /> */}
               </Box>
@@ -245,9 +248,11 @@ export default function KnowledgeDetail() {
                     />
                   )}
 
-                  <Box sx={{
-                    flex: 1
-                  }} />
+                  <Box
+                    sx={{
+                      flex: 1,
+                    }}
+                  />
 
                   {!rightOpen && (
                     <PanelToggleButton
@@ -263,12 +268,12 @@ export default function KnowledgeDetail() {
             <Box
               sx={{
                 flexGrow: 1,
-                overflow: "hidden"
+                overflow: 'hidden',
               }}>
               <Stack
                 sx={{
                   p: 2.5,
-                  height: 1
+                  height: 1,
                 }}>
                 <Header
                   knowledgeId={knowledgeId}
@@ -288,14 +293,15 @@ export default function KnowledgeDetail() {
                     sx={{
                       flexGrow: 1,
                       width: 1,
-                      height: 1
+                      height: 1,
                     }}>
                     <CircularProgress />
                   </Box>
                 ) : (
-                  <Box sx={{
-                    flexGrow: 1
-                  }}>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                    }}>
                     {document?.items?.length ? (
                       <KnowledgeDocuments
                         disabled={Boolean(disabled)}
@@ -400,9 +406,10 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
     .filter((x) => x?.content);
 
   return (
-    <Stack sx={{
-      height: 1
-    }}>
+    <Stack
+      sx={{
+        height: 1,
+      }}>
       <Box
         component="form"
         onSubmit={async (e) => {
@@ -461,9 +468,13 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
               Toast.error(error?.message);
             }
           }}>
-          <Box component={Icon} icon={SearchIcon} sx={{
-            fontSize: 15
-          }} />
+          <Box
+            component={Icon}
+            icon={SearchIcon}
+            sx={{
+              fontSize: 15,
+            }}
+          />
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
@@ -471,21 +482,22 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         sx={{
           flexGrow: 1,
           height: 0,
-          overflow: "auto"
+          overflow: 'auto',
         }}>
         {loading ? (
           <Box
             className="center"
             sx={{
               width: 1,
-              height: 1
+              height: 1,
             }}>
             <CircularProgress size={20} />
           </Box>
         ) : results.length ? (
-          <Box sx={{
-            px: 2.5
-          }}>
+          <Box
+            sx={{
+              px: 2.5,
+            }}>
             {results.map((result, index) => {
               const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
               const relevanceScore = result?.metadata?.metadata?.relevanceScore;
@@ -499,7 +511,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                   }}
                   sx={{
                     py: 2.5,
-                    borderBottom: "1px solid #EFF1F5",
+                    borderBottom: '1px solid #EFF1F5',
                     cursor: result?.metadata?.document?.id ? 'pointer' : 'default',
 
                     pre: {
@@ -514,7 +526,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
 
                     'div > p': {
                       padding: 0,
-                    }
+                    },
                   }}>
                   <Box>
                     {(typeof result.content === 'string'
@@ -525,28 +537,28 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                   {title && (
                     <Stack
                       sx={{
-                        width: "fit-content",
-                        flexDirection: "row",
-                        alignItems: "center",
+                        width: 'fit-content',
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         gap: 1,
                         mt: 1.5,
                         py: 1,
                         px: 1.5,
                         borderRadius: 1,
-                        border: "1px solid #EFF1F5"
+                        border: '1px solid #EFF1F5',
                       }}>
                       <Stack
                         direction="row"
                         sx={{
                           gap: 1,
-                          alignItems: "center",
-                          flex: 1
+                          alignItems: 'center',
+                          flex: 1,
                         }}>
                         <DocumentIcon document={result.metadata.document} />
                         <Box
                           sx={{
                             flexGrow: 1,
-                            color: "#030712"
+                            color: '#030712',
                           }}>
                           {title}
                         </Box>
@@ -560,7 +572,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                             direction="row"
                             sx={{
                               gap: 1,
-                              alignItems: "center"
+                              alignItems: 'center',
                             }}>
                             <Typography
                               sx={{
@@ -584,7 +596,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             className="center"
             sx={{
               width: 1,
-              height: 1
+              height: 1,
             }}>
             {loaded ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
           </Box>
@@ -636,33 +648,40 @@ const Header = ({
         maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
       }}
       dashboardProps={{}}>
-      <Stack sx={{
-        gap: 2.5
-      }}>
+      <Stack
+        sx={{
+          gap: 2.5,
+        }}>
         <Stack
           direction="row"
           onClick={onBack}
           sx={{
             gap: 0.5,
-            alignItems: "center",
-            color: "#3B82F6",
-            cursor: 'pointer'
+            alignItems: 'center',
+            color: '#3B82F6',
+            cursor: 'pointer',
           }}>
-          <Box component={Icon} icon={ArrowLeftCircleIcon} sx={{
-            fontSize: 15
-          }} />
+          <Box
+            component={Icon}
+            icon={ArrowLeftCircleIcon}
+            sx={{
+              fontSize: 15,
+            }}
+          />
           <Typography>{t('back')}</Typography>
         </Stack>
 
         <Stack
           direction="row"
           sx={{
-            justifyContent: "space-between",
-            alignItems: "self-end"
+            justifyContent: 'space-between',
+            alignItems: 'self-end',
           }}>
-          <Stack direction="row" sx={{
-            gap: 1
-          }}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+            }}>
             <KnowledgeIcon knowledgeId={knowledgeId} icon={icon} disabled={disabled} />
 
             <Stack sx={{ alignSelf: 'flex-end' }}>
@@ -746,15 +765,15 @@ const Header = ({
             direction="row"
             sx={{
               gap: 1.25,
-              alignItems: "center",
+              alignItems: 'center',
               mt: 2.5,
-              color: "#9CA3AF"
+              color: '#9CA3AF',
             }}>
             <Stack
               direction="row"
               sx={{
                 gap: 0.5,
-                alignItems: "center"
+                alignItems: 'center',
               }}>
               <Box component={Icon} icon={FileIcon} />
               <Typography variant="subtitle5">{`${docs || 0} ${t('knowledge.docs')}`}</Typography>
@@ -764,7 +783,7 @@ const Header = ({
               direction="row"
               sx={{
                 gap: 0.5,
-                alignItems: "center"
+                alignItems: 'center',
               }}>
               <Box component={Icon} icon={DatabaseIcon} />
               <Typography variant="subtitle5">{bytes.format(totalSize || 0)}</Typography>
@@ -776,8 +795,8 @@ const Header = ({
                 onClick={onAdd}
                 sx={{
                   gap: 0.5,
-                  alignItems: "center",
-                  cursor: 'pointer'
+                  alignItems: 'center',
+                  cursor: 'pointer',
                 }}>
                 <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
                 <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
@@ -839,9 +858,11 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
             }}
           />
         ) : null}
-        <Typography style={{ display: localIcon ? 'none' : 'block' }} sx={{
-          fontSize: 24
-        }}>
+        <Typography
+          style={{ display: localIcon ? 'none' : 'block' }}
+          sx={{
+            fontSize: 24,
+          }}>
           📖
         </Typography>
       </Box>
@@ -872,8 +893,9 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
           icon={PencilIcon}
           sx={{
             fontSize: 15,
-            color: '#fff'
-          }} />
+            color: '#fff',
+          }}
+        />
       </Box>
     </Box>
   );

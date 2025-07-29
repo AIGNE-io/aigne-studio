@@ -18,9 +18,10 @@ export default function FunctionAssistantEditor({
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
-    <Stack sx={{
-      gap: 2.5
-    }}>
+    <Stack
+      sx={{
+        gap: 2.5,
+      }}>
       <FunctionCodeEditor projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
     </Stack>
   );

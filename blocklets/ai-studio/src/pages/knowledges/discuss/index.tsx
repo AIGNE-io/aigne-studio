@@ -79,7 +79,7 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
         className="center"
         sx={{
           width: 1,
-          height: 1
+          height: 1,
         }}>
         <CircularProgress />
       </Box>
@@ -104,18 +104,21 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
   };
 
   return (
-    <Box component="form" sx={{
-      maxWidth: "900px"
-    }}>
-      <Stack sx={{
-        gap: 1
+    <Box
+      component="form"
+      sx={{
+        maxWidth: '900px',
       }}>
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         <Typography
           sx={{
             fontWeight: 500,
             fontSize: 16,
-            lineHeight: "28px",
-            color: "#030712"
+            lineHeight: '28px',
+            color: '#030712',
           }}>
           {t('importFromDiscussion')}
         </Typography>
@@ -125,7 +128,7 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
           <Stack
             sx={{
               gap: 1.5,
-              flexDirection: isMdOrAbove ? 'row' : 'column'
+              flexDirection: isMdOrAbove ? 'row' : 'column',
             }}>
             {types.map((name: 'discussion' | 'blog' | 'doc') => (
               <Box
@@ -133,8 +136,8 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                 sx={{
                   borderRadius: 1,
                   p: 2,
-                  border: "1px solid #E5E7EB",
-                  flex: 1
+                  border: '1px solid #E5E7EB',
+                  flex: 1,
                 }}>
                 <FormControlLabel
                   control={
@@ -160,9 +163,10 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
 
         <Box>
           <Typography variant="subtitle2">{t('discussionBoards')}</Typography>
-          <Stack sx={{
-            gap: 1
-          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             {Object.entries(group).map(([key, value]) => {
               const prefix = (window.blocklet?.componentMountPoints || []).find(
                 (x) => x.name === 'did-comments'
@@ -181,12 +185,12 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                   <Stack
                     sx={{
                       gap: 1.5,
-                      flexDirection: "row",
+                      flexDirection: 'row',
                       borderRadius: 1,
                       p: 2,
-                      border: "1px solid #E5E7EB",
+                      border: '1px solid #E5E7EB',
                       flex: 1,
-                      flexWrap: "wrap"
+                      flexWrap: 'wrap',
                     }}>
                     {value.map(({ id, title, type }) => {
                       url = joinURL(window.blocklet?.appUrl || '', prefix || '/', map[type], id);
@@ -198,10 +202,10 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                             <Stack
                               onClick={() => window.open(url, '_blank')}
                               sx={{
-                                flexDirection: "row",
+                                flexDirection: 'row',
                                 gap: 1,
-                                alignItems: "center",
-                                cursor: 'pointer'
+                                alignItems: 'center',
+                                cursor: 'pointer',
                               }}>
                               {t('visitLink')}
                               <Box component={Icon} icon={LinkIcon} />

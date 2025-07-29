@@ -121,8 +121,8 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
         <Stack
           direction="row"
           sx={{
-            alignItems: "center",
-            gap: 1
+            alignItems: 'center',
+            gap: 1,
           }}>
           {state?.project?.gitUrl && (
             <Tooltip title={state?.project?.gitUrl} placement="top" disableInteractive>
@@ -140,17 +140,20 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
         </Stack>
       </Stack>
       <Collapse orientation="vertical" in={checked || !state?.project?.gitUrl} collapsedSize={0}>
-        <Stack sx={{
-          gap: 2
-        }}>
+        <Stack
+          sx={{
+            gap: 2,
+          }}>
           {confirmDialog}
           {dialog}
           {unauthorizedDialog}
           <>
             <Box>
-              <Typography variant="subtitle2" sx={{
-                mb: 0.5
-              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  mb: 0.5,
+                }}>
                 {`${t('url')}*`}
               </Typography>
 
@@ -193,15 +196,17 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                 error={Boolean(form.formState.errors.url)}
                 helperText={form.formState.errors.url?.message}
                 slotProps={{
-                  inputLabel: { shrink: form.watch('url') ? true : undefined }
+                  inputLabel: { shrink: form.watch('url') ? true : undefined },
                 }}
               />
             </Box>
 
             <Box>
-              <Typography variant="subtitle2" sx={{
-                mb: 0.5
-              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  mb: 0.5,
+                }}>
                 {t('username')}
               </Typography>
 
@@ -213,15 +218,17 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                 error={Boolean(form.formState.errors.username)}
                 helperText={form.formState.errors.username?.message}
                 slotProps={{
-                  inputLabel: { shrink: form.watch('username') ? true : undefined }
+                  inputLabel: { shrink: form.watch('username') ? true : undefined },
                 }}
               />
             </Box>
 
             <Box>
-              <Typography variant="subtitle2" sx={{
-                mb: 0.5
-              }}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  mb: 0.5,
+                }}>
                 {t('accessToken')}
               </Typography>
 
@@ -258,22 +265,23 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                     ),
                   },
 
-                  inputLabel: { shrink: form.watch('password') ? true : undefined }
-                }} />
+                  inputLabel: { shrink: form.watch('password') ? true : undefined },
+                }}
+              />
             </Box>
           </>
 
           <Stack
             sx={{
-              flexDirection: "row",
-              justifyContent: "space-between",
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               gap: 1,
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
             }}>
             <Stack
               sx={{
-                flexDirection: "row",
-                gap: 1
+                flexDirection: 'row',
+                gap: 1,
               }}>
               <LoadingButton
                 disabled={isMultiTenant}
@@ -319,15 +327,15 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
             <Tooltip title={!disabledButton ? t('syncTip') : undefined}>
               <Stack
                 sx={{
-                  flexDirection: "row",
+                  flexDirection: 'row',
                   gap: 1,
-                  flexWrap: "wrap"
+                  flexWrap: 'wrap',
                 }}>
                 <Stack
                   direction="row"
                   sx={{
-                    alignItems: "center",
-                    gap: 1
+                    alignItems: 'center',
+                    gap: 1,
                   }}>
                   <FormControlLabel
                     sx={{ m: 0, lineHeight: 1 }}
@@ -346,10 +354,10 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                   {authSyncUpdating ? (
                     <Stack
                       sx={{
-                        justifyContent: "center",
-                        alignItems: "center",
+                        justifyContent: 'center',
+                        alignItems: 'center',
                         width: 24,
-                        height: 24
+                        height: 24,
                       }}>
                       {authSyncUpdating === true ? (
                         <CircularProgress size={16} />
@@ -365,8 +373,8 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                 <Stack
                   direction="row"
                   sx={{
-                    alignItems: "center",
-                    gap: 1
+                    alignItems: 'center',
+                    gap: 1,
                   }}>
                   <PromiseLoadingButton
                     size="small"
@@ -396,9 +404,11 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                   </PromiseLoadingButton>
 
                   {state.project?.gitLastSyncedAt && (
-                    <Typography variant="caption" sx={{
-                      color: "#9CA3AF"
-                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#9CA3AF',
+                      }}>
                       {/* @ts-ignore */}
                       <RelativeTime locale={locale} value={state.project.gitLastSyncedAt} />
                     </Typography>

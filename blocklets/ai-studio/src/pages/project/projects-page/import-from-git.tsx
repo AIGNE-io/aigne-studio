@@ -92,9 +92,10 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <Stack sx={{
-          gap: 1.5
-        }}>
+        <Stack
+          sx={{
+            gap: 1.5,
+          }}>
           <Box>
             <Typography variant="subtitle2">{`${t('gitUrl')}*`}</Typography>
             <TextField
@@ -143,8 +144,9 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                   onFocus: (e) => (e.currentTarget.readOnly = false),
                 },
 
-                inputLabel: { shrink: form.watch('url') ? true : undefined }
-              }} />
+                inputLabel: { shrink: form.watch('url') ? true : undefined },
+              }}
+            />
           </Box>
 
           <Box sx={{ display: 'none' }}>
@@ -157,7 +159,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               helperText={form.formState.errors.username?.message}
               sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
               slotProps={{
-                inputLabel: { shrink: form.watch('username') ? true : undefined }
+                inputLabel: { shrink: form.watch('username') ? true : undefined },
               }}
             />
           </Box>
@@ -201,8 +203,9 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                   ),
                 },
 
-                inputLabel: { shrink: form.watch('password') ? true : undefined }
-              }} />
+                inputLabel: { shrink: form.watch('password') ? true : undefined },
+              }}
+            />
           </Box>
 
           <Box>
@@ -224,7 +227,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                 input: {
                   readOnly: true,
                   onFocus: (e) => (e.currentTarget.readOnly = false),
-                }
+                },
               }}
             />
           </Box>

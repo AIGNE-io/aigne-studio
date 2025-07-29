@@ -43,8 +43,8 @@ function GatewayAction({
           direction="row"
           spacing={1}
           sx={{
-            alignItems: "center",
-            justifyContent: "space-between"
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}>
           <PromiseLoadingButton
             size="small"
@@ -84,9 +84,11 @@ function GatewayAction({
             {t('sync')}
           </PromiseLoadingButton>
           {state?.project?.didSpaceLastSyncedAt && (
-            <Typography variant="caption" sx={{
-              color: "#9CA3AF"
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#9CA3AF',
+              }}>
               {/* @ts-ignore */}
               <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />
             </Typography>

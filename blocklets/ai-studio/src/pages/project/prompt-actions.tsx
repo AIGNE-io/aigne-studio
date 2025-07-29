@@ -91,7 +91,7 @@ export function HeaderActions() {
         className="center"
         sx={{
           gap: 1,
-          button: { whiteSpace: 'nowrap' }
+          button: { whiteSpace: 'nowrap' },
         }}>
         <WsStatus projectId={projectId} gitRef={gitRef} />
 
@@ -168,8 +168,8 @@ export function MobileHeaderActions() {
           );
         }}
         sx={{
-          justifyContent: "flex-start",
-          cursor: 'pointer'
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
         }}>
         <Box className="center">
           <Box
@@ -177,16 +177,17 @@ export function MobileHeaderActions() {
             icon={LogIcon}
             sx={{
               mr: 1,
-              fontSize: '15px !important'
-            }} />
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
         <Typography
           className="center"
           sx={{
             fontWeight: 500,
             fontSize: 16,
-            lineHeight: "28px",
-            color: "#030712"
+            lineHeight: '28px',
+            color: '#030712',
           }}>
           {t('log')}
         </Typography>
@@ -215,8 +216,8 @@ function HistoryAction() {
         key="history"
         onClick={dialogState.open}
         sx={{
-          justifyContent: "flex-start",
-          cursor: 'pointer'
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
         }}>
         <Box className="center">
           <Box
@@ -224,27 +225,34 @@ function HistoryAction() {
             icon={HistoryToggleIcon}
             sx={{
               mr: 1,
-              fontSize: '15px !important'
-            }} />
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
         <Typography
           className="center"
           sx={{
             fontWeight: 500,
             fontSize: 16,
-            lineHeight: "28px",
-            color: "#030712"
+            lineHeight: '28px',
+            color: '#030712',
           }}>
           {t('alert.history')}
         </Typography>
       </Box>
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} slotProps={{
-        paper: { elevation: 0 }
-      }}>
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        slotProps={{
+          paper: { elevation: 0 },
+        }}>
         <DialogContent sx={{ p: '16px !important' }}>
-          <Stack sx={{
-            gap: 2
-          }}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Box>
               <Button
                 sx={{ p: 0 }}
@@ -286,9 +294,11 @@ function SaveAction() {
 
   return (
     <>
-      <Box className="center" sx={{
-        justifyContent: "flex-start"
-      }}>
+      <Box
+        className="center"
+        sx={{
+          justifyContent: 'flex-start',
+        }}>
         <IconButton
           {...bindTrigger(dialogState)}
           disabled={submitting || disabled}
@@ -313,16 +323,17 @@ function SaveAction() {
               icon={FloppyIcon}
               sx={{
                 mr: 1,
-                fontSize: '15px !important'
-              }} />
+                fontSize: '15px !important',
+              }}
+            />
           </Box>
           <Typography
             className="center text"
             sx={{
               fontWeight: 500,
               fontSize: 16,
-              lineHeight: "28px",
-              color: "#030712"
+              lineHeight: '28px',
+              color: '#030712',
             }}>
             {t('save')}
           </Typography>
@@ -397,8 +408,8 @@ function SettingsAction() {
         key="history"
         onClick={dialogState.open}
         sx={{
-          justifyContent: "flex-start",
-          cursor: 'pointer'
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
         }}>
         <Box className="center">
           <Box
@@ -406,16 +417,17 @@ function SettingsAction() {
             icon={SettingsIcon}
             sx={{
               mr: 1,
-              fontSize: '15px !important'
-            }} />
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
         <Typography
           className="center"
           sx={{
             fontWeight: 500,
             fontSize: 16,
-            lineHeight: "28px",
-            color: "#030712"
+            lineHeight: '28px',
+            color: '#030712',
           }}>
           {t('setting')}
         </Typography>
@@ -427,12 +439,13 @@ function SettingsAction() {
         sx={{ mt: '65px' }}
         disableEnforceFocus
         slotProps={{
-          paper: { elevation: 0 }
+          paper: { elevation: 0 },
         }}>
         <DialogContent sx={{ p: '16px !important' }}>
-          <Stack sx={{
-            gap: 2
-          }}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Box>
               <Button
                 sx={{ p: 0 }}
