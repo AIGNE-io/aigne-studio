@@ -97,7 +97,7 @@
   },
   "dependencies": {
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/aigne-hub": "^0.2.18",
+    "@blocklet/aigne-hub": "^0.2.19",
     "@blocklet/js-sdk": "^1.16.44",
     "@blocklet/pages-kit": "^0.5.33",
     "@blocklet/sdk": "^1.16.44",

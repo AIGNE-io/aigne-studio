@@ -164,8 +164,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/ai-runtime
       '@blocklet/aigne-hub':
-        specifier: ^0.2.18
-        version: 0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
+        specifier: ^0.2.19
+        version: 0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
       '@blocklet/aigne-sdk':
         specifier: workspace:^
         version: link:../../packages/aigne-sdk
@@ -477,8 +477,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/ai-runtime
       '@blocklet/aigne-hub':
-        specifier: ^0.2.18
-        version: 0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
+        specifier: ^0.2.19
+        version: 0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
       '@blocklet/aigne-sdk':
         specifier: workspace:^
         version: link:../../packages/aigne-sdk
@@ -1063,8 +1063,8 @@ importers:
         specifier: ^2.13.62
         version: 2.13.62(76e326a105dff8b03b51fbf749c4bc2e)
       '@blocklet/aigne-hub':
-        specifier: ^0.2.18
-        version: 0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
+        specifier: ^0.2.19
+        version: 0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
       '@blocklet/co-git':
         specifier: workspace:^
         version: link:../co-git
@@ -1304,8 +1304,8 @@ importers:
         specifier: workspace:^
         version: link:../ai-runtime
       '@blocklet/aigne-hub':
-        specifier: ^0.2.18
-        version: 0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
+        specifier: ^0.2.19
+        version: 0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)
       '@blocklet/js-sdk':
         specifier: ^1.16.44
         version: 1.16.44(encoding@0.1.13)
@@ -3023,8 +3023,8 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  '@blocklet/aigne-hub@0.2.18':
-    resolution: {integrity: sha512-oiOWc0+lVgOk6xB3D+2RCAyrcmcXhCdqQQJemzSFzbAOtcrsG99OAGMRKeXzysxhEQvHUfu1bO+jFxbhRgRzPw==}
+  '@blocklet/aigne-hub@0.2.19':
+    resolution: {integrity: sha512-Hu3MGB7114Pt8BALyVDl9D5xaAfGD8kxMT+46UHQFlwyX1dyDnZGMkTBpj5csDRsUSPMVBAM7MOzTl6RKJ3ZxQ==}
     peerDependencies:
       react: ^18.2.0
 
@@ -23699,7 +23699,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@blocklet/aigne-hub@0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)':
+  '@blocklet/aigne-hub@0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)':
     dependencies:
       '@arcblock/did': 1.20.13(encoding@0.1.13)
       '@arcblock/ux': 2.13.62(539bff12b1f8f4c9d58a162b3ae58a4b)
@@ -23767,7 +23767,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@blocklet/aigne-hub@0.2.18(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)':
+  '@blocklet/aigne-hub@0.2.19(@babel/core@7.26.0)(@mui/utils@7.2.0(@types/react@18.3.4)(react@18.3.1))(@types/node@22.9.1)(@types/react@18.3.4)(encoding@0.1.13)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))(zod@3.25.55)':
     dependencies:
       '@arcblock/did': 1.20.13(encoding@0.1.13)
       '@arcblock/ux': 2.13.62(0d1914086272175ddb0c4c69fe97b5cc)

@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
 import { SubscribeErrorAlert } from '@blocklet/aigne-hub/components';
 import CloseIcon from '@mui/icons-material/Close';
-import { Alert, Button, IconButton, Stack, alertClasses } from '@mui/material';
+import { Alert, Button, IconButton, Stack, Typography, alertClasses } from '@mui/material';
 import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -45,9 +45,13 @@ export function AgentErrorView({
     </IconButton>
   ) : undefined;
 
+  const clickable = (fallbackErrorMessage ?? String(error?.message)).replace(
+    /(https?:\/\/[^\s]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
   return (
     <Alert severity="error" action={action}>
-      {fallbackErrorMessage ?? String(error?.message)}
+      <Typography dangerouslySetInnerHTML={{ __html: clickable }} />
     </Alert>
   );
 }
