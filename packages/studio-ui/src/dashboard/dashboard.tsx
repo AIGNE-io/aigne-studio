@@ -1,3 +1,4 @@
+// @ts-ignore
 import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
 import Header from '@blocklet/ui-react/lib/Header';
 import { MenuOpenRounded, MenuRounded } from '@mui/icons-material';
@@ -35,10 +36,10 @@ const miniDrawerWidth = 87;
 const drawerWidth = 300;
 
 export default function Dashboard({
-  HeaderProps,
-  MenusDrawerProps,
-  menus,
-  children,
+  HeaderProps = undefined,
+  MenusDrawerProps = undefined,
+  menus = undefined,
+  children = undefined,
   collapseBreakpoint = 'md',
   ...props
 }: DashboardProps) {
@@ -143,7 +144,7 @@ const transition = (theme: Theme, props: string | string[], open?: boolean) =>
     duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
   });
 
-function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolean }) {
+function MenusDrawer({ collapsed = undefined, ...props }: DrawerProps & { collapsed?: boolean }) {
   return (
     <Drawer
       {...props}
@@ -169,7 +170,7 @@ function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolea
 
             ...props.PaperProps?.sx,
           },
-        }
+        },
       }}>
       {props.children}
     </Drawer>
