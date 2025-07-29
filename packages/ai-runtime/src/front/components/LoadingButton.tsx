@@ -6,7 +6,7 @@ const LoadingButton = ({
   onClick,
   ...props
 }: Partial<LoadingButtonProps> & {
-  ref?: React.RefObject<HTMLButtonElement | null>;
+  ref?: React.Ref<HTMLButtonElement>;
 }) => {
   const [loading, setLoading] = useState(false);
 

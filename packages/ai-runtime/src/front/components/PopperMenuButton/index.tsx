@@ -41,7 +41,7 @@ export default function PopperMenuButton({
                       ? menu
                       : React.cloneElement(menu, {
                           onClick: async (...args: any[]) => {
-                            await menu.props.onClick?.(...args);
+                            await (menu.props as any).onClick?.(...args);
                             state.close();
                           },
                         } as any)
