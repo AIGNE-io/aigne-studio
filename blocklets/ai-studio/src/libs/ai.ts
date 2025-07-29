@@ -1,4 +1,4 @@
-import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/ai-kit/api';
+import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/aigne-hub/api';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { createFetch } from '@blocklet/js-sdk';
 

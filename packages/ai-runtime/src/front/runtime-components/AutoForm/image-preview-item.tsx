@@ -1,4 +1,4 @@
-import ImagePreview from '@blocklet/ai-kit/components/image-preview';
+import ImagePreview from '@blocklet/aigne-hub/components/image-preview';
 import { Icon } from '@iconify/react';
 import { Box } from '@mui/material';
 

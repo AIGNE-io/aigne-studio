@@ -1,4 +1,24 @@
 packages:
-  - 'blocklets/*'
-  - 'packages/*'
-  - 'framework/*'
+  - blocklets/*
+  - packages/*
+  - framework/*
+
+onlyBuiltDependencies:
+  - '@blocklet/puppeteer'
+  - canvas
+  - core-js
+  - core-js-pure
+  - es5-ext
+  - esbuild
+  - faiss-node
+  - fast-folder-size
+  - keccak
+  - leveldown
+  - nx
+  - onnxruntime-node
+  - protobufjs
+  - secp256k1
+  - sharp
+  - simple-git-hooks
+  - sqlite3
+  - tree-sitter

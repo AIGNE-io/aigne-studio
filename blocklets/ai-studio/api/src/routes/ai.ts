@@ -1,4 +1,4 @@
-import { proxyToAIKit } from '@blocklet/ai-kit/api/call';
+import { proxyToAIKit } from '@blocklet/aigne-hub/api/call';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';

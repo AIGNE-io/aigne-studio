@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
-import { SubscribeErrorAlert } from '@blocklet/ai-kit/components';
+import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
+import { SubscribeErrorAlert } from '@blocklet/aigne-hub/components';
 import CloseIcon from '@mui/icons-material/Close';
 import { Alert, Button, IconButton, Stack, alertClasses } from '@mui/material';
 import { ReactNode } from 'react';

@@ -1,7 +1,7 @@
 import AigneLogo from '@app/components/aigne-logo';
 import { useIsRole, useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscribeButton } from '@blocklet/ai-kit/components';
+import { SubscribeButton } from '@blocklet/aigne-hub/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, Button, Stack, Typography } from '@mui/material';

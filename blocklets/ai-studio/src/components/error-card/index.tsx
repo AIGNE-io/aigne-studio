@@ -1,5 +1,5 @@
-import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
-import { SubscribeErrorAlert } from '@blocklet/ai-kit/components';
+import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
+import { SubscribeErrorAlert } from '@blocklet/aigne-hub/components';
 import { ErrorRounded } from '@mui/icons-material';
 import { Alert } from '@mui/material';
 import { memo } from 'react';

@@ -1,6 +1,6 @@
 import { ReadableStream } from 'stream/web';
 
-import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
+import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/aigne-hub/api/types/index';
 import { logger } from '@blocklet/sdk/lib/config';
 
 import { defaultTextModel } from '../../common';

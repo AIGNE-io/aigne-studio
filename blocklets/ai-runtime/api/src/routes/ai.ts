@@ -9,13 +9,6 @@ import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
-import { chatCompletions, imageGenerations } from '@blocklet/ai-kit/api/call';
-import {
-  ChatCompletionChunk,
-  ChatCompletionResponse,
-  isChatCompletionChunk,
-  isChatCompletionUsage,
-} from '@blocklet/ai-kit/api/types/index';
 import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
@@ -26,6 +19,13 @@ import {
   RuntimeOutputVariable,
 } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
+import { chatCompletionsV2, imageGenerationsV2 } from '@blocklet/aigne-hub/api/call';
+import {
+  ChatCompletionChunk,
+  ChatCompletionResponse,
+  isChatCompletionChunk,
+  isChatCompletionUsage,
+} from '@blocklet/aigne-hub/api/types/index';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import compression from 'compression';
@@ -133,6 +133,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     working: input.working,
     rejectOnEmpty: true,
   });
+
   if (!agent.access?.noLoginRequired && !userId) {
     res.status(401).json({ error: { message: 'Unauthorized' } });
     return;
@@ -193,7 +194,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>;
     }
 
-    const stream = await chatCompletions({
+    const stream = await chatCompletionsV2({
       ...input,
       model: input.model || project.model || defaultTextModel,
       temperature: input.temperature || project.temperature,
@@ -265,7 +266,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     };
 
     const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
-    return imageGenerations(
+    return imageGenerationsV2(
       {
         ...input,
         ...model,
@@ -498,7 +499,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       }
     }
   } catch (e) {
-    logger.error('run assistant error', e);
+    logger.error('run assistant error', e.stack);
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 

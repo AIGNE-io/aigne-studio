@@ -1,6 +1,6 @@
 import { ReadableStream, TransformStream } from 'stream/web';
 
-import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
+import { ChatCompletionResponse, isChatCompletionChunk } from '@blocklet/aigne-hub/api/types/chat';
 
 import { Assistant, Role, Variable } from '../../types';
 import { outputVariablesToJoiSchema, outputVariablesToJsonSchema } from '../../types/runtime/schema';

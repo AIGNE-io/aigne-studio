@@ -1,5 +1,5 @@
-import { SubscriptionError } from '@blocklet/ai-kit/api';
-import { ChatCompletionInput } from '@blocklet/ai-kit/api/types/chat';
+import { SubscriptionError } from '@blocklet/aigne-hub/api';
+import { ChatCompletionInput } from '@blocklet/aigne-hub/api/types/chat';
 
 import type { ExecuteBlock } from '../assistant';
 import { RuntimeOutputVariablesSchema } from './schema';

@@ -1,6 +1,6 @@
 import AigneLogo from '@app/components/aigne-logo';
 import ErrorBoundary from '@app/components/error/error-boundary';
-import { SubscribeButton } from '@blocklet/ai-kit/components';
+import { SubscribeButton } from '@blocklet/aigne-hub/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
 import { Suspense, lazy } from 'react';

@@ -1,5 +1,5 @@
-import { embeddings } from '@blocklet/ai-kit/api/call';
-import { EmbeddingInput } from '@blocklet/ai-kit/api/types/embedding';
+import { embeddings } from '@blocklet/aigne-hub/api/call';
+import { EmbeddingInput } from '@blocklet/aigne-hub/api/types/embedding';
 import { Embeddings, EmbeddingsParams } from '@langchain/core/embeddings';
 
 import { chunkArray } from '../utils/chunk';

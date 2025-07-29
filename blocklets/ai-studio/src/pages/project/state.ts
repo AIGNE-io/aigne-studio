@@ -2,7 +2,7 @@ import { useCurrentProject } from '@app/contexts/project';
 import { AIGNE_RUNTIME_MOUNT_POINT } from '@app/libs/constants';
 import { getDefaultBranch } from '@app/store/current-git-store';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscriptionError } from '@blocklet/ai-kit/api';
+import { SubscriptionError } from '@blocklet/aigne-hub/api';
 import { runAssistant } from '@blocklet/ai-runtime/api';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
