@@ -9,7 +9,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
-import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
+import { ComponentProps, MutableRefObject, useEffect, useState, type JSX } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';

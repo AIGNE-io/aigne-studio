@@ -276,7 +276,7 @@ export function usePromptEditorState({
   onChange: (value: string, editorState: EditorState) => any;
   readOnly?: boolean;
 }) {
-  const cache = useRef<string>();
+  const cache = useRef<string>(undefined);
   const [state, setState] = useState<EditorState>();
 
   const emitChange = useDebounceFn(

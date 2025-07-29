@@ -32,7 +32,7 @@ export default function CommitsTip({
   loading?: boolean;
   commits?: Commit[];
   hash?: string;
-  children: ReactElement;
+  children: ReactElement<any>;
   onCommitSelect: (commit: Commit) => any;
 }) {
   const [open, setOpen] = useState(false);

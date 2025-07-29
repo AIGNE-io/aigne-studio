@@ -1,6 +1,6 @@
 import { cx } from '@emotion/css';
 import { Box, BoxProps, Drawer, backdropClasses, styled, useMediaQuery, useTheme } from '@mui/material';
-import { ReactNode, forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { ReactNode, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ImperativePanelHandle, Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 export interface ImperativeColumnsLayout {
@@ -10,24 +10,30 @@ export interface ImperativeColumnsLayout {
   expandRight: () => void;
 }
 
-const ColumnsLayout = forwardRef<
-  ImperativeColumnsLayout,
+const ColumnsLayout = (
   {
+    ref,
+    onLeftCollapse,
+    onRightCollapse,
+    ...props
+  }: {
     left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     right?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     children?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
     onLeftCollapse?: (collapsed: boolean) => void;
     onRightCollapse?: (collapsed: boolean) => void;
+  } & {
+    ref: React.RefObject<ImperativeColumnsLayout | null>;
   }
->(({ onLeftCollapse, onRightCollapse, ...props }, ref) => {
+) => {
   const [leftDrawerOpen, setLeftDrawerOpen] = useState(false);
   const [rightDrawerOpen, setRightDrawerOpen] = useState(false);
 
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
 
-  const leftPanel = useRef<ImperativePanelHandle>();
-  const rightPanel = useRef<ImperativePanelHandle>();
+  const leftPanel = useRef<ImperativePanelHandle>(undefined);
+  const rightPanel = useRef<ImperativePanelHandle>(undefined);
 
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
@@ -141,7 +147,7 @@ const ColumnsLayout = forwardRef<
       </Box>
     </Box>
   );
-});
+};
 
 export default ColumnsLayout;
 

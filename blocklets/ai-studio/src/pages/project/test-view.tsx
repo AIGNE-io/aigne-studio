@@ -13,7 +13,7 @@ import { LoadingButton } from '@mui/lab';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { useImperativeHandle, useRef, useState } from 'react';
 import { joinURL } from 'ufo';
 
 import { WritingIndicator } from './debug-view';
@@ -52,7 +52,6 @@ export default function DebugView({
   return (
     <Stack gap={1.5} overflow="auto">
       <Box />
-
       <Stack
         direction="row"
         alignItems="center"
@@ -72,11 +71,12 @@ export default function DebugView({
           {t('runAll')}
         </LoadingButton>
       </Stack>
-
       {tests.map(({ data }) => (
         <Box px={2} key={data.id} className="test-case">
           <TestCaseView
-            ref={(ref) => (refs.current[data.id] = ref)}
+            ref={ref => {
+              (refs.current[data.id] = ref);
+            }}
             projectId={projectId}
             gitRef={gitRef}
             assistant={assistant}
@@ -85,7 +85,6 @@ export default function DebugView({
           />
         </Box>
       ))}
-
       <Box />
     </Stack>
   );
@@ -95,16 +94,24 @@ interface ImperativeTestCaseView {
   run: () => Promise<any>;
 }
 
-const TestCaseView = forwardRef<
-  ImperativeTestCaseView,
+const TestCaseView = (
   {
+    ref,
+    projectId,
+    gitRef,
+    assistant,
+    test,
+    setCurrentTab
+  }: {
     projectId: string;
     gitRef: string;
     assistant: AssistantYjs;
     test: NonNullable<AssistantYjs['tests']>[string]['data'];
     setCurrentTab: (tab: string) => void;
+  } & {
+    ref: React.RefObject<ImperativeTestCaseView | null>;
   }
->(({ projectId, gitRef, assistant, test, setCurrentTab }, ref) => {
+) => {
   const { t } = useLocaleContext();
 
   const { newSession } = useDebugState({
@@ -267,4 +274,4 @@ const TestCaseView = forwardRef<
       </Box>
     </>
   );
-});
+};

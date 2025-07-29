@@ -41,7 +41,7 @@ import {
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import bytes from 'bytes';
-import { Suspense, forwardRef, useMemo, useRef, useState } from 'react';
+import { Suspense, useMemo, useRef, useState } from 'react';
 import { joinURL, withQuery } from 'ufo';
 
 import Discuss from '../../project/icons/discuss';
@@ -332,7 +332,16 @@ interface FileViewProps {
   onChange: (value?: FileType) => void;
 }
 
-export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, size, onChange }, ref) => {
+export const FileView = (
+  {
+    ref,
+    fileName,
+    size,
+    onChange
+  }: FileViewProps & {
+    ref: React.RefObject<HTMLDivElement | null>;
+  }
+) => {
   const { t } = useLocaleContext();
 
   const [isDraggingOver] = useState(false);
@@ -400,7 +409,7 @@ export const FileView = forwardRef<HTMLDivElement, FileViewProps>(({ fileName, s
       )}
     </Stack>
   );
-});
+};
 
 const CustomView = ({
   title,

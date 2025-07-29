@@ -10,7 +10,7 @@ import {
   TextNode,
   createCommand,
 } from 'lexical';
-import { useEffect } from 'react';
+import { useEffect, type JSX } from 'react';
 
 import VariablePopover from './popover';
 import useTransformVariableNode from './user-transform-node';

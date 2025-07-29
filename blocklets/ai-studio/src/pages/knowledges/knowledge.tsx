@@ -366,7 +366,7 @@ const SelectKnowledgeModal = (
   const { t } = useLocaleContext();
   const { getResourcesKnowledgeList, createDatasetFromResources, resources, resourceLoading } = useKnowledge();
   const isAdmin = useIsAdmin();
-  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>(undefined);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

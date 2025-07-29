@@ -11,22 +11,29 @@ import {
   menuItemClasses,
 } from '@mui/material';
 import { bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { ReactNode, forwardRef, useImperativeHandle } from 'react';
+import { ReactNode, useImperativeHandle } from 'react';
 
 export interface PopperMenuImperative {
   open: () => void;
   close: () => void;
 }
 
-const PopperMenu = forwardRef<
-  PopperMenuImperative,
+const PopperMenu = (
   {
+    ref,
+    children,
+    ButtonProps,
+    BoxProps,
+    PopperProps
+  }: {
     children?: ReactNode;
     ButtonProps?: ButtonProps;
     BoxProps?: BoxProps;
     PopperProps?: Partial<PopperProps>;
+  } & {
+    ref: React.RefObject<PopperMenuImperative | null>;
   }
->(({ children, ButtonProps, BoxProps, PopperProps }, ref) => {
+) => {
   const state = usePopupState({ variant: 'popper' });
 
   useImperativeHandle(ref, () => ({ open: state.open, close: state.close }), [state]);
@@ -57,6 +64,6 @@ const PopperMenu = forwardRef<
       </Popper>
     </>
   );
-});
+};
 
 export default PopperMenu;

@@ -1,16 +1,15 @@
 import { TextField, TextFieldProps } from '@mui/material';
-import { forwardRef } from 'react';
 
 import { NumberParameter } from '../../../types';
 
-const NumberField = forwardRef<
-  HTMLDivElement,
+const NumberField = (
   {
-    readOnly?: boolean;
-    parameter?: NumberParameter;
-    onChange: (value: number) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    ...props
+  }
+) => {
   return (
     <TextField
       ref={ref}
@@ -30,6 +29,6 @@ const NumberField = forwardRef<
       onChange={(e) => props.onChange?.(Number(e.target.value))}
     />
   );
-});
+};
 
 export default NumberField;

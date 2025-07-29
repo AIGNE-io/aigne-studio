@@ -29,7 +29,7 @@ import {
 import sortBy from 'lodash/sortBy';
 import { bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ComponentType, Ref, forwardRef, useEffect, useId, useImperativeHandle, useState } from 'react';
+import { ComponentType, Ref, useEffect, useId, useImperativeHandle, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { StoreApi, UseBoundStore, create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -154,215 +154,229 @@ export const createOutputSettingsState = ({ agentId, outputId }: { agentId: stri
   return OutputSettingsCache[key]!;
 };
 
-const PopperButton = forwardRef<PopperButtonImperative, PopperButtonProps>(
-  ({ depth, assistant, variables, variable, isSaveAs, runtimeVariable, output, disabled, onDelete, children }, ref) => {
-    const { t } = useLocaleContext();
-    const dialogState = createOutputSettingsState({ agentId: assistant.id, outputId: output.id })();
-    const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
+const PopperButton = (
+  {
+    ref,
+    depth,
+    assistant,
+    variables,
+    variable,
+    isSaveAs,
+    runtimeVariable,
+    output,
+    disabled,
+    onDelete,
+    children
+  }: PopperButtonProps & {
+    ref: React.RefObject<PopperButtonImperative | null>;
+  }
+) => {
+  const { t } = useLocaleContext();
+  const dialogState = createOutputSettingsState({ agentId: assistant.id, outputId: output.id })();
+  const parameterSettingPopperState = usePopupState({ variant: 'popper', popupId: useId() });
 
-    useImperativeHandle(ref, () => ({ open: dialogState.open }), [dialogState.open]);
-    const location = useLocation();
+  useImperativeHandle(ref, () => ({ open: dialogState.open }), [dialogState.open]);
+  const location = useLocation();
 
-    const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
+  const [currentSetting, setSetting] = useState<'setting' | 'save'>('setting');
 
-    useEffect(() => {
-      dialogState.close();
-    }, [location.pathname]);
+  useEffect(() => {
+    dialogState.close();
+  }, [location.pathname]);
 
-    const renderParameterSettings = (output: OutputVariableYjs) => {
-      if (currentSetting === 'save') {
-        return (
+  const renderParameterSettings = (output: OutputVariableYjs) => {
+    if (currentSetting === 'save') {
+      return (
+        <Box>
+          <Typography variant="subtitle2" mb={0}>
+            {t('memory.saveMemory')}
+          </Typography>
+
           <Box>
-            <Typography variant="subtitle2" mb={0}>
-              {t('memory.saveMemory')}
-            </Typography>
-
-            <Box>
-              <SelectVariable
-                placeholder={t('selectMemoryPlaceholder')}
-                variables={variables}
-                variable={variable}
-                onDelete={() => {
-                  if (output.variable) delete output.variable;
-                }}
-                onChange={(_value) => {
-                  if (_value && output) {
-                    output.variable = { key: _value.key, scope: _value.scope || '' };
-                  }
-                }}
-              />
-            </Box>
-          </Box>
-        );
-      }
-
-      if (RuntimeOutputVariable.profile === output.name) {
-        return <ProfileSettings output={output} />;
-      }
-
-      if (RuntimeOutputVariable.openingQuestions === output.name) {
-        return <OpeningQuestionsSettings agent={assistant} output={output} />;
-      }
-
-      if (RuntimeOutputVariable.openingMessage === output.name) {
-        return <OpeningMessageSettings output={output} />;
-      }
-
-      if (RuntimeOutputVariable.share === output.name) {
-        return <ShareSettings output={output} />;
-      }
-
-      if (output.name === RuntimeOutputVariable.children) {
-        return <ChildrenSettings agent={assistant} output={output} />;
-      }
-
-      if (currentSetting === 'setting') {
-        return runtimeVariable ? null : output.type === 'string' ? (
-          <Box>
-            <Typography variant="subtitle2">{t('defaultValue')}</Typography>
-
-            <TextField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              multiline
-              placeholder={t('outputParameterDefaultValuePlaceholder')}
-              value={output.defaultValue || ''}
-              onChange={(e) => (output.defaultValue = e.target.value)}
-            />
-          </Box>
-        ) : output.type === 'number' ? (
-          <Box>
-            <Typography variant="subtitle2">{t('defaultValue')}</Typography>
-
-            <NumberField
-              disabled={Boolean(disabled)}
-              hiddenLabel
-              fullWidth
-              placeholder={t('outputParameterDefaultValuePlaceholder')}
-              value={output.defaultValue || ''}
-              onChange={(value) => (output.defaultValue = value)}
-            />
-          </Box>
-        ) : output.type === 'boolean' ? (
-          <Box>
-            <Typography variant="subtitle2">{t('defaultValue')}</Typography>
-
-            <Switch
-              checked={output.defaultValue || false}
-              onChange={(_, checked) => {
-                output.defaultValue = checked;
+            <SelectVariable
+              placeholder={t('selectMemoryPlaceholder')}
+              variables={variables}
+              variable={variable}
+              onDelete={() => {
+                if (output.variable) delete output.variable;
+              }}
+              onChange={(_value) => {
+                if (_value && output) {
+                  output.variable = { key: _value.key, scope: _value.scope || '' };
+                }
               }}
             />
           </Box>
-        ) : null;
-      }
+        </Box>
+      );
+    }
 
-      return null;
-    };
+    if (RuntimeOutputVariable.profile === output.name) {
+      return <ProfileSettings output={output} />;
+    }
 
-    const settingsChildren = renderParameterSettings(output);
+    if (RuntimeOutputVariable.openingQuestions === output.name) {
+      return <OpeningQuestionsSettings agent={assistant} output={output} />;
+    }
 
-    return (
-      <>
-        {children || (
-          <PopperMenu
-            ButtonProps={{
-              sx: { minWidth: 0, p: 0.5, ml: -0.5 },
-              ...bindTrigger(parameterSettingPopperState),
-              disabled,
-              children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
+    if (RuntimeOutputVariable.openingMessage === output.name) {
+      return <OpeningMessageSettings output={output} />;
+    }
+
+    if (RuntimeOutputVariable.share === output.name) {
+      return <ShareSettings output={output} />;
+    }
+
+    if (output.name === RuntimeOutputVariable.children) {
+      return <ChildrenSettings agent={assistant} output={output} />;
+    }
+
+    if (currentSetting === 'setting') {
+      return runtimeVariable ? null : output.type === 'string' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <TextField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            multiline
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(e) => (output.defaultValue = e.target.value)}
+          />
+        </Box>
+      ) : output.type === 'number' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <NumberField
+            disabled={Boolean(disabled)}
+            hiddenLabel
+            fullWidth
+            placeholder={t('outputParameterDefaultValuePlaceholder')}
+            value={output.defaultValue || ''}
+            onChange={(value) => (output.defaultValue = value)}
+          />
+        </Box>
+      ) : output.type === 'boolean' ? (
+        <Box>
+          <Typography variant="subtitle2">{t('defaultValue')}</Typography>
+
+          <Switch
+            checked={output.defaultValue || false}
+            onChange={(_, checked) => {
+              output.defaultValue = checked;
             }}
-            PopperProps={{ placement: 'bottom-end' }}>
+          />
+        </Box>
+      ) : null;
+    }
+
+    return null;
+  };
+
+  const settingsChildren = renderParameterSettings(output);
+
+  return (
+    <>
+      {children || (
+        <PopperMenu
+          ButtonProps={{
+            sx: { minWidth: 0, p: 0.5, ml: -0.5 },
+            ...bindTrigger(parameterSettingPopperState),
+            disabled,
+            children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
+          }}
+          PopperProps={{ placement: 'bottom-end' }}>
+          <MenuItem
+            disabled={Boolean(output.from?.type === 'output')}
+            onClick={() => (output.hidden = !output.hidden)}>
+            {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
+          </MenuItem>
+
+          {depth === 0 && (
+            <MenuItem
+              data-testid="output-actions-cell-setting"
+              disabled={Boolean(output.from?.type === 'output' || output.from?.type === 'variable')}
+              onClick={() => {
+                setSetting('setting');
+                dialogState.open();
+              }}>
+              {t('setting')}
+            </MenuItem>
+          )}
+
+          {isSaveAs && (
             <MenuItem
               disabled={Boolean(output.from?.type === 'output')}
-              onClick={() => (output.hidden = !output.hidden)}>
-              {output.hidden ? t('activeOutputTip') : t('hideOutputTip')}
+              onClick={() => {
+                setSetting('save');
+                dialogState.open();
+              }}>
+              {t('saveToMemory')}
             </MenuItem>
+          )}
 
-            {depth === 0 && (
-              <MenuItem
-                data-testid="output-actions-cell-setting"
-                disabled={Boolean(output.from?.type === 'output' || output.from?.type === 'variable')}
-                onClick={() => {
-                  setSetting('setting');
-                  dialogState.open();
-                }}>
-                {t('setting')}
-              </MenuItem>
-            )}
+          {onDelete && (
+            <MenuItem
+              data-testid="output-actions-cell-delete"
+              sx={{ color: 'error.main', fontSize: 13 }}
+              onClick={onDelete}>
+              {t('delete')}
+            </MenuItem>
+          )}
+        </PopperMenu>
+      )}
 
-            {isSaveAs && (
-              <MenuItem
-                disabled={Boolean(output.from?.type === 'output')}
-                onClick={() => {
-                  setSetting('save');
-                  dialogState.open();
-                }}>
-                {t('saveToMemory')}
-              </MenuItem>
-            )}
+      {!children && (
+        <Dialog
+          disableEnforceFocus
+          open={dialogState.visible || false}
+          onClose={dialogState.close}
+          fullWidth
+          maxWidth="sm"
+          component="form"
+          data-testid="output-actions-cell-dialog"
+          onSubmit={(e) => e.preventDefault()}>
+          <DialogTitle className="between">
+            <Box>
+              <SettingDialogTitle output={output} />
+            </Box>
 
-            {onDelete && (
-              <MenuItem
-                data-testid="output-actions-cell-delete"
-                sx={{ color: 'error.main', fontSize: 13 }}
-                onClick={onDelete}>
-                {t('delete')}
-              </MenuItem>
-            )}
-          </PopperMenu>
-        )}
+            <IconButton size="small" onClick={dialogState.close}>
+              <Close />
+            </IconButton>
+          </DialogTitle>
 
-        {!children && (
-          <Dialog
-            disableEnforceFocus
-            open={dialogState.visible || false}
-            onClose={dialogState.close}
-            fullWidth
-            maxWidth="sm"
-            component="form"
-            data-testid="output-actions-cell-dialog"
-            onSubmit={(e) => e.preventDefault()}>
-            <DialogTitle className="between">
-              <Box>
-                <SettingDialogTitle output={output} />
-              </Box>
+          <DialogContent>
+            <Stack gap={1}>
+              {currentSetting !== 'save' && (
+                <>
+                  <OutputActiveWhen agent={assistant} output={output} />
 
-              <IconButton size="small" onClick={dialogState.close}>
-                <Close />
-              </IconButton>
-            </DialogTitle>
+                  <OutputFromSettings agent={assistant} output={output} />
 
-            <DialogContent>
-              <Stack gap={1}>
-                {currentSetting !== 'save' && (
-                  <>
-                    <OutputActiveWhen agent={assistant} output={output} />
+                  {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
+                </>
+              )}
 
-                    <OutputFromSettings agent={assistant} output={output} />
+              {settingsChildren}
 
-                    {settingsChildren && <Divider textAlign="left">{t('basic')}</Divider>}
-                  </>
-                )}
+              {currentSetting !== 'save' && <AppearanceComponentSettings output={output} />}
+            </Stack>
+          </DialogContent>
 
-                {settingsChildren}
-
-                {currentSetting !== 'save' && <AppearanceComponentSettings output={output} />}
-              </Stack>
-            </DialogContent>
-
-            <DialogActions>
-              <Button variant="contained" onClick={dialogState.close}>
-                {t('ok')}
-              </Button>
-            </DialogActions>
-          </Dialog>
-        )}
-      </>
-    );
-  }
-);
+          <DialogActions>
+            <Button variant="contained" onClick={dialogState.close}>
+              {t('ok')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+    </>
+  );
+};
 
 function OutputActiveWhen({ agent, output }: { agent: AssistantYjs; output: OutputVariableYjs }) {
   const { t } = useLocaleContext();

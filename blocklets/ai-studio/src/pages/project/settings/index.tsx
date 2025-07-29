@@ -75,7 +75,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
   const [submitLoading, setLoading] = useState(false);
   const [value, setValue] = useState<UpdateProjectInput & { icon?: string }>(init);
   const isSubmit = useRef(false);
-  const origin = useRef<UpdateProjectInput>();
+  const origin = useRef<UpdateProjectInput>(undefined);
   const { session } = useSessionContext();
   const getCurrentBranch = useCurrentGitStore((i) => i.getCurrentBranch);
 

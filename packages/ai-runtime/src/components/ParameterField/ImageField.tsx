@@ -1,19 +1,19 @@
 import ImageIcon from '@mui/icons-material/Image';
 import { IconButton, InputAdornment, Stack, TextField, TextFieldProps } from '@mui/material';
 import { pick } from 'lodash';
-import { forwardRef } from 'react';
 
 import { useUploader } from '../../context/uploader';
 import { StringParameter } from '../../types/assistant';
 
-const ImageField = forwardRef<
-  HTMLDivElement,
+const ImageField = (
   {
-    readOnly?: boolean;
-    parameter?: StringParameter;
-    onChange: (value: string) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   const uploaderRef = useUploader();
 
   return (
@@ -47,6 +47,6 @@ const ImageField = forwardRef<
       }}
     />
   );
-});
+};
 
 export default ImageField;

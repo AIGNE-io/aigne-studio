@@ -81,7 +81,7 @@ export default function AgentSelect<
         : null;
   }
 
-  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>(undefined);
 
   return (
     <>

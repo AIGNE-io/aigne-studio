@@ -38,7 +38,7 @@ import {
   styled,
 } from '@mui/material';
 import { sortBy } from 'lodash';
-import { forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useImperativeHandle, useMemo } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 
 import PromptEditorField from '../prompt-editor-field';
@@ -61,17 +61,26 @@ interface ToolDialogImperative {
 }
 const filter = createFilterOptions<Option>();
 
-const ToolDialog = forwardRef<
-  ToolDialogImperative,
+const ToolDialog = (
   {
+    ref,
+    assistant,
+    projectId,
+    gitRef,
+    onSubmit,
+    DialogProps,
+    openApis
+  }: {
     projectId: string;
     gitRef: string;
     onSubmit: (value: ToolDialogForm) => any;
     DialogProps?: DialogProps;
     assistant: RouterAssistantYjs;
     openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  } & {
+    ref: React.RefObject<ToolDialogImperative | null>;
   }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps, openApis }, ref) => {
+) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -235,7 +244,7 @@ const ToolDialog = forwardRef<
       </DialogActions>
     </Dialog>
   );
-});
+};
 
 export const useFormatOpenApiToYjs = (openApis: DatasetObject[]) => {
   const { t, locale } = useLocaleContext();

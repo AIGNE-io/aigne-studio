@@ -23,7 +23,7 @@ interface SettingItemProps {
   agentId: string;
   path: string[];
   sx?: SxProps;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
 }
 
 function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingItemProps) {

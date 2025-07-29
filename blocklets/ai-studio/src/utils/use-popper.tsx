@@ -14,7 +14,7 @@ export default function usePopper() {
     ({
       ignoreClickAwaySelector,
       ...props
-    }: Omit<PopperProps, 'open' | 'children'> & { children: ReactElement; ignoreClickAwaySelector?: string }) => {
+    }: Omit<PopperProps, 'open' | 'children'> & { children: ReactElement<any>; ignoreClickAwaySelector?: string }) => {
       setProps({
         ...props,
         open: true,

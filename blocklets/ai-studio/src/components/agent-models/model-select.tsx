@@ -125,7 +125,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
   const allTags = Array.from(new Set(models.map((x) => x.tags || []).flat()));
   const [selected, setSelected] = useState<string | null>(null);
   const isAdmin = useIsAdmin();
-  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>(undefined);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const downSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));

@@ -54,12 +54,12 @@ import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import {
   ReactNode,
   SyntheticEvent,
-  forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
+  type JSX,
 } from 'react';
 import { DndProvider } from 'react-dnd';
 import { useNavigate } from 'react-router-dom';
@@ -115,16 +115,17 @@ export interface ImperativeFileTree {
 
 const DOUBLE_CLICK_RENAME_TIME_GAP = 200;
 
-const FileTree = forwardRef<
-  ImperativeFileTree,
+const FileTree = (
   {
-    projectId: string;
-    gitRef: string;
-    current?: string;
-    mutable?: boolean;
-    onLaunch?: (assistant: AssistantYjs) => any;
-  } & Omit<BoxProps, 'onClick'>
->(({ projectId, gitRef, current, mutable, onLaunch, ...props }, ref) => {
+    ref,
+    projectId,
+    gitRef,
+    current,
+    mutable,
+    onLaunch,
+    ...props
+  }
+) => {
   const theme = useTheme();
   const { t } = useLocaleContext();
   const navigate = useNavigate();
@@ -311,7 +312,7 @@ const FileTree = forwardRef<
       };
     });
 
-  const lastClickTime = useRef<{ time: number; timer: number }>();
+  const lastClickTime = useRef<{ time: number; timer: number }>(undefined);
 
   if (!synced) {
     return (
@@ -572,7 +573,7 @@ const FileTree = forwardRef<
       </Dialog>
     </>
   );
-});
+};
 
 export default FileTree;
 

@@ -1,17 +1,16 @@
 import { TextField, TextFieldProps } from '@mui/material';
 import { pick } from 'lodash';
-import { forwardRef } from 'react';
 
 import { NumberParameter } from '../../types/assistant';
 
-const NumberField = forwardRef<
-  HTMLDivElement,
+const NumberField = (
   {
-    readOnly?: boolean;
-    parameter?: NumberParameter;
-    onChange: (value: number) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    ...props
+  }
+) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = Number(e.target.value);
     if (parameter?.min !== undefined && newValue < parameter?.min) {
@@ -46,6 +45,6 @@ const NumberField = forwardRef<
       onChange={handleChange}
     />
   );
-});
+};
 
 export default NumberField;

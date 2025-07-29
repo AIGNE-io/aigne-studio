@@ -1,17 +1,17 @@
 import { Box, Chip, MenuItem, TextField, TextFieldProps } from '@mui/material';
 import isNil from 'lodash/isNil';
-import { forwardRef } from 'react';
 
 import { SelectParameter } from '../../types/assistant';
 
-const SelectField = forwardRef<
-  HTMLDivElement,
+const SelectField = (
   {
-    readOnly?: boolean;
-    parameter?: SelectParameter;
-    onChange: (value: string | string[]) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   return (
     <TextField
       ref={ref}
@@ -76,6 +76,6 @@ const SelectField = forwardRef<
       ))}
     </TextField>
   );
-});
+};
 
 export default SelectField;

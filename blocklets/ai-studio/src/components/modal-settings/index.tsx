@@ -316,7 +316,7 @@ export function ModelSetting({
   );
 }
 
-export function ModelPopper({ children }: { children: ReactElement }) {
+export function ModelPopper({ children }: { children: ReactElement<any> }) {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 

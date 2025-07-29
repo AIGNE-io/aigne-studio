@@ -29,7 +29,7 @@ export default function ActionButton({
   const [active, setActive] = useState(false);
   const [error, setError] = useState<Error>();
 
-  const timer = useRef<number>();
+  const timer = useRef<number>(undefined);
 
   const onClose = () => {
     setError(undefined);

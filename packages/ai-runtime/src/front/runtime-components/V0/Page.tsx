@@ -120,7 +120,7 @@ export default function Page() {
 }
 
 function V0ListRender() {
-  const ConfirmDialogRef = useRef<any>();
+  const ConfirmDialogRef = useRef<any>(undefined);
   const { sessions: sessionsList, loading } = useSessions((s) => s);
 
   const { isMobile } = useV0RuntimeContext();
@@ -190,7 +190,7 @@ function V0ListRender() {
   );
 }
 
-function ItemView({ ConfirmDialogRef }: { ConfirmDialogRef: RefObject<{ open?: Function }> }) {
+function ItemView({ ConfirmDialogRef }: { ConfirmDialogRef: RefObject<{ open?: Function } | null> }) {
   const { t } = useLocaleContext();
   const { setCurrentSessionId, deleteSession } = useSessions((s) => pick(s, 'setCurrentSessionId', 'deleteSession'));
   const { session, latestMessage } = useSession((s) => ({ session: s.session, latestMessage: s.messages?.at(0) }));

@@ -104,7 +104,7 @@ export default MarkdownRenderer;
 function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
 
-  const childrenProps = (children as ReactElement)?.props;
+  const childrenProps = (children as ReactElement<any>)?.props;
 
   if (!childrenProps?.children) return null;
 
@@ -137,7 +137,6 @@ function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
           }}
         />
       </Stack>
-
       <Suspense>
         <Box
           component={ReactSyntaxHighlighter}

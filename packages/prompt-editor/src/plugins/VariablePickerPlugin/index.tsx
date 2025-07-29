@@ -9,7 +9,7 @@ import { Box, alpha, styled } from '@mui/material';
 import Divider from '@mui/material/Divider';
 import Stack, { StackProps } from '@mui/material/Stack';
 import { LexicalEditor, TextNode } from 'lexical';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, type JSX } from 'react';
 import * as ReactDOM from 'react-dom';
 
 function useBasicTypeaheadTriggerMatch(

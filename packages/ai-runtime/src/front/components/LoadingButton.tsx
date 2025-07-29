@@ -1,7 +1,15 @@
 import { LoadingButtonProps, LoadingButton as MuiLoadingButton } from '@mui/lab';
-import { MouseEvent, forwardRef, useCallback, useState } from 'react';
+import { MouseEvent, useCallback, useState } from 'react';
 
-const LoadingButton = forwardRef<HTMLButtonElement, Partial<LoadingButtonProps>>(({ onClick, ...props }, ref) => {
+const LoadingButton = (
+  {
+    ref,
+    onClick,
+    ...props
+  }: Partial<LoadingButtonProps> & {
+    ref: React.RefObject<HTMLButtonElement | null>;
+  }
+) => {
   const [loading, setLoading] = useState(false);
 
   const handleClick = useCallback(
@@ -17,6 +25,6 @@ const LoadingButton = forwardRef<HTMLButtonElement, Partial<LoadingButtonProps>>
   );
 
   return <MuiLoadingButton ref={ref} {...props} loading={props.loading || loading} onClick={handleClick} />;
-});
+};
 
 export default LoadingButton;

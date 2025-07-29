@@ -59,7 +59,15 @@ import { useRequest } from 'ahooks';
 import axios from 'axios';
 import { cloneDeep, isNil, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
@@ -104,7 +112,7 @@ export default function ExecuteBlockForm({
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const toolForm = useRef<ToolDialogImperative>(null);
-  const selectedTool = useRef<string>();
+  const selectedTool = useRef<string>(undefined);
 
   const { store } = useProjectStore(projectId, gitRef);
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
@@ -834,9 +842,18 @@ export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
-export const ToolDialog = forwardRef<
-  ToolDialogImperative,
+export const ToolDialog = (
   {
+    ref,
+    openApis,
+    datasets,
+    executeBlock,
+    assistant,
+    projectId,
+    gitRef,
+    onSubmit,
+    DialogProps
+  }: {
     executeBlock?: ExecuteBlockYjs;
     projectId: string;
     gitRef: string;
@@ -845,8 +862,10 @@ export const ToolDialog = forwardRef<
     assistant: AssistantYjs;
     openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
     datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  } & {
+    ref: React.RefObject<ToolDialogImperative | null>;
   }
->(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -1298,7 +1317,7 @@ export const ToolDialog = forwardRef<
       </DialogActions>
     </Dialog>
   );
-});
+};
 
 interface OptionType {
   id: string | number;

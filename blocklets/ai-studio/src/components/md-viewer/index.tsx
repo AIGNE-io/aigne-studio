@@ -38,7 +38,7 @@ export default function ({
 const ReactSyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then((m) => ({ default: m.Prism })));
 
 function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
-  const childrenProps = (children as ReactElement)?.props;
+  const childrenProps = (children as ReactElement<any>)?.props;
 
   if (!childrenProps?.children) return null;
 
@@ -59,7 +59,6 @@ function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
 
         <Box flex={1} />
       </Stack>
-
       <Suspense>
         <Box
           component={ReactSyntaxHighlighter}

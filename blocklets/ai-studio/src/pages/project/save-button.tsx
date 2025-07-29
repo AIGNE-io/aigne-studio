@@ -238,7 +238,7 @@ export function SaveButtonDialog({
     }
   );
 
-  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>();
+  const savePromise = useRef<{ resolve: (result: { saved?: boolean }) => void; reject: (error: Error) => void }>(undefined);
 
   useEffect(() => {
     saveButtonState.getState().setSaveHandler(async (options) => {

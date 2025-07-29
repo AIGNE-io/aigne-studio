@@ -1,16 +1,16 @@
 import { FormControl, FormControlLabel, FormHelperText, Switch, TextFieldProps } from '@mui/material';
-import { forwardRef } from 'react';
 
 import { BooleanParameter } from '../../types/assistant';
 
-const BooleanField = forwardRef<
-  HTMLDivElement,
+const BooleanField = (
   {
-    readOnly?: boolean;
-    parameter?: BooleanParameter;
-    onChange: (value: boolean) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   return (
     <FormControl>
       <FormControlLabel
@@ -24,6 +24,6 @@ const BooleanField = forwardRef<
       {parameter?.helper && <FormHelperText>{parameter?.helper}</FormHelperText>}
     </FormControl>
   );
-});
+};
 
 export default BooleanField;

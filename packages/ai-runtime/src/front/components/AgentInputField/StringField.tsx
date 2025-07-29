@@ -1,16 +1,17 @@
 import { TextField, TextFieldProps, inputBaseClasses } from '@mui/material';
-import { KeyboardEvent, forwardRef, useCallback } from 'react';
+import { KeyboardEvent, useCallback } from 'react';
 
 import { StringParameter } from '../../../types';
 
-const StringField = forwardRef<
-  HTMLDivElement,
+const StringField = (
   {
-    readOnly?: boolean;
-    parameter?: StringParameter;
-    onChange: (value: string) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+    ref,
+    readOnly,
+    parameter,
+    onChange,
+    ...props
+  }
+) => {
   const isQuestion = parameter?.key === 'question';
 
   const onKeyDown = useCallback(
@@ -43,6 +44,6 @@ const StringField = forwardRef<
       }}
     />
   );
-});
+};
 
 export default StringField;
