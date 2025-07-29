@@ -10,12 +10,12 @@ import {
   inputLabelClasses,
   listItemIconClasses,
   outlinedInputClasses,
+  buttonClasses,
   selectClasses,
   sliderClasses,
   svgIconClasses,
   switchClasses,
 } from '@mui/material';
-import buttonClasses from '@mui/material/Button/buttonClasses';
 import { createTheme } from '@mui/material/styles';
 
 export const lightThemeRoot = `

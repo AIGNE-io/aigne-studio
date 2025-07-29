@@ -1,5 +1,4 @@
-import { createTheme } from '@mui/material';
-import buttonClasses from '@mui/material/Button/buttonClasses';
+import { buttonClasses, createTheme } from '@mui/material';
 
 export const agentViewTheme = createTheme({
   typography: { button: { textTransform: 'none' } } as any,
