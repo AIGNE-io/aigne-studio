@@ -84,11 +84,11 @@ export default function ExecuteBlockForm({
   gitRef,
   assistant,
   value,
-  readOnly,
+  readOnly = undefined,
   path,
-  compareAssistant,
-  isRemoteCompare,
-  from,
+  compareAssistant = undefined,
+  isRemoteCompare = undefined,
+  from = undefined,
   ...props
 }: {
   projectId: string;
@@ -661,7 +661,7 @@ function ToolItemView({
   projectRef,
   tool,
   executeBlock,
-  readOnly,
+  readOnly = undefined,
   openApis,
   datasets,
   ...props
@@ -838,12 +838,12 @@ export const ToolDialog = ({
   ref,
   openApis,
   datasets,
-  executeBlock,
+  executeBlock = undefined,
   assistant,
   projectId,
   gitRef,
   onSubmit,
-  DialogProps,
+  DialogProps = undefined,
 }: {
   executeBlock?: ExecuteBlockYjs;
   projectId: string;
@@ -1017,7 +1017,7 @@ export const ToolDialog = ({
                   render={({ field }) => {
                     if (parameter['x-parameter-type'] === 'select') {
                       return (
-                        <AsyncSelect
+                        <MemoAsyncSelect
                           label={getOpenApiTextFromI18n(parameter, 'name', locale)}
                           remoteAPI={parameter['x-options-api']}
                           remoteOptions={parameter['x-options-value'] || []}
@@ -1326,86 +1326,86 @@ interface AsyncSelectProps {
   queryParams: { [key: string]: string };
 }
 
-const AsyncSelect: React.FC<AsyncSelectProps> = memo(
-  ({
-    remoteAPI,
-    remoteOptions = [],
-    remoteKey = 'id',
-    remoteTitle = 'name',
-    label,
-    value,
-    onChange,
-    queryParams,
-  }: AsyncSelectProps) => {
-    const [open, setOpen] = useState(false);
-    const [options, setOptions] = useState<OptionType[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+function AsyncSelect({
+  remoteAPI = undefined,
+  remoteOptions = [],
+  remoteKey = 'id',
+  remoteTitle = 'name',
+  label,
+  value,
+  onChange,
+  queryParams,
+}: AsyncSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<OptionType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const fetchOptions = useCallback(async () => {
-      setLoading(true);
-      setError('');
+  const fetchOptions = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-      try {
-        if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
-          setOptions(remoteOptions);
-        } else if (remoteAPI) {
-          const query = new URLSearchParams(queryParams).toString();
-          const url = `${remoteAPI}?${query}`;
-          const { data } = await axios(url);
-          setOptions(data);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load options');
-        setOptions([]);
-      } finally {
-        setLoading(false);
+    try {
+      if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
+        setOptions(remoteOptions);
+      } else if (remoteAPI) {
+        const query = new URLSearchParams(queryParams).toString();
+        const url = `${remoteAPI}?${query}`;
+        const { data } = await axios(url);
+        setOptions(data);
       }
-    }, [remoteAPI, remoteOptions, queryParams]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load options');
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [remoteAPI, remoteOptions, queryParams]);
 
-    useEffect(() => {
-      fetchOptions();
-    }, [fetchOptions]);
+  useEffect(() => {
+    fetchOptions();
+  }, [fetchOptions]);
 
-    const currentValue = options.find((x) => x[remoteKey] === value);
-    return (
-      <Autocomplete
-        key={Boolean(currentValue).toString() || ''}
-        open={open}
-        value={currentValue}
-        onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
-        onOpen={() => setOpen(true)}
-        onClose={() => setOpen(false)}
-        isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
-        getOptionLabel={(option) => option[remoteTitle]}
-        options={options}
-        loading={loading}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={label}
-            error={!!error}
-            helperText={error || ''}
-            slotProps={{
-              input: {
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {loading && <CircularProgress color="inherit" size={20} />}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
-              },
-            }}
-          />
-        )}
-        renderOption={(props, option) => (
-          <MenuItem {...props} key={option[remoteKey]}>
-            {option[remoteTitle]}
-          </MenuItem>
-        )}
-      />
-    );
-  }
-);
+  const currentValue = options.find((x) => x[remoteKey] === value);
+  return (
+    <Autocomplete
+      key={Boolean(currentValue).toString() || ''}
+      open={open}
+      value={currentValue}
+      onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
+      getOptionLabel={(option) => option[remoteTitle]}
+      options={options}
+      loading={loading}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={label}
+          error={!!error}
+          helperText={error || ''}
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {loading && <CircularProgress color="inherit" size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            },
+          }}
+        />
+      )}
+      renderOption={(props, option) => (
+        <MenuItem {...props} key={option[remoteKey]}>
+          {option[remoteTitle]}
+        </MenuItem>
+      )}
+    />
+  );
+}
+
+const MemoAsyncSelect: React.FC<AsyncSelectProps> = memo(AsyncSelect);

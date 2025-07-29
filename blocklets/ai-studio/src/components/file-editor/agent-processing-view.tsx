@@ -19,7 +19,7 @@ export default function AgentProcessingView({
   projectId,
   gitRef,
   assistant,
-  children,
+  children = undefined,
 }: {
   projectId: string;
   gitRef: string;

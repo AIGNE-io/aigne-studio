@@ -8,7 +8,7 @@ export default function FunctionAssistantEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

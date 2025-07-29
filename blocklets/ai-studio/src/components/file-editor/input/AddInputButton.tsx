@@ -12,7 +12,7 @@ import useVariablesEditorOptions from '../use-variables-editor-options';
 
 export default function AddInputButton({
   assistant,
-  ButtonProps,
+  ButtonProps = undefined,
 }: {
   assistant: AssistantYjs;
   ButtonProps?: ButtonProps;

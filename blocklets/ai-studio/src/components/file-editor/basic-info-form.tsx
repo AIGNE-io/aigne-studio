@@ -12,8 +12,8 @@ export default function BasicInfoForm({
   projectId,
   gitRef,
   value,
-  compareValue,
-  disabled,
+  compareValue = undefined,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

@@ -33,7 +33,7 @@ export default function AgentEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

@@ -61,12 +61,7 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
   monaco.editor.setTheme(themeName);
 }
 
-const CodeEditor = ({
-  ref,
-  readOnly = undefined,
-  maxHeight = undefined,
-  ...props
-}: { readOnly?: boolean; maxHeight?: number } & BoxProps<typeof Editor>) => {
+const CodeEditor = ({ ref, readOnly = undefined, ...props }: { readOnly?: boolean } & BoxProps<typeof Editor>) => {
   const monaco = useMonaco();
 
   useEffect(() => {

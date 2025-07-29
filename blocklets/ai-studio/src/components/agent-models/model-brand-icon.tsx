@@ -45,7 +45,7 @@ const sizeMap = {
   large: 48,
 };
 
-export function ModelBrandIcon({ model, size = 'medium', sx, url }: ModelIconProps) {
+export function ModelBrandIcon({ model, size = 'medium', sx = undefined, url = undefined }: ModelIconProps) {
   const brand = useModelBrand(model);
   const computedSize = sizeMap[size];
   const mergedSx = [

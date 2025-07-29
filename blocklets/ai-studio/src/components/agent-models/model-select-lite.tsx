@@ -19,7 +19,13 @@ interface InternalModelSelectLiteProps {
   onAddMoreModel?: () => void;
 }
 
-function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...rest }: InternalModelSelectLiteProps) {
+function InternalModelSelectLite({
+  options,
+  value = undefined,
+  onChange,
+  onAddMoreModel = undefined,
+  ...rest
+}: InternalModelSelectLiteProps) {
   const { t } = useLocaleContext();
   const popperState = usePopupState({ variant: 'popper', popupId: 'model-select-lite' });
   const selectedOption = options.find((option) => option.model === value);

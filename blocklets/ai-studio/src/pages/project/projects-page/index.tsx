@@ -527,11 +527,11 @@ function ProjectMenu() {
 }
 
 function Section({
-  section,
-  enableCollapse,
+  section = undefined,
+  enableCollapse = undefined,
   title,
-  children,
-  list,
+  children = undefined,
+  list = undefined,
 }: {
   section?: string;
   enableCollapse?: boolean;
@@ -822,7 +822,7 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 function ProjectItem({
   pinned = undefined,
   name = undefined,
-  description,
+  description = undefined,
   createdAt = undefined,
   actions = undefined,
   section,

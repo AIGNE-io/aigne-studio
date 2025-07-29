@@ -26,7 +26,7 @@ interface SettingItemProps {
   children: React.ReactElement<any>;
 }
 
-function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingItemProps) {
+function SettingItem({ label, tooltip, agentId, path, sx = undefined, children }: SettingItemProps) {
   const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
   const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;

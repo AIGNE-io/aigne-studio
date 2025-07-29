@@ -10,9 +10,9 @@ export default function FunctionCodeEditor({
   projectId,
   gitRef,
   value,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;

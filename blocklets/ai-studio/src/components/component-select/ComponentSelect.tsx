@@ -105,8 +105,8 @@ export interface ComponentSelectValue {
 export default function ComponentSelect({
   output,
   tags,
-  value,
-  onChange,
+  value = undefined,
+  onChange = undefined,
 }: {
   output: OutputVariableYjs;
   tags: string;

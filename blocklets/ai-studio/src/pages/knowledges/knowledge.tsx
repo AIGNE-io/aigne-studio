@@ -109,7 +109,6 @@ export default function Knowledge() {
                     date={item.createdAt?.toLocaleString()}
                     knowledgeId={item.id}
                     icon={item.icon}
-                    resourceBlockletDid={item.resourceBlockletDid}
                     disabled={!item.installed}
                     onClick={() => item.installed && navigate(`./${item.id}`)}
                     action={
@@ -259,7 +258,6 @@ const KnowledgeCard = ({
   disabled = undefined,
   icon = undefined,
   knowledgeId = undefined,
-  resourceBlockletDid = undefined,
   action = undefined,
   ...props
 }: {
@@ -275,7 +273,6 @@ const KnowledgeCard = ({
   maxLineClamp?: number;
   icon?: string;
   knowledgeId?: string;
-  resourceBlockletDid?: string;
   action?: ReactNode;
 } & StackProps) => {
   const { t } = useLocaleContext();

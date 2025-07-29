@@ -20,8 +20,8 @@ export default function IndicatorTextField({
   projectId,
   gitRef,
   path,
-  TextFiledProps,
-  boxProps,
+  TextFiledProps = undefined,
+  boxProps = undefined,
 }: {
   projectId: string;
   gitRef: string;

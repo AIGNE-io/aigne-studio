@@ -8,7 +8,7 @@ interface Props {
   roles?: string[];
 }
 
-export function PrivateRoute({ roles, children }: PropsWithChildren<Props>) {
+export function PrivateRoute({ roles = undefined, children = undefined }: PropsWithChildren<Props>) {
   const { session } = useSessionContext();
   if (!session.initialized) {
     return (

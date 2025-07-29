@@ -547,7 +547,7 @@ function AddSelectAgentPopperButton({
   projectId,
   gitRef,
   assistant,
-  onSelect,
+  onSelect = undefined,
   openApis,
 }: {
   projectId: string;

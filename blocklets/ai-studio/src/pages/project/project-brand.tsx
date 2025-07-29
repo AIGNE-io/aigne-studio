@@ -49,7 +49,6 @@ export default function ProjectBrand() {
           <ProjectName
             projectId={projectId}
             projectRef={gitRef}
-            working
             sx={{
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -85,12 +84,7 @@ function ProjectIcon({
   );
 }
 
-function ProjectName({
-  projectId,
-  projectRef,
-  working = undefined,
-  ...props
-}: { projectId: string; projectRef: string; working?: boolean } & TypographyProps) {
+function ProjectName({ projectId, projectRef, ...props }: { projectId: string; projectRef: string } & TypographyProps) {
   const { t } = useLocaleContext();
   const { projectSetting } = useProjectStore(projectId, projectRef);
 

@@ -9,7 +9,7 @@ export default function AssistantHistory({
   projectId,
   gitRef,
   value,
-  readOnly,
+  readOnly = undefined,
   parameter,
 }: {
   readOnly?: boolean;

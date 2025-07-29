@@ -107,9 +107,9 @@ export default function InputTable({
   assistant,
   projectId,
   gitRef,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
   openApis = [],
 }: {
   assistant: AssistantYjs;
@@ -608,7 +608,7 @@ export default function InputTable({
 function SelectFromSource({
   FROM_MAP,
   parameter,
-  readOnly,
+  readOnly = undefined,
   value,
   projectId,
   gitRef,
@@ -751,11 +751,11 @@ function SelectFromSource({
 
 export function AgentName({
   type,
-  blockletDid,
-  projectId,
+  blockletDid = undefined,
+  projectId = undefined,
   agentId,
-  showIcon,
-  IconProps,
+  showIcon = undefined,
+  IconProps = undefined,
 }: {
   type: ResourceType;
   blockletDid?: string;
@@ -785,7 +785,7 @@ export function AgentName({
 
 function SelectInputType({
   parameter,
-  readOnly,
+  readOnly = undefined,
   value,
   projectId,
   gitRef,
@@ -868,7 +868,7 @@ function SelectInputType({
 
 function SelectFromSourceDialog({
   parameter,
-  readOnly,
+  readOnly = undefined,
   value,
   projectId,
   gitRef,

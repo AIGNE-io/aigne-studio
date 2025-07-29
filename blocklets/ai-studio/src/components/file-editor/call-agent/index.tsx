@@ -46,7 +46,7 @@ export default function CallAgentEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -186,7 +186,7 @@ export const ToolDialog = ({
   projectId,
   gitRef,
   onSubmit,
-  DialogProps,
+  DialogProps = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -316,10 +316,10 @@ export const AgentItemView = ({
   gitRef,
   agent,
   assistant,
-  readOnly,
+  readOnly = undefined,
   onEdit,
-  CallAssistantIndex,
-  dragRef,
+  CallAssistantIndex = undefined,
+  dragRef = undefined,
   ...props
 }: {
   assistant: CallAssistantYjs;

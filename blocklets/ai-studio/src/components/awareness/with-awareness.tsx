@@ -10,9 +10,9 @@ export default function WithAwareness({
   projectId,
   gitRef,
   path,
-  onMount,
+  onMount = undefined,
   children,
-  sx,
+  sx = undefined,
   indicator = true,
 }: {
   projectId: string;

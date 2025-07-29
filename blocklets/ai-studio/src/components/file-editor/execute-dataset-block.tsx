@@ -38,10 +38,12 @@ export default function ExecuteDatasetBlockForm({
   gitRef,
   assistant,
   value,
-  readOnly,
+  readOnly = undefined,
   path,
-  compareAssistant,
-  isRemoteCompare,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  compareAssistant = undefined,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isRemoteCompare = undefined,
   openApis,
   ...props
 }: {
@@ -91,7 +93,7 @@ function ToolItemView({
   projectRef,
   tool,
   gitRef,
-  readOnly,
+  readOnly = undefined,
   openApis,
   datasets,
   assistant,

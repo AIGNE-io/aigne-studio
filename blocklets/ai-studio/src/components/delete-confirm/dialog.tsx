@@ -28,7 +28,7 @@ export type Props = {
   onConfirm: () => any;
 };
 
-export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...rest }: Props) {
+export default function ConfirmDialog({ name, isReset = undefined, onClose, onConfirm, ...rest }: Props) {
   const [params, setParams] = useState({ __disableConfirm: true, inputVal: '' });
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(false);

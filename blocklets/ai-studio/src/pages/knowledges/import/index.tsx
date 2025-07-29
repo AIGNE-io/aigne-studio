@@ -381,7 +381,7 @@ interface FileViewProps {
 }
 
 export const FileView = ({
-  ref,
+  ref = undefined,
   fileName = undefined,
   size = undefined,
   onChange,

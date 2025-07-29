@@ -7,7 +7,7 @@ export default function ImageAssistantEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

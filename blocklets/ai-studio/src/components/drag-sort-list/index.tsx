@@ -11,7 +11,7 @@ import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
 
 export function DragSortListYjs<T>({
-  disabled,
+  disabled = undefined,
   list,
   renderItem,
   ...props
@@ -102,11 +102,11 @@ export type DragSortItemRenderParams = {
 };
 
 function ItemDND({
-  disabled,
+  disabled = undefined,
   id,
   index,
   type,
-  children,
+  children = undefined,
   itemIndex,
   move,
 }: {
@@ -193,11 +193,11 @@ export function DragSortItemContainer({
   drop,
   preview,
   drag,
-  disabled,
-  isDragging,
-  children,
-  onDelete,
-  actions,
+  disabled = undefined,
+  isDragging = undefined,
+  children = undefined,
+  onDelete = undefined,
+  actions = undefined,
   ...props
 }: {
   drop: ConnectDropTarget;

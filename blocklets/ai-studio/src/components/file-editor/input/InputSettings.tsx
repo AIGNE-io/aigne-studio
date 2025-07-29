@@ -15,12 +15,12 @@ export const FROM_KNOWLEDGE_PARAMETER = 'knowledgeParameter';
 
 export default function InputSettings({
   value,
-  readOnly,
+  readOnly = undefined,
   projectId,
   gitRef,
-  compareValue,
-  isRemoteCompare,
-  openApis,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
+  openApis = undefined,
 }: {
   readOnly?: boolean;
   value: AssistantYjs;

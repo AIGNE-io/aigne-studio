@@ -7,11 +7,11 @@ import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function ApiAssistantSetting({
   value,
-  readOnly,
+  readOnly = undefined,
   projectId,
   gitRef,
-  compareValue,
-  isRemoteCompare,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   value: ApiAssistantYjs;
   projectId: string;

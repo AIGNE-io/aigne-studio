@@ -10,9 +10,9 @@ export default function ImageFilePrompt({
   gitRef,
   value,
   projectId,
-  disabled,
-  compareValue,
-  isRemoteCompare,
+  disabled = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   gitRef: string;
   projectId: string;

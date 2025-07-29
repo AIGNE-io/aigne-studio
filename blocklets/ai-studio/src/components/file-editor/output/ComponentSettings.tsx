@@ -198,7 +198,7 @@ function PropertyValueField({
   );
 }
 
-function Uploader({ onChange }: { onChange?: (v: { url: string; width?: number; height?: number }) => void }) {
+function Uploader({ onChange = undefined }: { onChange?: (v: { url: string; width?: number; height?: number }) => void }) {
   const { projectId, projectRef } = useCurrentProject();
 
   return (

@@ -46,7 +46,7 @@ export default function AgentSelect<
   DisableClearable extends boolean | undefined = false,
 >({
   type,
-  placeholder,
+  placeholder = undefined,
   excludes,
   value,
   onChange,

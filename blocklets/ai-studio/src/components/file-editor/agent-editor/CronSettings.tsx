@@ -328,7 +328,7 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
 
 function AgentInputsForm({
   agent,
-  inputs,
+  inputs = undefined,
   onChange,
 }: {
   agent: AssistantYjs;

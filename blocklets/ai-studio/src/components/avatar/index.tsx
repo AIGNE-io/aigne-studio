@@ -7,7 +7,7 @@ export interface Props {
 }
 
 // base64 avatar 显示问题, 需要处理一下空格 (#121)
-export default function Avatar({ src, ...rest }: Props) {
+export default function Avatar({ src = undefined, ...rest }: Props) {
   if (src && src.startsWith('data:')) {
     // eslint-disable-next-line no-param-reassign
     src = src.replace(/\s/g, encodeURIComponent(' '));

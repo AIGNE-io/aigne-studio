@@ -8,7 +8,7 @@ export default function ApiAssistantEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

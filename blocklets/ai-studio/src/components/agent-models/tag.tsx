@@ -34,7 +34,7 @@ interface TagFilterProps {
   tags: string[];
 }
 
-export function TagFilter({ value, onChange, prepend, tags }: TagFilterProps) {
+export function TagFilter({ value, onChange, prepend = undefined, tags }: TagFilterProps) {
   const handleTagClick = (tag: string) => {
     onChange(tag);
   };

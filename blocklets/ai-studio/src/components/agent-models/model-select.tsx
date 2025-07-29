@@ -43,7 +43,14 @@ interface Props {
 
 const TAG_FAVORITES = 'favorites';
 
-export function ModelSelect({ options, value, onChange, onStar, starredModels, ...rest }: Props) {
+export function ModelSelect({
+  options,
+  value = undefined,
+  onChange,
+  onStar,
+  starredModels = undefined,
+  ...rest
+}: Props) {
   return (
     <Box {...rest}>
       <Box>

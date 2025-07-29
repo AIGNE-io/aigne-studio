@@ -326,7 +326,7 @@ const KnowledgeDocuments = ({
 
 function Actions({
   type,
-  error,
+  error = undefined,
   onRefetch,
   onRemove,
   onEmbedding,

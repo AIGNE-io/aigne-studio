@@ -112,7 +112,7 @@ const FileTree = ({
   gitRef,
   current = undefined,
   mutable = undefined,
-  onLaunch,
+  onLaunch = undefined,
   ...props
 }: {
   ref: React.Ref<ImperativeFileTree>;
@@ -627,7 +627,7 @@ function DragPreviewRender({ item }: Pick<DragLayerMonitorProps<EntryWithMeta>, 
 function TreeItemMenus({
   projectId,
   gitRef,
-  isChanged,
+  isChanged = undefined,
   item,
   onRenameFolder = undefined,
   onCreateFolder = undefined,
@@ -811,11 +811,11 @@ function TreeItemMenus({
 }
 
 function EditTextItem({
-  isEntry,
-  editing,
-  children,
-  onCancel,
-  onSubmit,
+  isEntry = undefined,
+  editing = undefined,
+  children = undefined,
+  onCancel = undefined,
+  onSubmit = undefined,
 }: {
   isEntry?: boolean;
   editing?: boolean;
