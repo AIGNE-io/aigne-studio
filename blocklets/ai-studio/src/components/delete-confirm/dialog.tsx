@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Button, CircularProgress, IconButton, Stack, Tooltip } from '@mui/material';
+import { Button, CircularProgress, IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
@@ -7,7 +7,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import useTheme from '@mui/material/styles/useTheme';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -77,7 +76,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             sx={{
               fontWeight: 400,
               fontSize: 16,
-              lineHeight: "28px"
+              lineHeight: '28px',
             }}>
             {t(isReset ? 'resetProjectAlertPrefix' : 'deleteProjectAlertPrefix')}
             <Tooltip
@@ -103,7 +102,7 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             sx={{
               fontWeight: 400,
               fontSize: 16,
-              lineHeight: "28px"
+              lineHeight: '28px',
             }}>
             {t('confirmTip')}
           </Box>

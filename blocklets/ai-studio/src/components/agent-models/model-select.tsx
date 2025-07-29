@@ -3,7 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { AddComponent } from '@blocklet/ui-react';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import StarIcon from '@iconify-icons/tabler/star';

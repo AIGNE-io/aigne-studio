@@ -5,7 +5,7 @@ import { useIsAdmin } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { BlockletStudio } from '@blocklet/ui-react';
+import BlockletStudio from '@blocklet/ui-react/lib/BlockletStudio';
 // import { Icon } from '@iconify-icon/react';
 // import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import { LoadingButtonProps } from '@mui/lab';

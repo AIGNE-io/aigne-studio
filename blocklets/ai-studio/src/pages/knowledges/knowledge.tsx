@@ -8,7 +8,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
-import { AddComponent } from '@blocklet/ui-react';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
 import { Icon } from '@iconify-icon/react';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import FileIcon from '@iconify-icons/tabler/file-text';

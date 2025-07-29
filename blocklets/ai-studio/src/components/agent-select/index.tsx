@@ -7,7 +7,7 @@ import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import { ResourceType } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
-import { AddComponent } from '@blocklet/ui-react';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
 import { Icon } from '@iconify-icon/react';
 import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import {
