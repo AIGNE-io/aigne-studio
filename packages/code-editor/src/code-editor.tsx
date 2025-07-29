@@ -107,8 +107,7 @@ type MonacoEditor = React.ComponentType<EditorProps>;
 const CodeEditor = ({
   ref,
   keyId,
-  readOnly,
-  maxHeight,
+  readOnly = undefined,
   locale = 'en',
 
   fullScreenOptions = {
@@ -120,7 +119,6 @@ const CodeEditor = ({
 }: {
   keyId: string;
   readOnly?: boolean;
-  maxHeight?: number;
   locale: string;
   typeScriptNoValidation?: boolean;
   onUpload?: (callback: (url: string) => void) => void;
