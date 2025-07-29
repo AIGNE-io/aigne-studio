@@ -246,7 +246,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.6)
+        version: 1.7.5
       compression:
         specifier: ^1.7.4
         version: 1.8.0
@@ -637,7 +637,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.6)
+        version: 1.7.5
       bytes:
         specifier: ^3.1.2
         version: 3.1.2
@@ -1124,7 +1124,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.6)
+        version: 1.7.5
       cron:
         specifier: ^3.1.7
         version: 3.1.7
@@ -1323,7 +1323,7 @@ importers:
         version: 3.8.5(react@19.1.0)
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.6)
+        version: 1.7.5
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
@@ -1596,7 +1596,7 @@ importers:
         version: 8.17.1
       axios:
         specifier: ^1.7.5
-        version: 1.7.5(debug@4.3.6)
+        version: 1.7.5
       express:
         specifier: ^4.19.2
         version: 4.21.2
@@ -21048,7 +21048,7 @@ snapshots:
       '@blocklet/quickjs': 0.4.256(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(encoding@0.1.13)
       '@blocklet/sdk': 1.16.46(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(encoding@0.1.13)
       '@blocklet/uploader-server': 0.1.101(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@tus/file-store@1.0.0(@tus/server@1.0.0))(@tus/server@1.0.0)(@uppy/companion@4.13.2)(axios@1.7.5)(encoding@0.1.13)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       commander: 13.0.0
       compression: 1.8.0
       eventsource-parser: 3.0.0
@@ -21440,7 +21440,7 @@ snapshots:
       '@ocap/util': 1.21.0
       '@simplewebauthn/browser': 13.1.2
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       base64-url: 2.3.3
       buffer: 6.0.3
       color-convert: 3.1.0
@@ -21486,7 +21486,7 @@ snapshots:
       '@ocap/util': 1.21.0
       '@simplewebauthn/browser': 13.1.2
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       base64-url: 2.3.3
       buffer: 6.0.3
       color-convert: 3.1.0
@@ -21533,7 +21533,7 @@ snapshots:
       '@ocap/util': 1.21.0
       '@simplewebauthn/browser': 13.1.2
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       base64-url: 2.3.3
       buffer: 6.0.3
       color-convert: 3.1.0
@@ -21607,7 +21607,7 @@ snapshots:
       '@blocklet/js-sdk': 1.16.46(encoding@0.1.13)
       '@ocap/merkle-tree': 1.21.0(encoding@0.1.13)
       '@ocap/util': 1.21.0
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       eslint: 8.57.1
       ethereumjs-abi: 0.6.8
       ethers: 5.7.2
@@ -23936,7 +23936,7 @@ snapshots:
       '@ocap/mcrypto': 1.21.0(encoding@0.1.13)
       '@types/express': 4.17.21
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       eventsource-parser: 2.0.1
       express: 4.21.2
       file-saver: 2.0.5
@@ -24001,7 +24001,7 @@ snapshots:
       '@ocap/mcrypto': 1.21.0(encoding@0.1.13)
       '@types/express': 4.17.21
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       eventsource-parser: 2.0.1
       express: 4.21.2
       file-saver: 2.0.5
@@ -24068,7 +24068,7 @@ snapshots:
       '@ocap/util': 1.21.0
       '@types/express': 5.0.3
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       eventsource-parser: 2.0.1
       express: 5.1.0
       file-saver: 2.0.5
@@ -24135,7 +24135,7 @@ snapshots:
       '@ocap/util': 1.21.0
       '@types/express': 5.0.3
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       eventsource-parser: 2.0.1
       express: 5.1.0
       file-saver: 2.0.5
@@ -24245,7 +24245,7 @@ snapshots:
       '@abtnode/cron': 1.16.46
       '@blocklet/puppeteer': 22.11.3
       '@blocklet/sdk': 1.16.46(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(encoding@0.1.13)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       fs-extra: 11.3.0
       generic-pool: 3.9.0
       lodash: 4.17.21
@@ -24326,7 +24326,7 @@ snapshots:
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/system': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       flat: 5.0.2
       is-url: 1.2.4
       lodash: 4.17.21
@@ -24360,7 +24360,7 @@ snapshots:
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@18.3.1(react@18.3.1))(react@19.1.0)
       '@mui/system': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       flat: 5.0.2
       is-url: 1.2.4
       lodash: 4.17.21
@@ -24394,7 +24394,7 @@ snapshots:
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/system': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@18.3.1)
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       flat: 5.0.2
       is-url: 1.2.4
       lodash: 4.17.21
@@ -24436,7 +24436,7 @@ snapshots:
       '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 2.1.1
       dayjs: 1.11.13
       franc-min: 6.2.0
@@ -24537,7 +24537,7 @@ snapshots:
       '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 1.2.1
       dayjs: 1.11.13
       franc-min: 6.2.0
@@ -24638,7 +24638,7 @@ snapshots:
       '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 1.2.1
       dayjs: 1.11.13
       franc-min: 6.2.0
@@ -24737,7 +24737,7 @@ snapshots:
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@uiw/react-md-editor': 3.25.6(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 1.2.1
       flat: 5.0.2
       js-cookie: 3.0.5
@@ -24828,7 +24828,7 @@ snapshots:
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@uiw/react-md-editor': 3.25.6(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 1.2.1
       flat: 5.0.2
       js-cookie: 3.0.5
@@ -25213,7 +25213,7 @@ snapshots:
       '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       broadcast-channel: 5.5.1
       lodash: 4.17.21
       overlayscrollbars: 2.10.0
@@ -25237,7 +25237,7 @@ snapshots:
       '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       broadcast-channel: 5.5.1
       lodash: 4.17.21
       overlayscrollbars: 2.10.0
@@ -25289,7 +25289,7 @@ snapshots:
       '@arcblock/did': 1.21.0(encoding@0.1.13)
       '@blocklet/meta': 1.16.46(encoding@0.1.13)
       '@ocap/wallet': 1.21.0(encoding@0.1.13)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       is-url: 1.2.4
       js-cookie: 3.0.5
       json-stable-stringify: 1.1.1
@@ -25391,7 +25391,7 @@ snapshots:
       '@mdx-js/react': 3.1.0(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chalk: 4.1.2
       copyfiles: 2.4.1
       crypto-browserify: 3.12.1
@@ -25439,7 +25439,7 @@ snapshots:
 
   '@blocklet/pages-kit-core@0.6.21(axios@1.7.5)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.28.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@18.3.1)(yaml@2.7.0)':
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       lodash: 4.17.21
       nanoid: 3.3.11
       react: 18.3.1
@@ -25450,7 +25450,7 @@ snapshots:
 
   '@blocklet/pages-kit-core@0.6.21(axios@1.7.5)(react-dom@19.1.0(react@19.1.0))(react-router-dom@6.28.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(yaml@2.7.0)':
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       lodash: 4.17.21
       nanoid: 3.3.11
       react: 19.1.0
@@ -25514,7 +25514,7 @@ snapshots:
       '@types/tz-lookup': 6.1.2
       ahooks: 3.8.5(react@19.1.0)
       autoprefixer: 10.4.21(postcss@8.5.6)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       circular-natal-horoscope-js: 1.1.0
       compression: 1.8.0
       cookie-parser: 1.4.7
@@ -25678,7 +25678,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chalk: 4.1.2
       esbuild: 0.19.12
       glob: 11.0.1
@@ -25717,7 +25717,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chalk: 4.1.2
       esbuild: 0.19.12
       glob: 11.0.1
@@ -25757,7 +25757,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chalk: 4.1.2
       esbuild: 0.19.12
       glob: 11.0.1
@@ -25809,7 +25809,7 @@ snapshots:
       '@types/file-saver': 2.0.7
       ahooks: 3.8.5(react@19.1.0)
       ajv: 8.17.1
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dayjs: 1.11.13
       es-module-shims: 2.0.10
       eventsource-parser: 2.0.1
@@ -25902,7 +25902,7 @@ snapshots:
       '@types/file-saver': 2.0.7
       ahooks: 3.8.5(react@19.1.0)
       ajv: 8.17.1
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dayjs: 1.11.13
       es-module-shims: 2.0.10
       eventsource-parser: 2.0.1
@@ -25997,7 +25997,7 @@ snapshots:
       '@types/file-saver': 2.0.7
       ahooks: 3.8.5(react@19.1.0)
       ajv: 8.17.1
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dayjs: 1.11.13
       es-module-shims: 2.0.10
       eventsource-parser: 2.0.1
@@ -26093,7 +26093,7 @@ snapshots:
       '@types/file-saver': 2.0.7
       ahooks: 3.8.5(react@18.3.1)
       ajv: 8.17.1
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dayjs: 1.11.13
       es-module-shims: 2.0.10
       eventsource-parser: 2.0.1
@@ -26193,7 +26193,7 @@ snapshots:
       '@stripe/stripe-js': 2.4.0
       '@vitejs/plugin-legacy': 7.1.0(terser@5.34.1)(vite@7.0.6(@types/node@22.9.1)(jiti@2.4.2)(sass@1.77.7)(terser@5.34.1)(tsx@4.19.3)(yaml@2.7.0))
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dayjs: 1.11.13
       flat: 5.0.2
       google-libphonenumber: 3.2.42
@@ -26391,7 +26391,7 @@ snapshots:
   '@blocklet/search-kit-js@0.2.24(@blocklet/sdk@1.16.46(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(encoding@0.1.13))':
     dependencies:
       '@blocklet/sdk': 1.16.46(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(encoding@0.1.13)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       meilisearch: 0.47.0
       ufo: 1.6.1
       zod: 3.25.76
@@ -26421,7 +26421,7 @@ snapshots:
       '@ocap/wallet': 1.21.0(encoding@0.1.13)
       '@playwright/test': 1.46.1
       '@types/json-stable-stringify': 1.0.36
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       json-stable-stringify: 1.1.1
       multiformats: 9.9.0
       ufo: 1.6.1
@@ -26475,7 +26475,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 2.1.1
       dayjs: 1.11.13
       dompurify: 3.2.6
@@ -26532,7 +26532,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 2.1.1
       dayjs: 1.11.13
       dompurify: 3.2.6
@@ -26589,7 +26589,7 @@ snapshots:
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react@19.1.0))(@types/react@19.1.8)(react-dom@18.3.1(react@18.3.1))(react@19.1.0)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       clsx: 2.1.1
       dayjs: 1.11.13
       dompurify: 3.2.6
@@ -26633,7 +26633,7 @@ snapshots:
       '@tus/file-store': 1.0.0(@tus/server@1.0.0)
       '@tus/server': 1.0.0
       '@uppy/companion': 4.13.2
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       body-parser: 1.20.3
       express-session: 1.17.3
       glob: 11.0.1
@@ -26660,7 +26660,7 @@ snapshots:
       '@tus/file-store': 1.0.0(@tus/server@1.0.0)
       '@tus/server': 1.0.0
       '@uppy/companion': 4.13.2
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       body-parser: 1.20.3
       exif-be-gone: 1.5.1
       express-session: 1.17.3
@@ -26702,7 +26702,7 @@ snapshots:
       '@uppy/url': 3.6.1(@uppy/core@3.11.2)
       '@uppy/webcam': 3.4.1(@uppy/core@3.11.2)
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dompurify: 3.2.6
       exifr: 7.1.3
       fflate: 0.8.2
@@ -26757,7 +26757,7 @@ snapshots:
       '@uppy/url': 3.6.1(@uppy/core@3.11.2)
       '@uppy/webcam': 3.4.1(@uppy/core@3.11.2)
       ahooks: 3.8.5(react@19.1.0)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       dompurify: 3.2.6
       exifr: 7.1.3
       fflate: 0.8.2
@@ -29446,7 +29446,7 @@ snapshots:
 
   '@mendable/firecrawl-js@1.8.5(ws@8.18.0)':
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       isows: 1.0.4(ws@8.18.0)
       typescript-event-target: 1.1.1
       zod: 3.25.76
@@ -30075,7 +30075,7 @@ snapshots:
       '@web3-onboard/walletconnect': 2.6.1(@azure/cosmos@4.2.0)(@azure/identity@4.5.0)(@types/react@19.1.8)(encoding@0.1.13)(react@18.3.1)(typescript@5.7.3)(zod@3.25.76)
       add: 2.0.6
       ahooks: 3.8.5(react@18.3.1)
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       cryptocurrency-icons: 0.18.1
       dayjs: 1.11.13
       ethereumjs-abi: 0.6.8
@@ -35149,9 +35149,17 @@ snapshots:
 
   axios-mock-adapter@2.1.0(axios@1.7.5):
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       fast-deep-equal: 3.1.3
       is-buffer: 2.0.5
+
+  axios@1.7.5:
+    dependencies:
+      follow-redirects: 1.15.6(debug@4.3.7)
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   axios@1.7.5(debug@4.3.6):
     dependencies:
@@ -41439,7 +41447,7 @@ snapshots:
       '@notionhq/client': 2.2.15(encoding@0.1.13)
       '@pinecone-database/pinecone': 4.0.0
       assemblyai: 4.8.0
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chromadb: 1.9.2(@google/generative-ai@0.21.0)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.696.0(@aws-sdk/client-sts@3.696.0))(encoding@0.1.13))(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.25.76))
       d3-dsv: 3.0.1
       faiss-node: 0.5.1
@@ -41483,7 +41491,7 @@ snapshots:
       '@notionhq/client': 2.2.15(encoding@0.1.13)
       '@pinecone-database/pinecone': 4.0.0
       assemblyai: 4.8.0
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chromadb: 1.9.2(@google/generative-ai@0.21.0)(cohere-ai@7.14.0(@aws-sdk/client-sso-oidc@3.696.0(@aws-sdk/client-sts@3.696.0))(encoding@0.1.13))(encoding@0.1.13)(openai@4.73.0(encoding@0.1.13)(zod@3.25.76))
       faiss-node: 0.5.1
       fast-xml-parser: 4.4.1
@@ -44025,7 +44033,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.7
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -47524,7 +47532,7 @@ snapshots:
 
   retry-axios@2.6.0(axios@1.7.5):
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
 
   retry@0.10.1: {}
 
@@ -50212,7 +50220,7 @@ snapshots:
 
   wait-on@8.0.3:
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       joi: 17.13.3
       lodash: 4.17.21
       minimist: 1.2.8
@@ -50361,7 +50369,7 @@ snapshots:
 
   wikipedia@2.1.2:
     dependencies:
-      axios: 1.7.5(debug@4.3.6)
+      axios: 1.7.5
       infobox-parser: 3.6.4
     transitivePeerDependencies:
       - debug
