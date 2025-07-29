@@ -18,7 +18,12 @@ export default function CompareAPIAssistant({
   return (
     <>
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ApiAssistantEditorPrepare
             projectId={projectId}
             gitRef={gitRef}
@@ -29,7 +34,12 @@ export default function CompareAPIAssistant({
           />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ApiAssistantEditorPrepare
             projectId={projectId}
             gitRef={gitRef}
@@ -39,13 +49,22 @@ export default function CompareAPIAssistant({
           />
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ApiAssistantSetting projectId={projectId} gitRef={gitRef} value={remoteAssistant} readOnly />
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <ApiAssistantSetting
             projectId={projectId}
             gitRef={gitRef}

@@ -94,11 +94,17 @@ function VariablePickerMenuItem({
       onMouseEnter={onMouseEnter}
       onClick={onClick}>
       {!!option.icon && (
-        <Box px={0.5} display="flex">
+        <Box
+          sx={{
+            px: 0.5,
+            display: "flex"
+          }}>
           {option.icon}
         </Box>
       )}
-      <Box className="text" display="flex">
+      <Box className="text" sx={{
+        display: "flex"
+      }}>
         {option.title}
       </Box>
     </Item>
@@ -179,7 +185,9 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
                         option={option}
                       />
 
-                      {!option.disabled && filteredOptions[i + 1]?.disabled && <Divider light />}
+                      {!option.disabled && filteredOptions[i + 1]?.disabled && <Divider sx={{
+                        opacity: "0.6"
+                      }} />}
                     </React.Fragment>
                   ))}
                 </Box>

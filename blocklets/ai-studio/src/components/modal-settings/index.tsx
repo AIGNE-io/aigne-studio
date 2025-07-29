@@ -101,7 +101,12 @@ export function ModelSetting({
   };
 
   return (
-    <Stack position="relative" py={1} gap={1}>
+    <Stack
+      sx={{
+        position: "relative",
+        py: 1,
+        gap: 1
+      }}>
       <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
         <ModelSelectField
           fullWidth
@@ -114,12 +119,15 @@ export function ModelSetting({
           sx={{ border: '1px solid #E5E7EB' }}
         />
       </WithAwareness>
-
       {model && (
         <>
           {!isNil(model.temperatureMin) && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box className="between" sx={{
+              position: "relative"
+            }}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <Tooltip title={t('temperatureTip')} placement="top" disableInteractive>
                   <FormLabel>
                     {t('temperature')}
@@ -128,7 +136,9 @@ export function ModelSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -149,8 +159,12 @@ export function ModelSetting({
           )}
 
           {!isNil(model.topPMin) && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box className="between" sx={{
+              position: "relative"
+            }}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <Tooltip title={t('topPTip')} placement="top" disableInteractive>
                   <FormLabel>
                     {t('topP')}
@@ -159,7 +173,9 @@ export function ModelSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -180,8 +196,12 @@ export function ModelSetting({
           )}
 
           {!isNil(model.presencePenaltyMin) && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box className="between" sx={{
+              position: "relative"
+            }}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <Tooltip title={t('presencePenaltyTip')} placement="top" disableInteractive>
                   <FormLabel>
                     {t('presencePenalty')}
@@ -190,7 +210,9 @@ export function ModelSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -215,8 +237,12 @@ export function ModelSetting({
           )}
 
           {!isNil(model.frequencyPenaltyMin) && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box className="between" sx={{
+              position: "relative"
+            }}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <Tooltip title={t('frequencyPenaltyTip')} placement="top" disableInteractive>
                   <FormLabel>
                     {t('frequencyPenalty')}
@@ -225,7 +251,9 @@ export function ModelSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -250,8 +278,12 @@ export function ModelSetting({
           )}
 
           {!isNil(model.maxTokensMin) && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box className="between" sx={{
+              position: "relative"
+            }}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <Tooltip title={t('maxTokensTip')} placement="top" disableInteractive>
                   <FormLabel>
                     {t('maxTokens')}
@@ -260,7 +292,9 @@ export function ModelSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box sx={{
+                flex: 1
+              }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -284,7 +318,6 @@ export function ModelSetting({
           )}
         </>
       )}
-
       {!!tools.length && (
         <FormControl size="small">
           <InputLabel>Stop Tools</InputLabel>
@@ -329,9 +362,10 @@ export function ModelPopper({ children }: { children: ReactElement<any> }) {
           e.stopPropagation();
           setIsVisible(true);
         }}>
-        <Box fontSize={18} component={Icon} icon={SettingIcon} />
+        <Box component={Icon} icon={SettingIcon} sx={{
+          fontSize: 18
+        }} />
       </Button>
-
       <Popper
         open={isVisible}
         anchorEl={buttonRef.current}

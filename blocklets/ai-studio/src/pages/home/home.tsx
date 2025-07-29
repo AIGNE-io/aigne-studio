@@ -18,10 +18,25 @@ export default function Home() {
         logo: <AigneLogo />,
         addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
       }}>
-      <Box mx="auto" flexGrow={1} my={4} maxWidth={800}>
+      <Box
+        sx={{
+          mx: "auto",
+          flexGrow: 1,
+          my: 4,
+          maxWidth: 800
+        }}>
         {blocklet && (
-          <Stack alignItems="center" gap={2} mt="30%">
-            <Box sx={{ transform: 'scale(2)' }} my={2}>
+          <Stack
+            sx={{
+              alignItems: "center",
+              gap: 2,
+              mt: "30%"
+            }}>
+            <Box
+              sx={{
+                my: 2,
+                transform: 'scale(2)'
+              }}>
               <AigneLogo />
             </Box>
             <Typography variant="h4">{blocklet.appName}</Typography>
@@ -32,7 +47,9 @@ export default function Home() {
               {blocklet.appDescription}
             </Typography>
 
-            <Stack direction="row" gap={3}>
+            <Stack direction="row" sx={{
+              gap: 3
+            }}>
               {!isAdmin && (
                 <Button onClick={session.user ? session.switchDid : session.login} variant="contained">
                   {window.blocklet?.tenantMode === 'multiple' ? t('login') : t('loginAsAdminButton')}
@@ -42,7 +59,6 @@ export default function Home() {
           </Stack>
         )}
       </Box>
-
       <Footer
         // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
         meta={undefined}

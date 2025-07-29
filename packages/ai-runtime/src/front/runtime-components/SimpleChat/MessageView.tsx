@@ -46,7 +46,9 @@ const MessageView = memo(({ message }: { message: MessageItem }) => {
   return (
     <CurrentAgentProvider aid={message.aid}>
       <CurrentMessageProvider message={message}>
-        <Stack gap={2} className="message-item" data-testid={`message-${message.id}`}>
+        <Stack className="message-item" data-testid={`message-${message.id}`} sx={{
+          gap: 2
+        }}>
           {!hideUserInputs && (
             <Box>
               <UserInfo

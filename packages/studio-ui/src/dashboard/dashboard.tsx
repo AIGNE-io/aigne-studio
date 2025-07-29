@@ -148,26 +148,28 @@ function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolea
     <Drawer
       {...props}
       sx={{ height: '100%', zIndex: (theme) => theme.zIndex.appBar + 1, ...props.sx }}
-      PaperProps={{
-        ...props.PaperProps,
-        sx: {
-          top: 64,
-          bottom: 0,
-          height: 'auto',
-          width: collapsed ? miniDrawerWidth : drawerWidth,
-          transition: (theme) => transition(theme, 'width', props.open),
-          borderRightWidth: props.variant === 'permanent' ? 1 : 0,
-          borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
-          borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
-          zIndex: (theme) => theme.zIndex.appBar + 1,
-          boxShadow: 0,
+      slotProps={{
+        paper: {
+          ...props.PaperProps,
+          sx: {
+            top: 64,
+            bottom: 0,
+            height: 'auto',
+            width: collapsed ? miniDrawerWidth : drawerWidth,
+            transition: (theme) => transition(theme, 'width', props.open),
+            borderRightWidth: props.variant === 'permanent' ? 1 : 0,
+            borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
+            borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
+            zIndex: (theme) => theme.zIndex.appBar + 1,
+            boxShadow: 0,
 
-          '*::-webkit-scrollbar': {
-            display: 'none',
+            '*::-webkit-scrollbar': {
+              display: 'none',
+            },
+
+            ...props.PaperProps?.sx,
           },
-
-          ...props.PaperProps?.sx,
-        },
+        }
       }}>
       {props.children}
     </Drawer>

@@ -27,10 +27,12 @@ export default function UserInfo({
   return (
     <Stack
       className="user-info"
-      alignItems="center"
       direction={reverse ? 'row-reverse' : 'row'}
-      gap={1.5}
-      {...restProps}>
+      {...restProps}
+      sx={[{
+        alignItems: "center",
+        gap: 1.5
+      }, ...(Array.isArray(restProps.sx) ? restProps.sx : [restProps.sx])]}>
       {(avatar || did) && (
         <Box
           sx={{
@@ -48,8 +50,11 @@ export default function UserInfo({
           />
         </Box>
       )}
-
-      <Box flex={1} width={0}>
+      <Box
+        sx={{
+          flex: 1,
+          width: 0
+        }}>
         <UserName {...UserNameProps} sx={{ justifyContent: reverse ? 'flex-end' : 'flex-start', ...UserNameProps?.sx }}>
           {name || ''}
           {time && (
@@ -67,7 +72,9 @@ export default function UserInfo({
         {/* @ts-ignore */}
         {showDID && did && <Box component={DID} did={did} copyable={false} size={14} responsive sx={{ mt: -0.25 }} />}
 
-        <Box flex={1}>{children}</Box>
+        <Box sx={{
+          flex: 1
+        }}>{children}</Box>
       </Box>
     </Stack>
   );

@@ -44,23 +44,37 @@ export default function AgentEditor({
   const { data: openApis = [] } = useRequest(() => getAPIList());
 
   return (
-    <Stack p={2.5} position="relative">
+    <Stack
+      sx={{
+        p: 2.5,
+        position: "relative"
+      }}>
       <Box sx={{ mx: -1 }}>
         <BasicInfoForm projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Box>
-
-      <Box height={20} width={1} />
-
+      <Box
+        sx={{
+          height: 20,
+          width: 1
+        }} />
       <Box sx={{ borderRadius: 1 }}>
         <InputSettings projectId={projectId} gitRef={gitRef} readOnly={disabled} value={value} openApis={openApis} />
       </Box>
-
-      <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={20} top={-4}>
+      <Box
+        sx={{
+          height: 20,
+          width: 1,
+          position: "relative"
+        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            left: 20,
+            top: -4
+          }}>
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
-
       <Box sx={{ borderRadius: 1, bgcolor: '#EFF6FF', px: 2, py: 1.5 }}>
         <AgentProcessingView projectId={projectId} gitRef={gitRef} assistant={value}>
           {isPromptAssistant(value) ? (
@@ -84,7 +98,9 @@ export default function AgentEditor({
           ) : isImageBlenderAssistant(value) ? (
             <ImageBlenderAssistantEditor value={value} />
           ) : (
-            <Stack alignItems="center">
+            <Stack sx={{
+              alignItems: "center"
+            }}>
               <Box sx={{ fontSize: 28, color: 'text.disabled' }}>
                 <Icon icon={ZZZIcon} />
               </Box>
@@ -94,13 +110,21 @@ export default function AgentEditor({
           )}
         </AgentProcessingView>
       </Box>
-
-      <Box height={20} width={1} position="relative">
-        <Box position="absolute" left={20} top={-4}>
+      <Box
+        sx={{
+          height: 20,
+          width: 1,
+          position: "relative"
+        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            left: 20,
+            top: -4
+          }}>
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
-
       <Box sx={{ borderRadius: 1 }}>
         <OutputSettings
           data-testid="agent-editor-output-settings"
@@ -110,7 +134,6 @@ export default function AgentEditor({
           openApis={openApis}
         />
       </Box>
-
       <Box sx={{ bgcolor: '#F9FAFB', borderRadius: 1, mt: 2 }}>
         <AgentSettings key={value.id} agent={value} />
       </Box>

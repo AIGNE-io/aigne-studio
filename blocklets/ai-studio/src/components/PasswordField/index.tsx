@@ -17,15 +17,17 @@ const PasswordField = (
       ref={ref}
       {...props}
       type={visible ? 'text' : 'password'}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton size="small" onClick={() => setVisible(!visible)}>
-              <Icon icon={visible ? 'tabler:eye' : 'tabler:eye-off'} />
-            </IconButton>
-          </InputAdornment>
-        ),
-        ...props.InputProps,
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton size="small" onClick={() => setVisible(!visible)}>
+                <Icon icon={visible ? 'tabler:eye' : 'tabler:eye-off'} />
+              </IconButton>
+            </InputAdornment>
+          ),
+          ...props.InputProps,
+        }
       }}
     />
   );

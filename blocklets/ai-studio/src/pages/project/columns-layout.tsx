@@ -69,23 +69,30 @@ const ColumnsLayout = (
 
   if (!isLargeScreen) {
     return (
-      <Box height="100%" overflow="auto" bgcolor="background.paper">
+      <Box
+        sx={{
+          height: "100%",
+          overflow: "auto",
+          bgcolor: "background.paper"
+        }}>
         {children}
-
         <Drawer
           open={leftDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
-          onClose={() => setLeftDrawerOpen(false)}>
+          onClose={() => setLeftDrawerOpen(false)}
+          slotProps={{
+            paper: { sx: { width: 300, height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+          }}>
           {left}
         </Drawer>
-
         <Drawer
           anchor="right"
           open={rightDrawerOpen}
           sx={{ zIndex: (theme) => theme.zIndex.speedDial, [`.${backdropClasses.root}`]: { top: 64 } }}
-          PaperProps={{ sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }}
-          onClose={() => setRightDrawerOpen(false)}>
+          onClose={() => setRightDrawerOpen(false)}
+          slotProps={{
+            paper: { sx: { width: 'calc(100% - 32px)', height: 'unset', top: 64, bottom: 0, boxShadow: 0 } }
+          }}>
           {right}
         </Drawer>
       </Box>
@@ -93,7 +100,11 @@ const ColumnsLayout = (
   }
 
   return (
-    <Box height="100%" bgcolor="background.paper">
+    <Box
+      sx={{
+        height: "100%",
+        bgcolor: "background.paper"
+      }}>
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         {left && (
           <Box

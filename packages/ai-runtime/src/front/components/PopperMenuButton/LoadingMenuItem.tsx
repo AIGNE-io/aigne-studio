@@ -28,8 +28,13 @@ export default function LoadingMenuItem({
   return (
     <MenuItem {...props} onClick={handleClick} sx={{ ...props.sx, display: 'flex', alignItems: 'center' }}>
       {(clicked && confirmation) || children}
-
-      <Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{ width: 18 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: "center",
+          justifyContent: "flex-end",
+          width: 18
+        }}>
         {loading && <CircularProgress size={14} />}
       </Stack>
     </MenuItem>

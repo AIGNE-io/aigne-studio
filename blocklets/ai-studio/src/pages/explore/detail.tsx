@@ -45,7 +45,15 @@ export default function CategoryDetail() {
 
   if (loading) {
     return (
-      <Stack p={2.5} width={1} height={1} overflow="hidden" gap={2.5} className="center">
+      <Stack
+        className="center"
+        sx={{
+          p: 2.5,
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+          gap: 2.5
+        }}>
         <CircularProgress size={24} />
       </Stack>
     );
@@ -63,7 +71,12 @@ export default function CategoryDetail() {
   }
 
   return (
-    <Stack height={1} overflow="hidden" gap={1.5}>
+    <Stack
+      sx={{
+        height: 1,
+        overflow: "hidden",
+        gap: 1.5
+      }}>
       <Agent
         deployment={data?.deployment!}
         project={data?.project!}
@@ -96,7 +109,11 @@ function Agent({
   const isArcSphere = browser?.arcSphere ?? false;
 
   return (
-    <Stack flex={1} height={0}>
+    <Stack
+      sx={{
+        flex: 1,
+        height: 0
+      }}>
       <TabContext value={tab}>
         <Box
           sx={{
@@ -110,10 +127,13 @@ function Agent({
           {!isArcSphere && (
             <Stack
               direction="row"
-              gap={1}
               onClick={() => navigate(`/explore/${categorySlug}`)}
-              sx={{ cursor: 'pointer', mr: 0 }}
-              className="center">
+              className="center"
+              sx={{
+                gap: 1,
+                cursor: 'pointer',
+                mr: 0
+              }}>
               <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
             </Stack>
           )}
@@ -163,8 +183,12 @@ function ReadmePage({
   const totalRuns = stats?.totalRuns || 0;
 
   return (
-    <Stack gap={3} data-testid="readme-page">
-      <Stack direction="row" gap={2}>
+    <Stack data-testid="readme-page" sx={{
+      gap: 3
+    }}>
+      <Stack direction="row" sx={{
+        gap: 2
+      }}>
         <Box
           component="img"
           alt=""
@@ -177,7 +201,9 @@ function ReadmePage({
           }}
         />
 
-        <Stack gap={2}>
+        <Stack sx={{
+          gap: 2
+        }}>
           <Box>
             <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
               {project.name}
@@ -219,7 +245,12 @@ function ReadmePage({
             </Box>
           </Box>
 
-          <Box display="flex" gap={1} alignItems="stretch">
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "stretch"
+            }}>
             <Button
               variant="contained"
               href={shareUrl}
@@ -244,9 +275,7 @@ function ReadmePage({
           )}
         </Stack>
       </Stack>
-
       <Divider sx={{ borderColor: '#EFF1F5' }} />
-
       <Stack>{project.readme && <MdViewer content={project.readme} sx={{ img: { maxWidth: '100%' } }} />}</Stack>
     </Stack>
   );

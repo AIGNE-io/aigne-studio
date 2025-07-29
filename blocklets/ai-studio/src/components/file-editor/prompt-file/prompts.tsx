@@ -45,10 +45,10 @@ export default function PromptPrompts({
 
   return (
     <Stack
-      gap={1}
       sx={{
+        gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF',
+        bgcolor: '#EFF6FF'
       }}>
       <>
         {value.prompts && (
@@ -128,7 +128,9 @@ export default function PromptPrompts({
         )}
 
         {!disabled && (
-          <Stack direction="row" gap={1.5}>
+          <Stack direction="row" sx={{
+            gap: 1.5
+          }}>
             <Button
               startIcon={<Box component={Icon} icon={PlusIcon} />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
@@ -170,7 +172,15 @@ function PromptItemMessage({
         '.variable': promptHidden ? { color: 'rgba(0, 0, 0, 0.38) !important', fontWeight: 'normal !important' } : {},
         backgroundColor: promptHidden ? 'action.hover' : backgroundColor,
       }}>
-      <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: "center",
+          gap: 1,
+          p: 1,
+          px: 1.5,
+          borderBottom: "1px solid #BFDBFE"
+        }}>
         <RoleSelectField
           projectId={projectId}
           gitRef={gitRef}
@@ -200,7 +210,6 @@ function PromptItemMessage({
           }}
         />
       </Stack>
-
       <StyledPromptEditor
         readOnly={readOnly}
         data-testid="prompt-editor"

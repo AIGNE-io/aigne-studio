@@ -23,7 +23,9 @@ export default function AddInputButton({
   return (
     <PopperMenu
       ButtonProps={{
-        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
+        startIcon: <Box component={Icon} icon={PlusIcon} sx={{
+          fontSize: 16
+        }} />,
         children: <Box>{t('input')}</Box>,
         ...ButtonProps,
       }}
@@ -41,12 +43,13 @@ export default function AddInputButton({
         <ListItemIcon>
           <Box component={Icon} icon={MessageIcon} />
         </ListItemIcon>
-        <Box flex={1}>{t('questionInputTitle')}</Box>
+        <Box sx={{
+          flex: 1
+        }}>{t('questionInputTitle')}</Box>
         <Box sx={{ width: 40, textAlign: 'right' }}>
           {variables.includes('question') && <Box component={Icon} icon={CheckIcon} />}
         </Box>
       </MenuItem>
-
       <MenuItem
         selected={variables.includes('chatHistory')}
         onClick={(e) => {
@@ -63,14 +66,14 @@ export default function AddInputButton({
         <ListItemIcon>
           <Box component={Icon} icon={HistoryIcon} />
         </ListItemIcon>
-        <Box flex={1}>{t('history.title')}</Box>
+        <Box sx={{
+          flex: 1
+        }}>{t('history.title')}</Box>
         <Box sx={{ width: 40, textAlign: 'right' }}>
           {variables.includes('chatHistory') && <Box component={Icon} icon={CheckIcon} />}
         </Box>
       </MenuItem>
-
       <Divider sx={{ my: '4px !important', p: 0 }} />
-
       <MenuItem
         onClick={() => {
           const id = addParameter('');

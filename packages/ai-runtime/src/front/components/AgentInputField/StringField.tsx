@@ -36,11 +36,13 @@ const StringField = (
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
       {...props}
-      InputProps={{
-        readOnly,
-        ...props.InputProps,
-        sx: { py: 0, [`.${inputBaseClasses.input}`]: { py: 1 }, ...props.InputProps?.sx },
-        inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
+      slotProps={{
+        input: {
+          readOnly,
+          ...props.InputProps,
+          sx: { py: 0, [`.${inputBaseClasses.input}`]: { py: 1 }, ...props.InputProps?.sx },
+          inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
+        }
       }}
     />
   );

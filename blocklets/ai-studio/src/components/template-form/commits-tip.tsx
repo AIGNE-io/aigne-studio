@@ -139,10 +139,17 @@ export function CommitListView({
               primary={item.commit.message}
               // @ts-ignore
               secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
-              primaryTypographyProps={{ noWrap: true }}
-              secondaryTypographyProps={{ noWrap: true }}
-            />
-            <Box width={20} ml={1} display="flex" alignItems="center">
+              slotProps={{
+                primary: { noWrap: true },
+                secondary: { noWrap: true }
+              }} />
+            <Box
+              sx={{
+                width: 20,
+                ml: 1,
+                display: "flex",
+                alignItems: "center"
+              }}>
               {loadingItemHash === item.oid && <CircularProgress size={16} />}
             </Box>
           </ListItemButton>
@@ -155,7 +162,9 @@ export function CommitListView({
       ) : (
         !commits?.length && (
           <ListItem>
-            <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
+            <ListItemText primary={t('alert.noCommits')} slotProps={{
+              primary: { textAlign: 'center' }
+            }} />
           </ListItem>
         )
       )}

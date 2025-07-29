@@ -53,7 +53,13 @@ export default function ImportFromTemplates({
         </DialogTitle>
 
         <DialogContent>
-          <Stack overflow="auto" flexWrap="wrap" m="-6px" flexDirection="row">
+          <Stack
+            sx={{
+              overflow: "auto",
+              flexWrap: "wrap",
+              m: "-6px",
+              flexDirection: "row"
+            }}>
             {templates.map((x) => {
               const { name, description, createdAt, id, users, updatedAt } = x;
 
@@ -71,7 +77,11 @@ export default function ImportFromTemplates({
                       maxWidth: 'sm',
                       title: t('newObject', { object: t('project') }),
                       content: (
-                        <Stack overflow="auto" gap={1.5}>
+                        <Stack
+                          sx={{
+                            overflow: "auto",
+                            gap: 1.5
+                          }}>
                           <Box>
                             <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
                             <TextField
@@ -119,7 +129,12 @@ export default function ImportFromTemplates({
                       },
                     });
                   }}>
-                  <Stack direction="row" gap={1.5} alignItems="center">
+                  <Stack
+                    direction="row"
+                    sx={{
+                      gap: 1.5,
+                      alignItems: "center"
+                    }}>
                     <Box className="logo" sx={{ width: '72px', height: '72px' }}>
                       <Box
                         component="img"
@@ -128,9 +143,23 @@ export default function ImportFromTemplates({
                       />
                     </Box>
 
-                    <Box flex={1} alignSelf="flex-start">
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Box display="flex" alignItems="center" gap={0.5}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        alignSelf: "flex-start"
+                      }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
+                        }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5
+                          }}>
                           <Box className="name" sx={{ fontWeight: 600, fontSize: 18, lineHeight: '28px' }}>
                             {name || t('unnamed')}
                           </Box>
@@ -142,14 +171,29 @@ export default function ImportFromTemplates({
                       </Box>
                     </Box>
                   </Stack>
-
-                  <Stack direction="row" gap={2} height={20} alignItems="center" justifyContent="space-between">
-                    <Box display="flex" justifyContent="space-between" alignItems="center" width={1}>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      gap: 2,
+                      height: 20,
+                      alignItems: "center",
+                      justifyContent: "space-between"
+                    }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        width: 1
+                      }}>
                       <Stack
                         direction="row"
-                        gap={2}
-                        sx={{ fontSize: '12px', color: 'text.disabled' }}
-                        alignItems="center">
+                        sx={{
+                          gap: 2,
+                          alignItems: "center",
+                          fontSize: '12px',
+                          color: 'text.disabled'
+                        }}>
                         {/* @ts-ignore */}
                         {createdAt && <RelativeTime value={createdAt} locale={locale} />}
                       </Stack>
@@ -181,7 +225,6 @@ export default function ImportFromTemplates({
           </Stack>
         </DialogContent>
       </Dialog>
-
       {dialog}
     </>
   );

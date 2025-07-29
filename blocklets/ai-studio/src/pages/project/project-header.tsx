@@ -52,39 +52,75 @@ export default function ProjectHeader() {
       {
         value: 'prompts',
         label: t('agent'),
-        icon: <Box data-testid="prompts" fontSize={15} component={AigneLogo} mr={1} />,
+        icon: <Box
+          data-testid="prompts"
+          component={AigneLogo}
+          sx={{
+            fontSize: 15,
+            mr: 1
+          }} />,
       },
       {
         value: 'knowledge',
         label: t('knowledge.menu'),
-        icon: <Box data-testid="knowledge" fontSize={15} component={Icon} icon={BookIcon} mr={1} />,
+        icon: <Box
+          data-testid="knowledge"
+          component={Icon}
+          icon={BookIcon}
+          sx={{
+            fontSize: 15,
+            mr: 1
+          }} />,
       },
       {
         value: 'variables',
         label: t('memory.title'),
-        icon: <Box data-testid="memory" fontSize={15} component={Icon} icon={BrainIcon} mr={1} />,
+        icon: <Box
+          data-testid="memory"
+          component={Icon}
+          icon={BrainIcon}
+          sx={{
+            fontSize: 15,
+            mr: 1
+          }} />,
       },
     ];
   }, [t]);
 
   return (
     <KnowledgeProvider>
-      <Stack height={1} overflow="hidden">
+      <Stack
+        sx={{
+          height: 1,
+          overflow: "hidden"
+        }}>
         <FontFamilyHelmet />
-        <Box height={64} borderBottom="1px solid #E5E7EB" px={{ xs: 2, md: 3 }} className="between">
+        <Box
+          className="between"
+          sx={{
+            height: 64,
+            borderBottom: "1px solid #E5E7EB",
+            px: { xs: 2, md: 3 }
+          }}>
           <Box
-            flex={1}
             sx={{
+              flex: 1,
+
               maxWidth: {
                 md: '33.3%',
                 xs: 'calc(100% - 64px)',
-              },
+              }
             }}>
             <ProjectBrand />
           </Box>
 
           <Hidden mdDown>
-            <Box flex={1} display="flex" justifyContent="center">
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "center"
+              }}>
               <SegmentedControl
                 value={current}
                 options={options}
@@ -94,7 +130,12 @@ export default function ProjectHeader() {
               />
             </Box>
 
-            <Box flex={1} display="flex" justifyContent="flex-end">
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                justifyContent: "flex-end"
+              }}>
               <ActionRoutes />
             </Box>
           </Hidden>
@@ -105,10 +146,22 @@ export default function ProjectHeader() {
           </Hidden>
         </Box>
 
-        <Box flex={1} height={0} overflow="hidden" bgcolor="background.default">
+        <Box
+          sx={{
+            flex: 1,
+            height: 0,
+            overflow: "hidden",
+            bgcolor: "background.default"
+          }}>
           <Suspense
             fallback={
-              <Box flex={1} className="center" width={1} height={1}>
+              <Box
+                className="center"
+                sx={{
+                  flex: 1,
+                  width: 1,
+                  height: 1
+                }}>
                 <CircularProgress size={30} />
               </Box>
             }>
@@ -129,12 +182,14 @@ export default function ProjectHeader() {
             sx={{
               zIndex: (theme) => theme.zIndex.appBar - 1,
             }}
-            PaperProps={{
-              style: {
-                top: 0,
-                bottom: 0,
-                boxShadow: 'none',
-              },
+            slotProps={{
+              paper: {
+                style: {
+                  top: 0,
+                  bottom: 0,
+                  boxShadow: 'none',
+                },
+              }
             }}>
             <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
               <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
@@ -142,13 +197,22 @@ export default function ProjectHeader() {
                   return (
                     <Box
                       className="center"
-                      justifyContent="flex-start"
                       key={option.value}
                       onClick={() => {
                         navigate(joinURL('..', projectId || '', option.value));
+                      }}
+                      sx={{
+                        justifyContent: "flex-start"
                       }}>
                       <Box className="center">{option.icon}</Box>
-                      <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+                      <Typography
+                        className="center"
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: 16,
+                          lineHeight: "28px",
+                          color: "#030712"
+                        }}>
                         {option.label}
                       </Typography>
                     </Box>

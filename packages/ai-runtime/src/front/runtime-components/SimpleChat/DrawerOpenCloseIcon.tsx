@@ -8,15 +8,17 @@ export default function DrawerOpenCloseIcon({
   return (
     <Stack
       direction="row"
-      position="relative"
       {...props}
       className={cx(props.className, `drawer-open-close-icon-${arrowDirection || 'up'}`)}
-      sx={{
+      sx={[{
+        position: "relative",
         p: 1,
         cursor: 'pointer',
+
         ':hover': {
           opacity: 0.7,
         },
+
         ':before,:after': {
           content: '""',
           display: 'block',
@@ -26,12 +28,15 @@ export default function DrawerOpenCloseIcon({
           borderRadius: 100,
           position: 'relative',
         },
+
         ':before': {
           transform: 'translateX(2px) rotateZ(-8deg)',
         },
+
         ':after': {
           transform: 'translateX(-2px) rotateZ(8deg)',
         },
+
         '&.drawer-open-close-icon-down': {
           ':before': {
             transform: 'translateX(2px) rotateZ(8deg)',
@@ -40,8 +45,8 @@ export default function DrawerOpenCloseIcon({
             transform: 'translateX(-2px) rotateZ(-8deg)',
           },
         },
-        ...props.sx,
-      }}
-    />
+
+        ...props.sx
+      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]} />
   );
 }

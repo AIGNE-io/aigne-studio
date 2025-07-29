@@ -19,7 +19,14 @@ export const brandIcon = (brand: string) =>
     Replicate: <ReplicateIcon sx={{ fontSize: '1em' }} />,
     'Vertex AI': <VertexAIIcon sx={{ fontSize: '1em' }} />,
     Google: <GoogleIcon sx={{ fontSize: '1em' }} />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width="1em" height="1em" alt="Mistral AI" />,
+    'Mistral AI': <Box
+      component="img"
+      src={MistralIcon}
+      alt="Mistral AI"
+      sx={{
+        width: "1em",
+        height: "1em"
+      }} />,
   })[brand];
 
 interface ModelIconProps {
@@ -52,7 +59,17 @@ export function ModelBrandIcon({ model, size = 'medium', sx, url }: ModelIconPro
   ];
   const renderIcon = () => {
     if (url) {
-      return <Box component="img" src={url} width="0.85em" height="0.85em" alt={model} sx={{ objectFit: 'cover' }} />;
+      return (
+        <Box
+          component="img"
+          src={url}
+          alt={model}
+          sx={{
+            width: "0.85em",
+            height: "0.85em",
+            objectFit: 'cover'
+          }} />
+      );
     }
     return brand ? (
       brandIcon(brand)

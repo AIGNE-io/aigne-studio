@@ -255,7 +255,12 @@ const CodeEditor = (
           if (settings?.memoryHeight) setSettings((r) => ({ ...r!, currentHeight: data.size.height }));
         }}>
         <Container sx={{ overflow: 'hidden', borderRadius: 1 }}>
-          <Box flex={1} height={0} p={1}>
+          <Box
+            sx={{
+              flex: 1,
+              height: 0,
+              p: 1
+            }}>
             <Box
               className={cx(props.className, globalSettings?.vim && settings?.vimMode === 'normal' && 'vim-normal')}
               component={Editor}
@@ -330,7 +335,12 @@ const CodeEditor = (
               <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
                 <Tooltip
                   title={
-                    <Box maxHeight={200} overflow="auto" sx={{ whiteSpace: 'pre-wrap' }}>
+                    <Box
+                      sx={{
+                        maxHeight: 200,
+                        overflow: "auto",
+                        whiteSpace: 'pre-wrap'
+                      }}>
                       {codeSyntaxError}
                     </Box>
                   }
@@ -488,8 +498,8 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
 
   return (
     <Stack
-      gap={1}
       sx={{
+        gap: 1,
         borderRadius: 1,
         bgcolor: '#EFF6FF',
         px: 2,
@@ -497,29 +507,44 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
         width: 1,
         height: 1,
         overflow: 'hidden',
-        boxSize: 'border-box',
+        boxSize: 'border-box'
       }}>
-      <Box className="between" whiteSpace="nowrap" gap={2}>
+      <Box
+        className="between"
+        sx={{
+          whiteSpace: "nowrap",
+          gap: 2
+        }}>
         <Box
-          display="flex"
-          alignItems="center"
-          gap={0.5}
-          minHeight={32}
-          width={1}
-          overflow="hidden"
-          textOverflow="ellipsis">
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            minHeight: 32,
+            width: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis"
+          }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{t('editor')}</Box>
         </Box>
       </Box>
-
-      <Stack height={0} flex={1} gap={1} sx={{ borderRadius: 1, bgcolor: '#EFF6FF' }}>
+      <Stack
+        sx={{
+          height: 0,
+          flex: 1,
+          gap: 1,
+          borderRadius: 1,
+          bgcolor: '#EFF6FF'
+        }}>
         <Box
-          border="1px solid #3B82F6"
-          borderRadius={1}
-          bgcolor="background.paper"
-          width={1}
-          height={1}
-          sx={{ zIndex: (theme) => theme.zIndex.tooltip }}>
+          sx={{
+            border: "1px solid #3B82F6",
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            width: 1,
+            height: 1,
+            zIndex: (theme) => theme.zIndex.tooltip
+          }}>
           {children}
         </Box>
       </Stack>

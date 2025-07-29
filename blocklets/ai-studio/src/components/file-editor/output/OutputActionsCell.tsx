@@ -75,7 +75,12 @@ export default function OutputActionsCell({
   const variables = (variableYjs?.variables || []).filter((x) => x.type?.type === (output.type || 'string'));
 
   return (
-    <Stack direction="row" gap={1} justifyContent="flex-end">
+    <Stack
+      direction="row"
+      sx={{
+        gap: 1,
+        justifyContent: "flex-end"
+      }}>
       {v.type === 'object' && (
         <Button
           sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -95,7 +100,6 @@ export default function OutputActionsCell({
           <Icon icon={PlusIcon} />
         </Button>
       )}
-
       <PopperButton
         depth={depth}
         assistant={assistant}
@@ -188,10 +192,11 @@ const PopperButton = (
     if (currentSetting === 'save') {
       return (
         <Box>
-          <Typography variant="subtitle2" mb={0}>
+          <Typography variant="subtitle2" sx={{
+            mb: 0
+          }}>
             {t('memory.saveMemory')}
           </Typography>
-
           <Box>
             <SelectVariable
               placeholder={t('selectMemoryPlaceholder')}
@@ -328,7 +333,6 @@ const PopperButton = (
           )}
         </PopperMenu>
       )}
-
       {!children && (
         <Dialog
           disableEnforceFocus
@@ -350,7 +354,9 @@ const PopperButton = (
           </DialogTitle>
 
           <DialogContent>
-            <Stack gap={1}>
+            <Stack sx={{
+              gap: 1
+            }}>
               {currentSetting !== 'save' && (
                 <>
                   <OutputActiveWhen agent={assistant} output={output} />
@@ -506,9 +512,10 @@ function AgentParametersForm({ agent, output }: { agent: AssistantYjs; output: O
   if (!tool) return null;
 
   return (
-    <Stack gap={2}>
+    <Stack sx={{
+      gap: 2
+    }}>
       <AuthorizeButton agent={tool} />
-
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 

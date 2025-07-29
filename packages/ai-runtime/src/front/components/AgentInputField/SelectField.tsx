@@ -29,29 +29,32 @@ const SelectField = (
             : props.value
       }
       onChange={(e) => onChange(e.target.value)}
-      InputProps={{ ...props.InputProps, readOnly }}
-      SelectProps={{
-        ...props.SelectProps,
-        multiple: parameter?.multiple,
-        renderValue: parameter?.multiple
-          ? (selected: any) => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map((value: any) => (
-                  <Chip key={value} label={value} />
-                ))}
-              </Box>
-            )
-          : undefined,
-        MenuProps: {
-          disableScrollLock: true,
-          ...props.SelectProps?.MenuProps,
-          sx: {
-            ...props.SelectProps?.MenuProps?.sx,
-            '.MuiMenuItem-root': {
-              whiteSpace: 'pre-wrap',
+      slotProps={{
+        input: { ...props.InputProps, readOnly },
+
+        select: {
+          ...props.SelectProps,
+          multiple: parameter?.multiple,
+          renderValue: parameter?.multiple
+            ? (selected: any) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value: any) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )
+            : undefined,
+          MenuProps: {
+            disableScrollLock: true,
+            ...props.SelectProps?.MenuProps,
+            sx: {
+              ...props.SelectProps?.MenuProps?.sx,
+              '.MuiMenuItem-root': {
+                whiteSpace: 'pre-wrap',
+              },
             },
           },
-        },
+        }
       }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value || option.label}>

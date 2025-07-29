@@ -71,10 +71,14 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent style={{ minWidth }}>
         <DialogContentText component={Stack} gap={1.5}>
-          <Box fontWeight={400} fontSize={16} lineHeight="28px">
+          <Box
+            sx={{
+              fontWeight: 400,
+              fontSize: 16,
+              lineHeight: "28px"
+            }}>
             {t(isReset ? 'resetProjectAlertPrefix' : 'deleteProjectAlertPrefix')}
             <Tooltip
               title={copied ? t('copied') : t('copy')}
@@ -95,7 +99,12 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             {t(isReset ? 'resetProjectAlertSuffix' : 'deleteProjectAlertSuffix')}
           </Box>
 
-          <Box fontWeight={400} fontSize={16} lineHeight="28px">
+          <Box
+            sx={{
+              fontWeight: 400,
+              fontSize: 16,
+              lineHeight: "28px"
+            }}>
             {t('confirmTip')}
           </Box>
 
@@ -119,7 +128,6 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           </Alert>
         )}
       </DialogContent>
-
       <DialogActions sx={{ border: 0 }}>
         <Button onClick={onClose} variant="outlined">
           {t('close')}

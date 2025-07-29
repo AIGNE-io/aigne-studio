@@ -79,8 +79,14 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Stack overflow="hidden" height={1}>
-        <Box flex={1} className="center">
+      <Stack
+        sx={{
+          overflow: "hidden",
+          height: 1
+        }}>
+        <Box className="center" sx={{
+          flex: 1
+        }}>
           <CircularProgress size={20} />
         </Box>
       </Stack>
@@ -89,9 +95,21 @@ export default function KnowledgeSegments() {
 
   return (
     <>
-      <Stack overflow="hidden" height={1} bgcolor="#fff">
-        <Box py={2} px={2.5} className="between">
-          <Stack gap={1}>
+      <Stack
+        sx={{
+          overflow: "hidden",
+          height: 1,
+          bgcolor: "#fff"
+        }}>
+        <Box
+          className="between"
+          sx={{
+            py: 2,
+            px: 2.5
+          }}>
+          <Stack sx={{
+            gap: 1
+          }}>
             <Breadcrumbs sx={{ color: '#9CA3AF' }}>
               <Typography sx={{ cursor: 'pointer' }} onClick={() => navigate(`../${knowledgeId}`)}>
                 {state?.dataset?.name || t('unnamed')}
@@ -118,7 +136,14 @@ export default function KnowledgeSegments() {
         <Divider sx={{ borderColor: '#eff1f5' }} />
 
         {viewType === 'ContentView' && (
-          <Stack px={2.5} flex={1} height={0} overflow="hidden" py={2}>
+          <Stack
+            sx={{
+              px: 2.5,
+              flex: 1,
+              height: 0,
+              overflow: "hidden",
+              py: 2
+            }}>
             {!loading && filename && (
               <Container sx={{ height: 1 }}>
                 <Viewer knowledgeId={knowledgeId} filename={filename} />
@@ -126,8 +151,18 @@ export default function KnowledgeSegments() {
             )}
 
             {loading && (
-              <Stack flex={1} height={0} py={2}>
-                <Box width={1} height={1} className="center">
+              <Stack
+                sx={{
+                  flex: 1,
+                  height: 0,
+                  py: 2
+                }}>
+                <Box
+                  className="center"
+                  sx={{
+                    width: 1,
+                    height: 1
+                  }}>
                   <CircularProgress size={20} />
                 </Box>
               </Stack>
@@ -136,8 +171,17 @@ export default function KnowledgeSegments() {
         )}
 
         {viewType === 'SegmentsView' && (
-          <Stack px={2.5} flex={1} height={0} overflow="auto" py={2}>
-            <Stack flex={1}>
+          <Stack
+            sx={{
+              px: 2.5,
+              flex: 1,
+              height: 0,
+              overflow: "auto",
+              py: 2
+            }}>
+            <Stack sx={{
+              flex: 1
+            }}>
               {!segments?.length && <EmptyDocument />}
 
               {segments?.length && (
@@ -167,8 +211,18 @@ export default function KnowledgeSegments() {
                   </ListContainer>
 
                   {(dataState.loadingMore || dataState?.data?.next) && (
-                    <Box width={1} height={60} className="center" ref={loadingRef}>
-                      <Box display="flex" justifyContent="center">
+                    <Box
+                      className="center"
+                      ref={loadingRef}
+                      sx={{
+                        width: 1,
+                        height: 60
+                      }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center"
+                        }}>
                         <CircularProgress size={14} />
                       </Box>
                     </Box>
@@ -179,7 +233,6 @@ export default function KnowledgeSegments() {
           </Stack>
         )}
       </Stack>
-
       <Dialog {...bindDialog(segmentDialogState)} maxWidth="md" fullWidth component="form">
         <DialogTitle className="between">
           <Box>{t('knowledge.segments.content')}</Box>
@@ -202,11 +255,12 @@ export default function KnowledgeSegments() {
                   sx={{ width: 1 }}
                   multiline
                   rows={10}
-                  InputProps={{ readOnly: true }}
                   {...field}
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}
-                />
+                  slotProps={{
+                    input: { readOnly: true }
+                  }} />
               );
             }}
           />
@@ -220,9 +274,20 @@ function EmptyDocument() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
+    <Stack
+      sx={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 1
+      }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+      <Typography
+        sx={{
+          color: "text.disabled",
+          whiteSpace: 'break-spaces',
+          textAlign: 'center'
+        }}>
         {t('knowledge.segments.empty')}
       </Typography>
     </Stack>
@@ -292,11 +357,11 @@ export function SegmentsItem({
           </IconButton>
         </Box> */}
       </Box>
-
-      <Box height={90}>
+      <Box sx={{
+        height: 90
+      }}>
         <Box className="itemDescription">{result || ''}</Box>
       </Box>
-
       <Box className="itemFooter">
         <Box className="itemStats">
           <Tag>{`${result?.length} ${t('knowledge.segments.bits')}`}</Tag>

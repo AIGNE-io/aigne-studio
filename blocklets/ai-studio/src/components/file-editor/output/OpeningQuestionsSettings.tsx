@@ -116,13 +116,14 @@ function EntryItemView({
         borderRadius: 1,
       }}>
       <TextField
-        InputLabelProps={{ shrink: true }}
         label={t('openingQuestion')}
         placeholder={t('openingQuestionPlaceholder')}
         value={item.title || ''}
         onChange={(e) => (item.title = e.target.value)}
+        slotProps={{
+          inputLabel: { shrink: true }
+        }}
       />
-
       {parameters.map(({ data: parameter }) => {
         return (
           <ParameterField

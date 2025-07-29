@@ -80,7 +80,6 @@ export default function DeploymentAction() {
         {...(isMobile ? { onClick: deploymentDialogState.open } : { ...bindTrigger(deploymentPopperState) })}>
         {t('deploy')}
       </LoadingButton>
-
       <Popper {...bindPopper(deploymentPopperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
         {({ TransitionProps }) => (
           <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
@@ -114,16 +113,21 @@ export default function DeploymentAction() {
           </Grow>
         )}
       </Popper>
-
       <Dialog
         {...bindDialog(deploymentDialogState)}
         fullScreen
         hideBackdrop
         sx={{ mt: '65px' }}
-        PaperProps={{ elevation: 0 }}>
+        slotProps={{
+          paper: { elevation: 0 }
+        }}>
         <DialogContent sx={{ px: '0 !important' }}>
-          <Stack gap={2}>
-            <Box px={1}>
+          <Stack sx={{
+            gap: 2
+          }}>
+            <Box sx={{
+              px: 1
+            }}>
               <Button
                 sx={{ p: 0 }}
                 onClick={deploymentDialogState.close}
@@ -200,18 +204,28 @@ function DeployApp({
   return (
     <Box sx={sx} data-testid="create-deploy-popper">
       {dialog}
-
-      <Box p={3}>
-        <Stack gap={0.75}>
-          <Box component="h3" m={0}>
+      <Box sx={{
+        p: 3
+      }}>
+        <Stack sx={{
+          gap: 0.75
+        }}>
+          <Box component="h3" sx={{
+            m: 0
+          }}>
             {t('deployments.title')}
           </Box>
           <Typography variant="caption">{t('deployments.deployDescription')}</Typography>
         </Stack>
       </Box>
-
-      <Box p={3} pt={0}>
-        <Stack gap={1}>
+      <Box
+        sx={{
+          p: 3,
+          pt: 0
+        }}>
+        <Stack sx={{
+          gap: 1
+        }}>
           <Typography variant="body1">{t('deployments.visibility')}</Typography>
 
           <Card sx={{ width: 1, boxShadow: 0 }}>
@@ -223,11 +237,18 @@ function DeployApp({
                     value="public"
                     control={<Radio />}
                     label={
-                      <Box display="flex" alignItems="center" data-testid="public-visibility-label">
+                      <Box
+                        data-testid="public-visibility-label"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center"
+                        }}>
                         <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('public')}</Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{
+                            color: "text.secondary"
+                          }}>
                             {t('deployments.publicDescription')}
                           </Typography>
                         </Box>
@@ -240,11 +261,18 @@ function DeployApp({
                     value="private"
                     control={<Radio />}
                     label={
-                      <Box display="flex" alignItems="center" data-testid="private-visibility-label">
+                      <Box
+                        data-testid="private-visibility-label"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center"
+                        }}>
                         <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                         <Box>
                           <Typography variant="body1">{t('private')}</Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{
+                            color: "text.secondary"
+                          }}>
                             {t('deployments.privateDescription')}
                           </Typography>
                         </Box>
@@ -258,10 +286,22 @@ function DeployApp({
           </Card>
         </Stack>
       </Box>
-
-      <Stack p={3} pt={0}>
-        <Stack flexDirection="row" justifyContent="space-between">
-          <Box display="flex" gap={1} alignItems="center">
+      <Stack
+        sx={{
+          p: 3,
+          pt: 0
+        }}>
+        <Stack
+          sx={{
+            flexDirection: "row",
+            justifyContent: "space-between"
+          }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center"
+            }}>
             <PublishButton />
           </Box>
 
@@ -301,16 +341,22 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
   return (
     <Stack sx={sx} data-testid="update-deploy-dialog">
       {dialog}
-
-      <Box px={3}>
-        <Box component="h3" m={0}>
+      <Box sx={{
+        px: 3
+      }}>
+        <Box component="h3" sx={{
+          m: 0
+        }}>
           {t('deployments.updateApp')}
         </Box>
 
         <Typography variant="caption">{t('deployments.updateAppDescription')}</Typography>
       </Box>
-
-      <Stack px={3} gap={0.5}>
+      <Stack
+        sx={{
+          px: 3,
+          gap: 0.5
+        }}>
         <Typography variant="subtitle1">{t('deployments.visibility')}</Typography>
 
         <Card sx={{ width: 1, boxShadow: 0 }}>
@@ -322,11 +368,18 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                   value="public"
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center" data-testid="public-visibility-label">
+                    <Box
+                      data-testid="public-visibility-label"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center"
+                      }}>
                       <Box component={Icon} icon={View360} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('public')}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{
+                          color: "text.secondary"
+                        }}>
                           {t('deployments.publicDescription')}
                         </Typography>
                       </Box>
@@ -339,11 +392,18 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
                   value="private"
                   control={<Radio />}
                   label={
-                    <Box display="flex" alignItems="center" data-testid="private-visibility-label">
+                    <Box
+                      data-testid="private-visibility-label"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center"
+                      }}>
                       <Box component={Icon} icon={LockIcon} sx={{ mr: 1, fontSize: 20 }} />
                       <Box>
                         <Typography variant="body1">{t('private')}</Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{
+                          color: "text.secondary"
+                        }}>
                           {t('deployments.privateDescription')}
                         </Typography>
                       </Box>
@@ -355,7 +415,9 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           </CardContent>
 
           {!isAdmin && (
-            <Typography variant="caption" mt={2}>
+            <Typography variant="caption" sx={{
+              mt: 2
+            }}>
               {t('deployments.toEnablePrivateProjects')}
               <Box
                 component="a"
@@ -367,10 +429,12 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           )}
         </Card>
       </Stack>
-
       <Divider />
-
-      <Stack px={3} gap={0.5}>
+      <Stack
+        sx={{
+          px: 3,
+          gap: 0.5
+        }}>
         <Typography variant="subtitle1">{t('deployments.currentDeployment')}</Typography>
 
         <List
@@ -438,10 +502,22 @@ function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: (
           })}
         </List>
       </Stack>
-
-      <Box px={3} pt={0}>
-        <Stack flexDirection="row" justifyContent="space-between">
-          <Box display="flex" gap={1} alignItems="center">
+      <Box
+        sx={{
+          px: 3,
+          pt: 0
+        }}>
+        <Stack
+          sx={{
+            flexDirection: "row",
+            justifyContent: "space-between"
+          }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center"
+            }}>
             <PublishButton />
           </Box>
 

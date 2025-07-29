@@ -12,7 +12,11 @@ function ImagePreviewItem({
   onRemove: (url: string, index: number) => void;
 }) {
   return (
-    <Box position="relative" display="flex">
+    <Box
+      sx={{
+        position: "relative",
+        display: "flex"
+      }}>
       <ImagePreview
         dataSource={[{ src: url, alt: `Uploaded ${index + 1}` }]}
         itemWidth={100}

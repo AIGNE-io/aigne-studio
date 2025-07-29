@@ -124,7 +124,12 @@ export default function useDialog() {
                 <Box />
               )}
 
-              <Stack direction="row" gap={1} alignItems="center">
+              <Stack
+                direction="row"
+                sx={{
+                  gap: 1,
+                  alignItems: "center"
+                }}>
                 <Button
                   data-testid="dialog-cancel-button"
                   className="cancel"

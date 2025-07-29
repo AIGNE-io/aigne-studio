@@ -164,12 +164,12 @@ export default function PromptEditorField({
             return (
               <Paper>
                 <Stack
-                  gap={0.5}
                   sx={{
+                    gap: 0.5,
                     p: 1,
                     minWidth: '100px',
                     fontSize: (theme) => theme.typography.caption.fontSize,
-                    fontWeight: (theme) => theme.palette.text.disabled,
+                    fontWeight: (theme) => theme.palette.text.disabled
                   }}>
                   <Box>{`${t('format')}: ${typeMap[type]}`}</Box>
                   <Box>{`${t('label')}: ${parameter?.label || variable}`}</Box>
@@ -182,7 +182,9 @@ export default function PromptEditorField({
 
           return (
             <Paper sx={{ p: 1 }}>
-              <Stack gap={1}>
+              <Stack sx={{
+                gap: 1
+              }}>
                 <Box
                   sx={{
                     p: 1,
@@ -193,7 +195,12 @@ export default function PromptEditorField({
                   {t('nonExistentVariable', { data: variable })}
                 </Box>
 
-                <Stack direction="row" gap={1} justifyContent="flex-end">
+                <Stack
+                  direction="row"
+                  sx={{
+                    gap: 1,
+                    justifyContent: "flex-end"
+                  }}>
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {

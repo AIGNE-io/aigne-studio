@@ -64,7 +64,11 @@ export default function CallAgentEditor({
 
   return (
     <>
-      <Stack gap={1} width={1}>
+      <Stack
+        sx={{
+          gap: 1,
+          width: 1
+        }}>
         <DragSortListYjs
           sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
           disabled={readOnly}
@@ -98,7 +102,11 @@ export default function CallAgentEditor({
           }}
         />
 
-        <Box display="flex" sx={{ ml: -0.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            ml: -0.5
+          }}>
           <Button
             disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
@@ -110,7 +118,6 @@ export default function CallAgentEditor({
           </Button>
         </Box>
       </Stack>
-
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
@@ -215,10 +222,13 @@ export const ToolDialog = (
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
-
       <DialogContent>
-        <Stack gap={2}>
-          <Stack gap={1}>
+        <Stack sx={{
+          gap: 2
+        }}>
+          <Stack sx={{
+            gap: 1
+          }}>
             <Controller
               name="id"
               control={form.control}
@@ -285,7 +295,6 @@ export const ToolDialog = (
           </Stack>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         {DialogProps?.onClose && (
           <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
@@ -380,8 +389,9 @@ export const AgentItemView = (
         }}>
         <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
       </Box>
-
-      <Stack width={1}>
+      <Stack sx={{
+        width: 1
+      }}>
         <TextField
           onClick={(e) => e.stopPropagation()}
           hiddenLabel
@@ -408,10 +418,12 @@ export const AgentItemView = (
           size="small"
           variant="standard"
           value={name || t('unnamed')}
-          InputProps={{ readOnly: true }}
           sx={{
             lineHeight: '10px',
             input: { fontSize: '10px', color: 'text.disabled' },
+          }}
+          slotProps={{
+            input: { readOnly: true }
           }}
         />
 
@@ -427,13 +439,25 @@ export const AgentItemView = (
             lineHeight: '10px',
             input: { fontSize: '10px', color: 'text.disabled' },
           }}
-          inputProps={{ readOnly: true }}
+          slotProps={{
+            htmlInput: { readOnly: true }
+          }}
         />
 
         <Box>
           <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
-            <Stack justifyContent="space-between" direction="row" alignItems="center">
-              <Typography variant="subtitle5" color="text.secondary" mb={0}>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+              <Typography
+                variant="subtitle5"
+                sx={{
+                  color: "text.secondary",
+                  mb: 0
+                }}>
                 {t('parameters')}
               </Typography>
 
@@ -441,7 +465,9 @@ export const AgentItemView = (
             </Stack>
           </Tooltip>
 
-          <Stack gap={1}>
+          <Stack sx={{
+            gap: 1
+          }}>
             {parameters?.map((parameter) => {
               if (!parameter?.key) return null;
               if (!isValidInput(parameter)) return null;
@@ -453,8 +479,15 @@ export const AgentItemView = (
                   sx={{
                     ':hover': { [`.${className}`]: { display: 'flex' } },
                   }}>
-                  <Stack flexDirection="row" alignItems="center" mb={0.5}>
-                    <Typography variant="caption" mx={1}>
+                  <Stack
+                    sx={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      mb: 0.5
+                    }}>
+                    <Typography variant="caption" sx={{
+                      mx: 1
+                    }}>
                       {parameter.label || parameter.key}
                     </Typography>
 
@@ -474,7 +507,6 @@ export const AgentItemView = (
                       </Tooltip>
                     )}
                   </Stack>
-
                   <PromptEditorField
                     CallAssistantIndex={CallAssistantIndex}
                     placeholder={`{{${parameter.label || parameter.key}}}`}
@@ -494,13 +526,17 @@ export const AgentItemView = (
           </Stack>
         </Box>
       </Stack>
-
       <Stack
         direction="row"
         className="hover-visible"
-        sx={{ position: 'absolute', right: 10, top: 10, display: 'none' }}
-        gap={0.5}
-        flex={1}>
+        sx={{
+          gap: 0.5,
+          flex: 1,
+          position: 'absolute',
+          right: 10,
+          top: 10,
+          display: 'none'
+        }}>
         <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
           <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
         </Button>

@@ -110,7 +110,11 @@ add(10).then((v) => {
   },
   render: (args) => {
     return (
-      <Box width={1} height={500}>
+      <Box
+        sx={{
+          width: 1,
+          height: 500
+        }}>
         <CodeEditor {...args} />
       </Box>
     );

@@ -28,8 +28,14 @@ export default function ApiAssistantSetting({
 
   return (
     <Box sx={{ border: '1px solid #3B82F6', p: '8px 16px', borderRadius: 1, bgcolor: 'background.paper' }}>
-      <Stack py={1} gap={1}>
-        <Stack direction="row" gap={1}>
+      <Stack
+        sx={{
+          py: 1,
+          gap: 1
+        }}>
+        <Stack direction="row" sx={{
+          gap: 1
+        }}>
           <IndicatorTextField
             projectId={projectId}
             gitRef={gitRef}
@@ -54,7 +60,9 @@ export default function ApiAssistantSetting({
               )),
             }}
           />
-          <Box flex={1}>
+          <Box sx={{
+            flex: 1
+          }}>
             <IndicatorTextField
               projectId={projectId}
               gitRef={gitRef}

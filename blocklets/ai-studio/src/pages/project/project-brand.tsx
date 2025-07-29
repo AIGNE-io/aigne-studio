@@ -27,9 +27,19 @@ export default function ProjectBrand() {
   const simpleMode = !project || project?.gitType === 'simple';
 
   return (
-    <Box display="flex" alignItems="center" gap={1}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1
+      }}>
       {gitRef && (
-        <Stack flexDirection="row" alignItems="center" gap={1}>
+        <Stack
+          sx={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 1
+          }}>
           <ProjectIcon
             projectId={projectId}
             projectRef={gitRef}
@@ -48,7 +58,6 @@ export default function ProjectBrand() {
           />
         </Stack>
       )}
-
       {!simpleMode && gitRef && <BranchButton projectId={projectId} gitRef={gitRef} filepath={filepath} />}
     </Box>
   );

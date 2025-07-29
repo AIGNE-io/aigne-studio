@@ -66,11 +66,23 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
   const lastMessage = useSession((s) => s.messages?.at(0));
 
   return (
-    <Stack gap={2} mt={4} {...props}>
+    <Stack
+      {...props}
+      sx={[{
+        gap: 2,
+        mt: 4
+      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
       {lastMessage && (
         <>
           {resultTitle && (
-            <Typography width="100%" component="h5" fontSize={36} fontWeight={700} textAlign="center">
+            <Typography
+              component="h5"
+              sx={{
+                width: "100%",
+                fontSize: 36,
+                fontWeight: 700,
+                textAlign: "center"
+              }}>
               <Balancer>{resultTitle}</Balancer>
             </Typography>
           )}
@@ -80,7 +92,6 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
           </Stack>
         </>
       )}
-
       {error && <AgentErrorView error={error} />}
     </Stack>
   );

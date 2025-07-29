@@ -57,10 +57,17 @@ export default function ImportFromFork({
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
-        <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
-          <Stack flex={1} gap={2.5}>
+        <Stack
+          sx={{
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2.5, md: 4 }
+          }}>
+          <Stack
+            sx={{
+              flex: 1,
+              gap: 2.5
+            }}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
               <NameField form={form} triggerOnMount beforeDuplicateProjectNavigate={() => onClose()} />
@@ -82,7 +89,6 @@ export default function ImportFromFork({
           </Stack>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} className="cancel" variant="outlined">
           {t('cancel')}

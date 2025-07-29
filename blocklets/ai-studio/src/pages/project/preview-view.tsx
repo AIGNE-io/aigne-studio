@@ -94,17 +94,20 @@ function SettingsDialog({ children }: { children?: ReactNode }) {
     <Dialog
       open={!!open}
       fullWidth
-      PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }}
       onClose={onClose}
-      disableEnforceFocus>
+      disableEnforceFocus
+      slotProps={{
+        paper: { sx: { maxWidth: 'none', height: '100%' } }
+      }}>
       <DialogTitle sx={{ display: 'flex' }}>
-        <Box flex={1}>{t('appearance')}</Box>
+        <Box sx={{
+          flex: 1
+        }}>{t('appearance')}</Box>
 
         <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={onClose}>
           <Icon icon={CloseIcon} />
         </IconButton>
       </DialogTitle>
-
       <DialogContent sx={{ padding: '0 !important' }}>
         <AgentAppearanceSettings>{children}</AgentAppearanceSettings>
       </DialogContent>
@@ -140,8 +143,12 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
     outputId ?? getOrAddOutputByName({ agent: agent!, outputName: RuntimeOutputVariable.appearancePage }).data.id;
 
   return (
-    <Stack direction="row" height="100%">
-      <Box py={2}>
+    <Stack direction="row" sx={{
+      height: "100%"
+    }}>
+      <Box sx={{
+        py: 2
+      }}>
         <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3, pb: 2 }}>
           {agent?.name || t('unnamed')}
         </Box>
@@ -157,12 +164,21 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
           onTabMouseLeave={() => setHoverOutputId?.('')}
         />
       </Box>
-
-      <Stack flex={2} height="100%">
+      <Stack
+        sx={{
+          flex: 2,
+          height: "100%"
+        }}>
         {children}
       </Stack>
-
-      <Box flex={1} p={2} height="100%" sx={{ overflow: 'auto', overscrollBehavior: 'contain' }}>
+      <Box
+        sx={{
+          flex: 1,
+          p: 2,
+          height: "100%",
+          overflow: 'auto',
+          overscrollBehavior: 'contain'
+        }}>
         {outputIdWithDefault && <AppearanceSettings agentId={agentId} outputId={outputIdWithDefault} />}
       </Box>
     </Stack>

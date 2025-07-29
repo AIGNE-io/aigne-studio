@@ -47,7 +47,9 @@ export default function ActionButton({
 
   const realIcon = active ? iconSucceed : icon;
 
-  const toolTipTitleText = error ? <Box color="error">{error.message}</Box> : (active && tipSucceed) || tip;
+  const toolTipTitleText = error ? <Box sx={{
+    color: "error"
+  }}>{error.message}</Box> : (active && tipSucceed) || tip;
   const buttonText = active ? titleSucceed : title;
 
   return (

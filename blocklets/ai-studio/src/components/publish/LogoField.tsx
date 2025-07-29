@@ -35,8 +35,9 @@ export default function LogoField({
         });
       }}>
       <Box component={Avatar} src={value?.url!} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
-
-      <Typography variant="caption" color="text.secondary">
+      <Typography variant="caption" sx={{
+        color: "text.secondary"
+      }}>
         {t('clickToUploadAgentLogo')}
       </Typography>
     </Stack>

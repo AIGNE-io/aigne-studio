@@ -15,11 +15,12 @@ export default function PromptAssistantEditor({
   disabled?: boolean;
 }) {
   return (
-    <Stack gap={2.5}>
+    <Stack sx={{
+      gap: 2.5
+    }}>
       <Box sx={{ borderRadius: 1 }}>
         <PromptAssistantEditorPrompts projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
       </Box>
-
       {/* <Box sx={{ borderRadius: 1 }}>
         <BasicHistory projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>

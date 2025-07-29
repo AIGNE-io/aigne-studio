@@ -50,16 +50,26 @@ export default function DebugView({
   };
 
   return (
-    <Stack gap={1.5} overflow="auto">
+    <Stack
+      sx={{
+        gap: 1.5,
+        overflow: "auto"
+      }}>
       <Box />
       <Stack
         direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        px={2}
-        bgcolor="background.paper"
-        sx={{ position: 'sticky', top: 0, zIndex: 2 }}>
-        <Typography variant="subtitle3" color="#9CA3AF">
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          bgcolor: "background.paper",
+          position: 'sticky',
+          top: 0,
+          zIndex: 2
+        }}>
+        <Typography variant="subtitle3" sx={{
+          color: "#9CA3AF"
+        }}>
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
 
@@ -72,7 +82,9 @@ export default function DebugView({
         </LoadingButton>
       </Stack>
       {tests.map(({ data }) => (
-        <Box px={2} key={data.id} className="test-case">
+        <Box key={data.id} className="test-case" sx={{
+          px: 2
+        }}>
           <TestCaseView
             ref={ref => {
               (refs.current[data.id] = ref);
@@ -195,10 +207,17 @@ const TestCaseView = (
 
   return (
     <>
-      <Box className="between" mb={0.5} data-testid="test-case-view-header">
+      <Box className="between" data-testid="test-case-view-header" sx={{
+        mb: 0.5
+      }}>
         <Typography variant="subtitle3">{t('output')}</Typography>
 
-        <Stack direction="row" justifyContent="flex-end" mb={0.5}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "flex-end",
+            mb: 0.5
+          }}>
           <Tooltip title={t('runThisCase')}>
             <span>
               <Button
@@ -234,7 +253,6 @@ const TestCaseView = (
           </Tooltip>
         </Stack>
       </Box>
-
       <Box
         data-testid="test-case-view-body"
         sx={{
@@ -258,7 +276,9 @@ const TestCaseView = (
           </Box>
         ))}
 
-        <Typography variant="subtitle2" fontWeight={400}>
+        <Typography variant="subtitle2" sx={{
+          fontWeight: 400
+        }}>
           {test.output}
 
           {loading && <WritingIndicator />}

@@ -53,13 +53,13 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
           return (
             <Stack
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
               key={option.model}
               onClick={() => {
                 onChange(option.model === value ? null : option.model);
               }}
               sx={{
+                alignItems: "center",
+                justifyContent: "space-between",
                 width: '100%',
                 height: 72,
                 mt: 2,
@@ -69,9 +69,11 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                 borderRadius: 1.5,
                 cursor: 'pointer',
                 ...(isSelected && { bgcolor: 'action.selected', borderColor: 'primary.main' }),
-                ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
+                ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } })
               }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{
+                alignItems: "center"
+              }}>
                 <ModelBrandIcon model={option.model} url={option.icon} size="large" />
                 <Box>{option.name}</Box>
                 {'maxTokensMax' in option && option.maxTokensMax && (
@@ -89,7 +91,6 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                   </Box>
                 )}
               </Stack>
-
               <Box
                 onClick={(e) => {
                   e.stopPropagation();

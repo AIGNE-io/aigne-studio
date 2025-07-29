@@ -24,21 +24,8 @@ export default function MenuButton({ sx, menus, children, MenuProps, ...restProp
       <IconButton onClick={handleClick} {...restProps}>
         {children || <MoreHorizIcon />}
       </IconButton>
-
       <Menu
         disableScrollLock
-        MenuListProps={{
-          sx: {
-            p: 0.5,
-            '.MuiMenuItem-root': {
-              minWidth: 120,
-              fontSize: 14,
-              lineHeight: 1.5,
-              fontWeight: 'medium',
-              borderRadius: 0.5,
-            },
-          },
-        }}
         slotProps={{
           paper: {
             sx: {
@@ -47,6 +34,19 @@ export default function MenuButton({ sx, menus, children, MenuProps, ...restProp
               boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
             },
           },
+
+          list: {
+            sx: {
+              p: 0.5,
+              '.MuiMenuItem-root': {
+                minWidth: 120,
+                fontSize: 14,
+                lineHeight: 1.5,
+                fontWeight: 'medium',
+                borderRadius: 0.5,
+              },
+            },
+          }
         }}
         anchorEl={anchorEl}
         anchorOrigin={{

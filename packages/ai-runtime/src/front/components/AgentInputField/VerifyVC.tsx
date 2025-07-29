@@ -79,10 +79,11 @@ export default function VerifyVC({
             },
           });
         }}
-        endIcon={verified ? <Box component={Icon} icon={VerifiedIcon} color="success.main" /> : undefined}>
+        endIcon={verified ? <Box component={Icon} icon={VerifiedIcon} sx={{
+          color: "success.main"
+        }} /> : undefined}>
         {verified ? parameter.buttonTitleVerified || 'Verify Succeed' : parameter.buttonTitle || 'Verify VC'}
       </Button>
-
       {parameter.placeholder && <FormHelperText>{parameter.placeholder}</FormHelperText>}
     </>
   );

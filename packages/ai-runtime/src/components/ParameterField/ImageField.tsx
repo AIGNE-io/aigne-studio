@@ -23,27 +23,34 @@ const ImageField = (
       helperText={parameter?.helper}
       onChange={(e) => onChange(e.target.value)}
       {...props}
-      InputProps={{
-        ...props.InputProps,
-        inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
-        readOnly,
-        endAdornment: (
-          <InputAdornment position="end" sx={{ mr: -0.75 }}>
-            <Stack direction="row" alignItems="center" gap={1}>
-              <IconButton
-                onClick={() => {
-                  const uploader = uploaderRef?.current?.getUploader();
-                  uploader?.open();
-                  uploader.onceUploadSuccess(({ response }: any) => {
-                    const url = response?.data?.url || response?.data?.fileUrl;
-                    onChange(url);
-                  });
+      slotProps={{
+        input: {
+          ...props.InputProps,
+          inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
+          readOnly,
+          endAdornment: (
+            <InputAdornment position="end" sx={{ mr: -0.75 }}>
+              <Stack
+                direction="row"
+                sx={{
+                  alignItems: "center",
+                  gap: 1
                 }}>
-                <ImageIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Stack>
-          </InputAdornment>
-        ),
+                <IconButton
+                  onClick={() => {
+                    const uploader = uploaderRef?.current?.getUploader();
+                    uploader?.open();
+                    uploader.onceUploadSuccess(({ response }: any) => {
+                      const url = response?.data?.url || response?.data?.fileUrl;
+                      onChange(url);
+                    });
+                  }}>
+                  <ImageIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Stack>
+            </InputAdornment>
+          ),
+        }
       }}
     />
   );

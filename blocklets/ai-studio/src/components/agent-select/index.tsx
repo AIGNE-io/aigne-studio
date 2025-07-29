@@ -97,7 +97,6 @@ export default function AgentSelect<
         onClose={() => {}}
         onComplete={() => {}}
       />
-
       <Autocomplete
         onOpen={() => load()}
         value={val as any}
@@ -121,7 +120,10 @@ export default function AgentSelect<
           )
         }
         options={options}
-        slotProps={{ popper: { placement: 'bottom-start', sx: { width: 'fit-content !important', maxWidth: 500 } } }}
+        slotProps={{
+          popper: { placement: 'bottom-start', sx: { width: 'fit-content !important', maxWidth: 500 } },
+          listbox: { sx: { py: 0, '>li': { borderBottom: 1, borderColor: 'divider' } } }
+        }}
         isOptionEqualToValue={(o, v) =>
           o.id === v.id && o.project.id === v.project.id && o.identity.blockletDid === v.identity.blockletDid
         }
@@ -140,28 +142,7 @@ export default function AgentSelect<
         getOptionKey={(o) => [o.project.id, o.id].join('/')}
         getOptionLabel={(o) => o.name || o.description || o.id}
         groupBy={(o) => o.project.id}
-        ListboxProps={{ sx: { py: 0, '>li': { borderBottom: 1, borderColor: 'divider' } } }}
         noOptionsText={t('noAgents')}
-        PaperComponent={({ children, ...props }) => (
-          <Paper {...props}>
-            {children}
-
-            <Stack direction="row" alignItems="center" justifyContent="center">
-              <Button
-                disabled={!isAdmin}
-                onMouseDown={addComponentRef.current?.onClick}
-                startIcon={<Icon icon={BrandAppgalleryIcon} />}>
-                {t('installMoreAgent')}
-              </Button>
-
-              {!isAdmin && (
-                <Typography variant="caption" color="text.disabled">
-                  {t('onlyAdminsAllowAddMoreAgents')}
-                </Typography>
-              )}
-            </Stack>
-          </Paper>
-        )}
         renderGroup={(params) => {
           const project = projectMap[params.group];
           if (!project) return null;
@@ -189,9 +170,10 @@ export default function AgentSelect<
               <ListItemText
                 primary={option.name}
                 secondary={option.description}
-                primaryTypographyProps={{ noWrap: true }}
-                secondaryTypographyProps={{ noWrap: true }}
-              />
+                slotProps={{
+                  primary: { noWrap: true },
+                  secondary: { noWrap: true }
+                }} />
             </MenuItem>
 
             <Divider />
@@ -213,15 +195,44 @@ export default function AgentSelect<
                 <ListItemText
                   primary={option.name}
                   secondary={option.description}
-                  primaryTypographyProps={{ noWrap: true }}
-                  secondaryTypographyProps={{ noWrap: true }}
-                />
+                  slotProps={{
+                    primary: { noWrap: true },
+                    secondary: { noWrap: true }
+                  }} />
               }
             />
           ))
         }
         {...props}
-      />
+        slots={{
+          paper: ({ children, ...props }) => (
+            <Paper {...props}>
+              {children}
+
+              <Stack
+                direction="row"
+                sx={{
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}>
+                <Button
+                  disabled={!isAdmin}
+                  onMouseDown={addComponentRef.current?.onClick}
+                  startIcon={<Icon icon={BrandAppgalleryIcon} />}>
+                  {t('installMoreAgent')}
+                </Button>
+
+                {!isAdmin && (
+                  <Typography variant="caption" sx={{
+                    color: "text.disabled"
+                  }}>
+                    {t('onlyAdminsAllowAddMoreAgents')}
+                  </Typography>
+                )}
+              </Stack>
+            </Paper>
+          )
+        }} />
     </>
   );
 }
@@ -234,13 +245,23 @@ function ProjectHeaderView({
 
   return (
     <ListSubheader component="div" {...props}>
-      <Stack direction="row" alignItems="center" mt={2} gap={2}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: "center",
+          mt: 2,
+          gap: 2
+        }}>
         <Avatar
           variant="rounded"
           src={getProjectIconUrl(project.id, { blockletDid: project.blockletDid, updatedAt: project.updatedAt })}
         />
 
-        <Stack flex={1} width={1}>
+        <Stack
+          sx={{
+            flex: 1,
+            width: 1
+          }}>
           <Typography variant="subtitle2" noWrap>
             {project.name || t('unnamed')}
           </Typography>

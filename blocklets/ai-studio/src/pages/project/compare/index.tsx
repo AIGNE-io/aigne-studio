@@ -82,7 +82,11 @@ export default function Compare({
 
   const renderSelect = () => {
     return (
-      <Box display="flex" gap={1}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1
+        }}>
         {!simpleMode && (
           <Select
             sx={{
@@ -109,7 +113,6 @@ export default function Compare({
             ))}
           </Select>
         )}
-
         <Select
           sx={{
             fontSize: 16,
@@ -209,8 +212,19 @@ export default function Compare({
 
   if (state.loading) {
     return (
-      <Box height="80vh" display="flex" width={1}>
-        <Box flex={1} display="flex" alignItems="center" justifyContent="center">
+      <Box
+        sx={{
+          height: "80vh",
+          display: "flex",
+          width: 1
+        }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
           <CircularProgress size={24} />
         </Box>
       </Box>
@@ -218,8 +232,20 @@ export default function Compare({
   }
 
   const empty = (
-    <Box flex={1} display="flex" alignItems="center" justifyContent="center">
-      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+    <Box
+      sx={{
+        flex: 1,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center"
+      }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center"
+        }}>
         <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
         <Typography sx={{ color: (theme) => theme.palette.action.disabled }}>{t('compare.empty')}</Typography>
       </Box>
@@ -228,9 +254,18 @@ export default function Compare({
 
   if (!state.template || !template) {
     return (
-      <Stack height="80vh" width={1}>
+      <Stack
+        sx={{
+          height: "80vh",
+          width: 1
+        }}>
         <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-          <Box flex={1} display="flex" flexDirection="column">
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column"
+            }}>
             <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
 
@@ -240,7 +275,12 @@ export default function Compare({
             {state.template ? <>{renderAllAssistant(state.template)}</> : empty}
           </Box>
 
-          <Box flex={1} display="flex" flexDirection="column">
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column"
+            }}>
             <Box sx={{ fontSize: 20, fontWeight: 'bold', mb: 2 }}>{t('compare.current')}</Box>
 
             {template ? <>{renderAllAssistant(template)}</> : empty}
@@ -256,7 +296,12 @@ export default function Compare({
         direction="row"
         sx={{ position: 'sticky', top: 0, zIndex: (theme) => theme.zIndex.appBar, bgcolor: 'background.paper' }}
         divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.origin')}</Box>
 
@@ -264,17 +309,31 @@ export default function Compare({
           </Box>
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <Box sx={{ fontSize: 20, fontWeight: 'bold' }}>{t('compare.current')}</Box>
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           {state.template && <BasicInfoForm projectId={projectId} gitRef={gitRef} value={state.template} disabled />}
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <BasicInfoForm
             projectId={projectId}
             gitRef={gitRef}
@@ -284,9 +343,13 @@ export default function Compare({
           />
         </Box>
       </Stack>
-
       <Stack direction="row" divider={<Divider orientation="vertical" flexItem sx={{ mx: 2 }} />}>
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           {state.template && (
             <InputSettings
               projectId={projectId}
@@ -299,7 +362,12 @@ export default function Compare({
           )}
         </Box>
 
-        <Box flex={1} display="flex" flexDirection="column">
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column"
+          }}>
           <InputSettings
             projectId={projectId}
             gitRef={gitRef}
@@ -309,10 +377,10 @@ export default function Compare({
           />
         </Box>
       </Stack>
-
       {renderPromptAssistant(state.template)}
-
-      <Box height={2} />
+      <Box sx={{
+        height: 2
+      }} />
     </Container>
   );
 }

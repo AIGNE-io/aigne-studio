@@ -1150,7 +1150,6 @@ export const ToolDialog = (
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
-
       <DialogContent>
         <Stack gap={2}>
           <Stack gap={1}>
@@ -1260,21 +1259,23 @@ export const ToolDialog = (
                     hiddenLabel
                     fullWidth
                     variant="standard"
-                    InputProps={{
-                      startAdornment: (
-                        <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
-                          <LoadingIconButton
-                            size="small"
-                            icon={<Translate sx={{ fontSize: 18 }} />}
-                            onClick={translateTool}
-                          />
-                        </Tooltip>
-                      ),
-                    }}
                     placeholder={t('translate')}
                     value={field.value || ''}
                     onChange={(e) => {
                       field.onChange({ target: { value: e.target.value } });
+                    }}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
+                            <LoadingIconButton
+                              size="small"
+                              icon={<Translate sx={{ fontSize: 18 }} />}
+                              onClick={translateTool}
+                            />
+                          </Tooltip>
+                        ),
+                      }
                     }}
                   />
                 )}
@@ -1303,7 +1304,6 @@ export const ToolDialog = (
           {renderParameters()}
         </Stack>
       </DialogContent>
-
       <DialogActions>
         {DialogProps?.onClose && (
           <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
@@ -1397,14 +1397,16 @@ const AsyncSelect: React.FC<AsyncSelectProps> = memo(
             label={label}
             error={!!error}
             helperText={error || ''}
-            InputProps={{
-              ...params.InputProps,
-              endAdornment: (
-                <>
-                  {loading && <CircularProgress color="inherit" size={20} />}
-                  {params.InputProps.endAdornment}
-                </>
-              ),
+            slotProps={{
+              input: {
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading && <CircularProgress color="inherit" size={20} />}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }
             }}
           />
         )}

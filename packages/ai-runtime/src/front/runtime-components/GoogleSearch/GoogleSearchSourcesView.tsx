@@ -35,15 +35,30 @@ export default function GoogleSearchSourcesView() {
       <Grid container spacing={1.5}>
         {message?.loading && !list.length && (
           <>
-            <Grid item xs={4} sm={4} md={4}>
+            <Grid
+              size={{
+                xs: 4,
+                sm: 4,
+                md: 4
+              }}>
               <ItemSkeleton />
             </Grid>
 
-            <Grid item xs={4} sm={4} md={4}>
+            <Grid
+              size={{
+                xs: 4,
+                sm: 4,
+                md: 4
+              }}>
               <ItemSkeleton />
             </Grid>
 
-            <Grid item xs={4} sm={4} md={4}>
+            <Grid
+              size={{
+                xs: 4,
+                sm: 4,
+                md: 4
+              }}>
               <ItemSkeleton />
             </Grid>
           </>
@@ -51,7 +66,12 @@ export default function GoogleSearchSourcesView() {
         <TransitionGroup component={null}>
           {itemsToShow.map((item) => (
             <CSSTransition key={item.link} timeout={500} classNames="item">
-              <Grid item xs={4} sm={4} md={4}>
+              <Grid
+                size={{
+                  xs: 4,
+                  sm: 4,
+                  md: 4
+                }}>
                 <ItemView item={item} />
               </Grid>
             </CSSTransition>
@@ -59,7 +79,12 @@ export default function GoogleSearchSourcesView() {
         </TransitionGroup>
 
         {!showAll && list.length > COLLAPSE_SIZE && (
-          <Grid item xs={4} sm={4} md={4}>
+          <Grid
+            size={{
+              xs: 4,
+              sm: 4,
+              md: 4
+            }}>
             <MoreItemView list={list} onMore={handleToggle} />
           </Grid>
         )}
@@ -93,7 +118,12 @@ function MoreItemView({ list, onMore }: { list: GoogleSearchSourcesViewPropValue
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '7px', flexGrow: 1 }}>
           {current.map((item) => {
             return (
-              <Box key={item.link} width={18} height={18}>
+              <Box
+                key={item.link}
+                sx={{
+                  width: 18,
+                  height: 18
+                }}>
                 <Avatar src={item.favicon} sx={{ width: 18, height: 18 }}>
                   {item.source?.slice(0, 1)}
                 </Avatar>
@@ -134,7 +164,9 @@ function ItemContainer({ title, favicon, link }: { title: ReactNode; favicon: Re
         target="_blank"
         sx={{ height: '100%' }}>
         <Stack sx={{ py: 1.5, px: 2, gap: 1, height: '100%' }}>
-          <Box flexGrow={1}>
+          <Box sx={{
+            flexGrow: 1
+          }}>
             <Typography
               variant="body2"
               sx={{
@@ -148,8 +180,18 @@ function ItemContainer({ title, favicon, link }: { title: ReactNode; favicon: Re
             </Typography>
           </Box>
 
-          <Stack flexDirection="row" alignItems="center" gap={1} overflow="hidden">
-            <Box width={18} height={18}>
+          <Stack
+            sx={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 1,
+              overflow: "hidden"
+            }}>
+            <Box
+              sx={{
+                width: 18,
+                height: 18
+              }}>
               {favicon}
             </Box>
 

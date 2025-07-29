@@ -27,12 +27,15 @@ export default function ImageFilePrompt({
   const { getDiffBackground } = useAssistantCompare({ value, compareValue, readOnly, isRemoteCompare });
 
   return (
-    <Stack gap={1}>
+    <Stack sx={{
+      gap: 1
+    }}>
       <Box
-        border="1px solid #3B82F6"
-        borderRadius={1}
-        minHeight={64}
         sx={{
+          border: "1px solid #3B82F6",
+          borderRadius: 1,
+          minHeight: 64,
+
           '.ContentEditable__root': {
             p: 1,
             px: 1.5,
@@ -55,7 +58,7 @@ export default function ImageFilePrompt({
             bottom: 'inherit',
             fontSize: '14px',
             lineHeight: '24px',
-          },
+          }
         }}>
         <PromptEditorField
           value={value.prompt}

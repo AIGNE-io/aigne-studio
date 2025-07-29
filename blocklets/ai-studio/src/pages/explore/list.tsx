@@ -52,7 +52,9 @@ function CategoryCard({
           0px 2px 4px 0px rgba(3, 7, 18, 0.04)
         `,
       }}>
-      <Stack direction="row" gap={{ xs: 1.5, xl: 2 }}>
+      <Stack direction="row" sx={{
+        gap: { xs: 1.5, xl: 2 }
+      }}>
         <Box
           alt=""
           component="img"
@@ -142,9 +144,21 @@ function CategoryList() {
       <Box sx={{ flex: 1, overflow: 'auto' }} data-testid="explore-list">
         <Box sx={{ px: 3 }}>
           {deployments.length === 0 && (
-            <Stack flex={1} height={500} justifyContent="center" alignItems="center" gap={1}>
+            <Stack
+              sx={{
+                flex: 1,
+                height: 500,
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 1
+              }}>
               <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-              <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+              <Typography
+                sx={{
+                  color: "text.disabled",
+                  whiteSpace: 'break-spaces',
+                  textAlign: 'center'
+                }}>
                 {t('deployments.emptyDeployment')}
               </Typography>
             </Stack>
@@ -170,8 +184,18 @@ function CategoryList() {
           </Box>
 
           {(dataState.loadingMore || dataState?.data?.next) && (
-            <Box width={1} height={60} className="center" ref={loadingRef}>
-              <Box display="flex" justifyContent="center">
+            <Box
+              className="center"
+              ref={loadingRef}
+              sx={{
+                width: 1,
+                height: 60
+              }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center"
+                }}>
                 <CircularProgress size={24} />
               </Box>
             </Box>

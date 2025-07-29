@@ -18,7 +18,11 @@ type Story = StoryObj<typeof CodeEditor>;
 export const Typescript: Story = {
   render: () => {
     return (
-      <Box width={1} height={1000}>
+      <Box
+        sx={{
+          width: 1,
+          height: 1000
+        }}>
         <CodeEditor
           keyId="typescript"
           language="typescript"
@@ -37,7 +41,11 @@ export const Typescript: Story = {
 export const Javascript: Story = {
   render: () => {
     return (
-      <Box width={1} height={1000}>
+      <Box
+        sx={{
+          width: 1,
+          height: 1000
+        }}>
         <CodeEditor
           keyId="javascript"
           language="javascript"
@@ -56,7 +64,11 @@ console.log('hello world')
 export const HTML: Story = {
   render: () => {
     return (
-      <Box width={1} height={1000}>
+      <Box
+        sx={{
+          width: 1,
+          height: 1000
+        }}>
         <CodeEditor
           keyId="html"
           language="html"
@@ -84,7 +96,11 @@ export const HTML: Story = {
 export const CSS: Story = {
   render: () => {
     return (
-      <Box width={1} height={1000}>
+      <Box
+        sx={{
+          width: 1,
+          height: 1000
+        }}>
         <CodeEditor
           keyId="css"
           language="css"

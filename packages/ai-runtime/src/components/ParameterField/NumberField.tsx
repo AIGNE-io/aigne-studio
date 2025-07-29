@@ -29,20 +29,22 @@ const NumberField = (
       helperText={parameter?.helper}
       {...pick(parameter, 'required', 'label', 'placeholder')}
       {...props}
-      InputProps={{
-        ...props.InputProps,
-        readOnly,
-        inputProps: {
-          type: 'number',
-          inputMode: 'decimal',
-          pattern: '[0-9]*',
-          min: parameter?.min,
-          max: parameter?.max,
-          ...props.inputProps,
-        },
-      }}
       value={props.value}
       onChange={handleChange}
+      slotProps={{
+        input: {
+          ...props.InputProps,
+          readOnly,
+          inputProps: {
+            type: 'number',
+            inputMode: 'decimal',
+            pattern: '[0-9]*',
+            min: parameter?.min,
+            max: parameter?.max,
+            ...props.inputProps,
+          },
+        }
+      }}
     />
   );
 };

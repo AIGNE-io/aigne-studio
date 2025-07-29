@@ -84,7 +84,6 @@ function DeploymentList() {
                 }}>
                 {t('edit')}
               </Button>
-
               <Button
                 data-testid="share-deployment-button"
                 variant="text"
@@ -98,7 +97,6 @@ function DeploymentList() {
                 }}>
                 {t('share')}
               </Button>
-
               <Button
                 data-testid="delete-deployment-button"
                 variant="text"
@@ -120,7 +118,13 @@ function DeploymentList() {
                     title: <Box sx={{ wordWrap: 'break-word' }}>{t('deployments.deleteTitle')}</Box>,
                     content: (
                       <Box>
-                        <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: 16,
+                            lineHeight: "28px",
+                            color: "#4B5563"
+                          }}>
                           {t('deployments.deleteDescription')}
                         </Typography>
                       </Box>
@@ -151,17 +155,25 @@ function DeploymentList() {
 
   return (
     <Container>
-      <Box className="between" mt={2.5} mb={1.5}>
+      <Box
+        className="between"
+        sx={{
+          mt: 2.5,
+          mb: 1.5
+        }}>
         <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployments.title')}</Box>
       </Box>
-
       <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
             maxWidth: '100%',
           }}>
-          <Stack flex={1} sx={{ overflowX: 'auto' }}>
+          <Stack
+            sx={{
+              flex: 1,
+              overflowX: 'auto'
+            }}>
             <Table
               sx={{
                 minWidth: 600,
@@ -189,8 +201,12 @@ function DeploymentList() {
               loading={loading}
               slots={{
                 noRowsOverlay: () => (
-                  <Box className="center" height={1}>
-                    <Stack alignItems="center">
+                  <Box className="center" sx={{
+                    height: 1
+                  }}>
+                    <Stack sx={{
+                      alignItems: "center"
+                    }}>
                       <Typography variant="subtitle1">💻</Typography>
                       <Typography variant="subtitle4">{t('deployments.noDeployments')}</Typography>
                     </Stack>
@@ -201,9 +217,7 @@ function DeploymentList() {
           </Stack>
         </Box>
       </Box>
-
       {dialog}
-
       <DeploymentDialog
         showVisibility={false}
         dialogState={dialogState}

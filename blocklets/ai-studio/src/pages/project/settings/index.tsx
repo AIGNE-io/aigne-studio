@@ -221,7 +221,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
 
   const isMultiTenant = window.blocklet?.tenantMode === 'multiple';
   return (
-    <Box overflow="auto" {...boxProps}>
+    <Box
+      {...boxProps}
+      sx={[{
+        overflow: "auto"
+      }, ...(Array.isArray(boxProps.sx) ? boxProps.sx : [boxProps.sx])]}>
       {onClose && !isMobile && (
         <Box
           sx={{
@@ -237,7 +241,6 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           </Button>
         </Box>
       )}
-
       <SettingsContainer px={2} className="setting-container">
         <Tabs
           variant="scrollable"
@@ -269,9 +272,15 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
         <Box>
           {currentTabIndex === 'basic' && (
             <Form onSubmit={(e) => e.preventDefault()}>
-              <Stack gap={2} mt={2}>
+              <Stack
+                sx={{
+                  gap: 2,
+                  mt: 2
+                }}>
                 <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
+                  <Typography variant="subtitle2" sx={{
+                    mb: 0.5
+                  }}>
                     {t('avatar')}
                   </Typography>
                   <Avatar
@@ -291,7 +300,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                 </Box>
 
                 <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
+                  <Typography variant="subtitle2" sx={{
+                    mb: 0.5
+                  }}>
                     {t('projectSetting.name')}
                   </Typography>
 
@@ -304,12 +315,16 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         config.name = e.target.value;
                       });
                     }}
-                    InputProps={{ readOnly }}
+                    slotProps={{
+                      input: { readOnly }
+                    }}
                   />
                 </Box>
 
                 <Box>
-                  <Typography variant="subtitle2" mb={0.5}>
+                  <Typography variant="subtitle2" sx={{
+                    mb: 0.5
+                  }}>
                     {t('projectSetting.description')}
                   </Typography>
                   <TextField
@@ -323,7 +338,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                         config.description = e.target.value;
                       });
                     }}
-                    InputProps={{ readOnly }}
+                    slotProps={{
+                      input: { readOnly }
+                    }}
                   />
                 </Box>
 
@@ -341,7 +358,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       okText: t('close'),
                     });
                   }}>
-                  <Typography variant="subtitle2" mb={0.5}>
+                  <Typography variant="subtitle2" sx={{
+                    mb: 0.5
+                  }}>
                     {t('projectSetting.readme')}
                   </Typography>
 
@@ -378,7 +397,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                       multiline
                       rows={5}
                       hiddenLabel
-                      InputProps={{ readOnly: true }}
+                      slotProps={{
+                        input: { readOnly: true }
+                      }}
                     />
                   )}
                 </Box>
@@ -387,26 +408,40 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'modelInfo' && (
-            <Box mt={2}>
+            <Box sx={{
+              mt: 2
+            }}>
               <ModelSettings projectId={projectId} projectRef={projectRef} model={model} />
             </Box>
           )}
 
           {currentTabIndex === 'appearance' && (
-            <Box mt={2}>
+            <Box sx={{
+              mt: 2
+            }}>
               <AppearanceSetting />
             </Box>
           )}
 
           {currentTabIndex === 'git' && (
-            <Box overflow="auto">
+            <Box sx={{
+              overflow: "auto"
+            }}>
               <Form>
-                <Stack gap={2} mt={2}>
-                  <Stack gap={2}>
+                <Stack
+                  sx={{
+                    gap: 2,
+                    mt: 2
+                  }}>
+                  <Stack sx={{
+                    gap: 2
+                  }}>
                     <Box>
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 0.5 }}>
                         {isMultiTenant && <PlanAlert>{t('upgradePrompts.git.desc')}</PlanAlert>}
-                        <Typography variant="subtitle2" mb={0}>
+                        <Typography variant="subtitle2" sx={{
+                          mb: 0
+                        }}>
                           {t('Git Version')}
                         </Typography>
                       </Box>
@@ -423,7 +458,11 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
                                 value={version.value}
                                 control={<Radio sx={{ ml: -0.5 }} />}
                                 label={
-                                  <Box mt={0.25} ml={0.5}>
+                                  <Box
+                                    sx={{
+                                      mt: 0.25,
+                                      ml: 0.5
+                                    }}>
                                     <Box className="title">{version.title}</Box>
                                     <Box className="subTitle">{version.subTitle}</Box>
                                   </Box>
@@ -454,7 +493,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'didSpaces' && (
-            <Box mt={2}>
+            <Box sx={{
+              mt: 2
+            }}>
               <Form>
                 <DidSpacesSetting projectId={projectId} />
               </Form>
@@ -462,7 +503,9 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
           )}
 
           {currentTabIndex === 'integrations' && (
-            <Box mt={2}>
+            <Box sx={{
+              mt: 2
+            }}>
               <IntegrationSetting />
             </Box>
           )}
