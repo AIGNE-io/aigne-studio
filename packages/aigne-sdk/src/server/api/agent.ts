@@ -1,8 +1,8 @@
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
-import { EventSourceParserStream, readableToWeb } from '@blocklet/aigne-hub/api/utils/event-stream';
 import { AssistantResponseType, RunAssistantResponse } from '@blocklet/ai-runtime/types';
 import { ResourceType } from '@blocklet/ai-runtime/types/resource';
+import { EventSourceParserStream, readableToWeb } from '@blocklet/aigne-hub/api/utils/event-stream';
 import { call } from '@blocklet/sdk/lib/component';
 import { joinURL } from 'ufo';
 

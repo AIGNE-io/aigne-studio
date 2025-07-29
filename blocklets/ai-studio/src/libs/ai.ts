@@ -1,5 +1,5 @@
-import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/aigne-hub/api';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
+import { createImageGenerationApi, createTextCompletionApi } from '@blocklet/aigne-hub/api';
 import { createFetch } from '@blocklet/js-sdk';
 
 import axios from './api';

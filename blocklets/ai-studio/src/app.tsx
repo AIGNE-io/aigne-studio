@@ -1,7 +1,6 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import withTracker from '@arcblock/ux/lib/withTracker';
-import { SubscribeButton } from '@blocklet/aigne-hub/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
@@ -171,7 +170,7 @@ function Layout({ children }: { children: ReactNode }) {
     <Dashboard
       HeaderProps={{
         logo: <AigneLogo />,
-        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+        addons: (exists: ReactNode[]) => [...exists],
       }}>
       {children}
     </Dashboard>

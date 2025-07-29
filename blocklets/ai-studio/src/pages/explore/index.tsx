@@ -1,6 +1,5 @@
 import AigneLogo from '@app/components/aigne-logo';
 import ErrorBoundary from '@app/components/error/error-boundary';
-import { SubscribeButton } from '@blocklet/aigne-hub/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
 import { Suspense, lazy } from 'react';
@@ -24,7 +23,7 @@ export default function ExploreCategoryRoutes() {
       <StyledDashboard
         HeaderProps={{
           logo: <AigneLogo />,
-          addons: (exists) => [<SubscribeButton />, <PlanUpgradeButton />, ...exists],
+          addons: (exists) => [<PlanUpgradeButton />, ...exists],
           homeLink: joinURL(blocklet?.prefix || '', 'explore'),
         }}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
