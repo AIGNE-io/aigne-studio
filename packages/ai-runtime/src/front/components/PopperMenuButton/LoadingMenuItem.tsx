@@ -3,7 +3,7 @@ import { MouseEvent, ReactNode, useState } from 'react';
 
 export default function LoadingMenuItem({
   children,
-  confirmation,
+  confirmation = undefined,
   ...props
 }: MenuItemProps & { confirmation?: ReactNode }) {
   const [clicked, setClicked] = useState(false);
@@ -31,9 +31,9 @@ export default function LoadingMenuItem({
       <Stack
         direction="row"
         sx={{
-          alignItems: "center",
-          justifyContent: "flex-end",
-          width: 18
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          width: 18,
         }}>
         {loading && <CircularProgress size={14} />}
       </Stack>

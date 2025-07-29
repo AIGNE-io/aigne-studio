@@ -59,6 +59,7 @@ describe('ExtractMetadataTransform', () => {
   test('extract metadata transform', async () => {
     for (const c of cases) {
       for (let i = 1; i < c.input.length; i++) {
+        // eslint-disable-next-line no-await-in-loop
         expect([await run(c.input, c.start, c.end, i), i]).toEqual([c.expected, i]);
       }
     }

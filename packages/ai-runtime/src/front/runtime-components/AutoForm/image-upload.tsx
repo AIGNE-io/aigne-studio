@@ -18,7 +18,7 @@ interface ImageUploadProps {
 
 const MAX_IMAGE_FILES = window.blocklet?.preferences?.maxImageCount || 1;
 
-export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps) {
+export function ImageUpload({ control, parameter, isInInput = false }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
@@ -80,8 +80,8 @@ export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps)
             />
             <Stack
               sx={{
-                flexDirection: "row",
-                gap: 0
+                flexDirection: 'row',
+                gap: 0,
               }}>
               <IconButton
                 onClick={() => cameraInputRef.current?.click()}
@@ -115,9 +115,9 @@ export function ImagePreview({ value, parameter, onRemove }: ImagePreviewProps) 
     <Stack
       direction="row"
       sx={{
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: 1
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 1,
       }}>
       {list.map((url, index) => (
         <ImagePreviewItem key={url} url={url} index={index} onRemove={() => onRemove(index)} />

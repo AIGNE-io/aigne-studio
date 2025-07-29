@@ -31,8 +31,8 @@ import { isValidInput } from '../../utils/agent-inputs';
 import { useV0RuntimeContext } from './contexts/V0Runtime';
 
 export default function V0Input({
-  submitText,
-  inlineLabel,
+  submitText = '',
+  inlineLabel = false,
   autoFillLastForm = false,
   submitInQuestionField = true,
   chatMode = true,
@@ -235,6 +235,7 @@ function useInitialFormValues() {
       const lastParameters = lastMessage?.inputs;
       if (!isEmpty(lastParameters)) setLastInputs(lastParameters);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage]);
 
   return useMemo(() => {

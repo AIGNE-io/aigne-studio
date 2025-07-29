@@ -2,15 +2,17 @@ import { FormControl, FormControlLabel, FormHelperText, Switch, TextFieldProps }
 
 import { BooleanParameter } from '../../types/assistant';
 
-const BooleanField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const BooleanField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: BooleanParameter;
+  onChange: (value: boolean) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   return (
     <FormControl>
       <FormControlLabel

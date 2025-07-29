@@ -40,9 +40,9 @@ const sessionContext = createContext<UseBoundStore<StoreApi<SessionContextValue>
 const LOADING_TASKS: { [id: string]: Promise<void> } = {};
 
 export const SessionProvider = ({
-  sessionId,
-  onChange,
-  children,
+  sessionId = undefined,
+  onChange = undefined,
+  children = undefined,
 }: {
   sessionId?: string;
   onChange?: (sessionId: string) => void;
@@ -53,6 +53,7 @@ export const SessionProvider = ({
 
   const state = useMemo(
     () => createSessionState({ entryAid, sessionId, runAgent, getSession, getMessages, clearSession }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [sessionId]
   );
 
@@ -62,12 +63,14 @@ export const SessionProvider = ({
 
   useEffect(() => {
     if (sid && sid !== sessionId) onChange?.(sid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sid]);
 
   if (sessionId && !loaded) {
     if (error) throw error;
 
     LOADING_TASKS[sessionId] ??= state.getState().reload();
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw LOADING_TASKS[sessionId]!;
   }
 
@@ -116,6 +119,7 @@ function createSessionState(
             const reader = res.getReader();
 
             for (;;) {
+              // eslint-disable-next-line no-await-in-loop
               const { value, done } = await reader.read();
               if (done) break;
 

@@ -24,9 +24,12 @@ export default function MessagesView({ ...props }: StackProps) {
   return (
     <Stack
       {...props}
-      sx={[{
-        gap: 2
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          gap: 2,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {showOpeningMessage && <OpeningMessageView />}
       {mapRight(messages, (message, index) => (
         <React.Fragment key={message.id}>

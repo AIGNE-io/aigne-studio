@@ -23,7 +23,7 @@ const sessionsContext = createContext<UseBoundStore<StoreApi<SessionsContextValu
 
 const LOADING_TASKS: { [id: string]: Promise<void> } = {};
 
-export function SessionsProvider({ aid, children }: { aid: string; children?: ReactNode }) {
+export function SessionsProvider({ aid, children = undefined }: { aid: string; children?: ReactNode }) {
   const { getSessions, createSession, deleteSession } = useAIGNEApi();
 
   const state = useMemo(
@@ -84,16 +84,19 @@ export function SessionsProvider({ aid, children }: { aid: string; children?: Re
           }))
         )
       ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [aid]
   );
 
   const { loaded, error } = state((s) => ({ loaded: s.loaded, error: s.error }));
 
   if (!loaded) {
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     if (error) throw error;
 
     const key = `sessions-loading-${aid}`;
     LOADING_TASKS[key] ??= state.getState().reload({ autoSetCurrentSessionId: true });
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw LOADING_TASKS[key]!;
   }
 

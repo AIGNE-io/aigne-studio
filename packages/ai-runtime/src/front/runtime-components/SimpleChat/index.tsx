@@ -56,8 +56,8 @@ function SimpleChatView() {
         {loading ? (
           <Box
             sx={{
-              textAlign: "center",
-              my: 10
+              textAlign: 'center',
+              my: 10,
             }}>
             <CircularProgress size={24} />
           </Box>
@@ -105,7 +105,7 @@ function HeaderView() {
     <Stack
       sx={{
         px: 4,
-        color: hasBg ? 'white' : undefined
+        color: hasBg ? 'white' : undefined,
       }}>
       <CustomComponentRenderer
         aid={aid}

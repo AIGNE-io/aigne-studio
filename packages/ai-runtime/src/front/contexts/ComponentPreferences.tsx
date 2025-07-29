@@ -11,13 +11,14 @@ export interface ComponentPreferencesBase {
 const componentPreferencesContext = createContext<any>(undefined);
 
 export function ComponentPreferencesProvider<T extends ComponentPreferencesBase>({
-  children,
+  children = undefined,
   ...preferences
 }: { children?: ReactNode } & T) {
   const inherited = useComponentPreferences();
 
   const value = useMemo(
     () => ({ ...inherited, ...omitBy(preferences, (i) => i === undefined || i === null) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [inherited, Object.values(preferences)]
   );
 

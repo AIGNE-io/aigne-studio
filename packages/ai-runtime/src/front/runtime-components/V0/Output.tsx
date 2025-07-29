@@ -293,7 +293,10 @@ export default function V0Output() {
         />
       </Box>
 
-      {objects?.map((item, index) => <MessageMetadataRenderer key={index} object={item} />)}
+      {objects?.map((item, index) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <MessageMetadataRenderer key={index} object={item} />
+      ))}
 
       {!isMessageLoading && message.outputs?.content && (
         <ShareActions direction="row" justifyContent="flex-end" sx={{ mt: 2 }} />

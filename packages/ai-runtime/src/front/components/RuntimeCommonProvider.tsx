@@ -6,7 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import { translations } from '../locales';
 
-export default function RuntimeCommonProvider({ children }: { children?: ReactNode }) {
+export default function RuntimeCommonProvider({ children = undefined }: { children?: ReactNode }) {
   return (
     <RuntimeLocaleProvider>
       <ErrorBoundary FallbackComponent={ErrorRender}>
@@ -27,7 +27,7 @@ function ErrorRender({ error }: { error: any }) {
   );
 }
 
-export function RuntimeLocaleProvider({ children }: { children?: ReactNode }) {
+export function RuntimeLocaleProvider({ children = undefined }: { children?: ReactNode }) {
   const { locale } = useLocaleContext();
 
   return (

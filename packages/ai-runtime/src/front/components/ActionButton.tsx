@@ -6,13 +6,13 @@ import { ReactNode, useRef, useState } from 'react';
 import LoadingButton from './LoadingButton';
 
 export default function ActionButton({
-  tip,
-  tipSucceed,
-  title,
-  titleSucceed,
-  icon,
-  iconSucceed,
-  autoReset,
+  tip = undefined,
+  tipSucceed = undefined,
+  title = undefined,
+  titleSucceed = undefined,
+  icon = undefined,
+  iconSucceed = undefined,
+  autoReset = undefined,
   placement = 'top',
   ...props
 }: {
@@ -47,9 +47,16 @@ export default function ActionButton({
 
   const realIcon = active ? iconSucceed : icon;
 
-  const toolTipTitleText = error ? <Box sx={{
-    color: "error"
-  }}>{error.message}</Box> : (active && tipSucceed) || tip;
+  const toolTipTitleText = error ? (
+    <Box
+      sx={{
+        color: 'error',
+      }}>
+      {error.message}
+    </Box>
+  ) : (
+    (active && tipSucceed) || tip
+  );
   const buttonText = active ? titleSucceed : title;
 
   return (

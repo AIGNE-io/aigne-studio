@@ -37,7 +37,7 @@ export interface ChatBotProps {
   working?: boolean;
 }
 
-export default function ChatBotButton({ aid, working }: ChatBotProps) {
+export default function ChatBotButton({ aid, working = undefined }: ChatBotProps) {
   return (
     <RuntimeProvider aid={aid} working={working}>
       <ChatBotContent />
@@ -66,9 +66,12 @@ function ChatBotContent() {
           src={profile.avatar}
         />
       </Fab>
-      <Stack ref={anchorEl} sx={{
-        width: "100%"
-      }} />
+      <Stack
+        ref={anchorEl}
+        sx={{
+          width: '100%',
+        }}
+      />
       {anchorEl.current && (
         <ResponsiveChatBotContainer anchorEl={anchorEl.current} open={open} onClose={() => setOpen(false)}>
           <ScrollView
@@ -88,8 +91,8 @@ function ChatBotContent() {
                 <Stack
                   sx={{
                     flexGrow: 1,
-                    alignItems: "center",
-                    justifyContent: "center"
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
                   <CircularProgress size={24} />
                 </Stack>
@@ -140,7 +143,7 @@ function ResponsiveChatBotContainer({
 }
 
 function ChatBotPopper({
-  title,
+  title = '',
   anchorEl,
   open,
   children,
@@ -185,11 +188,11 @@ function ChatBotPopper({
               <Stack
                 direction="row"
                 sx={{
-                  alignItems: "center",
+                  alignItems: 'center',
                   borderBottom: 1,
-                  borderColor: "divider",
+                  borderColor: 'divider',
                   p: 2,
-                  gap: 2
+                  gap: 2,
                 }}>
                 <Typography variant="h6" noWrap sx={{ flex: 1, width: 1 }}>
                   {title}
@@ -212,7 +215,7 @@ function ChatBotPopper({
 }
 
 function ChatBotDialog({
-  title,
+  title = '',
   open,
   children,
   onClose,
@@ -228,8 +231,8 @@ function ChatBotDialog({
         <Stack
           direction="row"
           sx={{
-            alignItems: "center",
-            gap: 2
+            alignItems: 'center',
+            gap: 2,
           }}>
           <IconButton size="small" onClick={onClose}>
             <ArrowBackIosNewRounded fontSize="inherit" />

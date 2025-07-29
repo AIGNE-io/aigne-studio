@@ -44,17 +44,21 @@ export default function PhotoGallery({ ...preferences }: GalleryLayoutPreference
 
 function NoOutputs() {
   return (
-    <Stack sx={{
-      mt: 10
-    }}>
-      <Typography sx={{
-        color: "text.disabled"
-      }}>You haven't generated any pictures yet.</Typography>
+    <Stack
+      sx={{
+        mt: 10,
+      }}>
+      <Typography
+        sx={{
+          color: 'text.disabled',
+        }}>
+        You haven't generated any pictures yet.
+      </Typography>
     </Stack>
   );
 }
 
-function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackProps) {
+function OutputView({ resultTitle = '', ...props }: { resultTitle?: string } & StackProps) {
   const { t } = useLocaleContext();
   const ref = useRef<HTMLDivElement>(null);
   const { error, messages = [], running, loaded, noMoreMessage, loadMoreMessages } = useSession((s) => s);
@@ -67,9 +71,10 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
 
   return (
     <>
-      <Stack sx={{
-        px: { xs: 2, sm: 3 }
-      }}>
+      <Stack
+        sx={{
+          px: { xs: 2, sm: 3 },
+        }}>
         {!running && messages[0]?.error && showError && (
           <AgentErrorView
             error={messages[0]?.error}
@@ -81,21 +86,24 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
       </Stack>
       <Stack
         {...props}
-        sx={[{
-          width: "100%",
-          alignItems: "center",
-          px: { xs: 2, sm: 3 },
-          mt: { xs: 2.5 },
-          gap: 2
-        }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+        sx={[
+          {
+            width: '100%',
+            alignItems: 'center',
+            px: { xs: 2, sm: 3 },
+            mt: { xs: 2.5 },
+            gap: 2,
+          },
+          ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+        ]}>
         {resultTitle && (
           <Typography
             component="h2"
             sx={{
-              width: "100%",
+              width: '100%',
               fontSize: 36,
               fontWeight: 700,
-              textAlign: "center"
+              textAlign: 'center',
             }}>
             <Balancer>{resultTitle}</Balancer>
           </Typography>
@@ -127,9 +135,10 @@ function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackP
             <OutputItemView key={message.id} message={message} />
           ))}
         </Masonry>
-        <Box sx={{
-          my: 4
-        }}>
+        <Box
+          sx={{
+            my: 4,
+          }}>
           {!!messages.length && !noMoreMessage && (
             <LoadingButton variant="outlined" onClick={() => loadMoreMessages()}>
               {t('loadMore')}

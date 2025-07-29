@@ -4,15 +4,17 @@ import { KeyboardEvent, useCallback } from 'react';
 
 import { StringParameter } from '../../types/assistant';
 
-const StringField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const StringField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: StringParameter;
+  onChange: (value: string) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   const isQuestion = parameter?.key === 'question';
 
   const onKeyDown = useCallback(
@@ -44,7 +46,7 @@ const StringField = (
           ...props.InputProps,
           inputProps: { ...props.inputProps, maxLength: parameter?.maxLength },
           readOnly,
-        }
+        },
       }}
     />
   );

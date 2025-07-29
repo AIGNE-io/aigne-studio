@@ -2,15 +2,17 @@ import { Checkbox, FormControlLabel, FormGroup, Radio, RadioGroup, RadioGroupPro
 
 import { SelectParameter } from '../../../types';
 
-const RadioField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const RadioField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: SelectParameter;
+  onChange: (value: string | string[]) => void;
+} & Omit<RadioGroupProps, 'onChange'>) => {
   if (parameter?.multiple) {
     const value = Array.isArray(props.value) ? props.value : props.value ? [props.value] : [];
 

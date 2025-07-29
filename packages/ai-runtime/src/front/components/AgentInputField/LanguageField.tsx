@@ -10,11 +10,9 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import pick from 'lodash/pick';
+import type { JSX } from 'react';
 
-import { SelectParameter } from '../../../types';
 import { languages } from '../../utils/languages';
-
-import type { JSX } from "react";
 
 type Option = {
   name: string;
@@ -37,15 +35,13 @@ const filter = (options: Option[], state: { inputValue: string }) => {
   });
 };
 
-const LanguageField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const LanguageField = ({
+  ref,
+  onChange,
+  ...props
+}: {
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   const { locale } = useLocaleContext();
 
   const value = props?.value ? languages.find((o) => o.en === props.value) : null;

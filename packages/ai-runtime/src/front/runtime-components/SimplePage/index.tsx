@@ -61,27 +61,30 @@ function HeaderView(props: StackProps) {
   );
 }
 
-function OutputView({ resultTitle, ...props }: { resultTitle?: string } & StackProps) {
+function OutputView({ resultTitle = '', ...props }: { resultTitle?: string } & StackProps) {
   const error = useSession((s) => s.error);
   const lastMessage = useSession((s) => s.messages?.at(0));
 
   return (
     <Stack
       {...props}
-      sx={[{
-        gap: 2,
-        mt: 4
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          gap: 2,
+          mt: 4,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {lastMessage && (
         <>
           {resultTitle && (
             <Typography
               component="h5"
               sx={{
-                width: "100%",
+                width: '100%',
                 fontSize: 36,
                 fontWeight: 700,
-                textAlign: "center"
+                textAlign: 'center',
               }}>
               <Balancer>{resultTitle}</Balancer>
             </Typography>

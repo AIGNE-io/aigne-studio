@@ -5,14 +5,14 @@ import dayjs from 'dayjs';
 import { ReactNode, useMemo } from 'react';
 
 export default function UserInfo({
-  avatar,
-  showDID,
-  did,
-  name,
-  time,
-  children,
-  reverse,
-  UserNameProps,
+  avatar = undefined,
+  showDID = false,
+  did = undefined,
+  name = undefined,
+  time = undefined,
+  children = undefined,
+  reverse = false,
+  UserNameProps = undefined,
   ...restProps
 }: StackProps & {
   avatar?: string;
@@ -29,10 +29,13 @@ export default function UserInfo({
       className="user-info"
       direction={reverse ? 'row-reverse' : 'row'}
       {...restProps}
-      sx={[{
-        alignItems: "center",
-        gap: 1.5
-      }, ...(Array.isArray(restProps.sx) ? restProps.sx : [restProps.sx])]}>
+      sx={[
+        {
+          alignItems: 'center',
+          gap: 1.5,
+        },
+        ...(Array.isArray(restProps.sx) ? restProps.sx : [restProps.sx]),
+      ]}>
       {(avatar || did) && (
         <Box
           sx={{
@@ -53,7 +56,7 @@ export default function UserInfo({
       <Box
         sx={{
           flex: 1,
-          width: 0
+          width: 0,
         }}>
         <UserName {...UserNameProps} sx={{ justifyContent: reverse ? 'flex-end' : 'flex-start', ...UserNameProps?.sx }}>
           {name || ''}
@@ -72,9 +75,12 @@ export default function UserInfo({
         {/* @ts-ignore */}
         {showDID && did && <Box component={DID} did={did} copyable={false} size={14} responsive sx={{ mt: -0.25 }} />}
 
-        <Box sx={{
-          flex: 1
-        }}>{children}</Box>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
+          {children}
+        </Box>
       </Box>
     </Stack>
   );

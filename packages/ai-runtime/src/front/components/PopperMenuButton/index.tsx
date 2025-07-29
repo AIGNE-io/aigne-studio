@@ -15,7 +15,7 @@ import React, { ReactNode, isValidElement } from 'react';
 
 export default function PopperMenuButton({
   PopperProps,
-  menus,
+  menus = undefined,
   ...props
 }: { PopperProps: Omit<PopperProps, 'open'>; menus?: ReactNode } & BoxProps<typeof Button>) {
   const state = usePopupState({ variant: 'popper' });

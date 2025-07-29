@@ -4,7 +4,7 @@ import { RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../../../ty
 
 export default function MessageSuggestedQuestions({
   dataSource,
-  onClick,
+  onClick = undefined,
 }: {
   dataSource: RuntimeOutputVariablesSchema[RuntimeOutputVariable.suggestedQuestions];
   onClick?: (item: NonNullable<typeof dataSource>[number]) => void;
@@ -13,9 +13,10 @@ export default function MessageSuggestedQuestions({
 
   if (suggestedQuestions?.length) {
     return (
-      <Stack sx={{
-        gap: 1
-      }}>
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         {suggestedQuestions.map((item) => {
           return (
             <MessageSuggestedQuestion key={item.question} onClick={() => onClick?.(item)}>

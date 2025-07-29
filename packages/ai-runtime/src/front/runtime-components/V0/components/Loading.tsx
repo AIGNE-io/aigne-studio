@@ -169,6 +169,7 @@ export function AIRunningLoading(props: BoxProps) {
         const isLast = index === animationTimeList.length - 1;
         return (
           <Box
+            // eslint-disable-next-line react/no-array-index-key
             key={index}
             sx={{
               animation: `loading ${time}s 1 ${delay}s forwards`,

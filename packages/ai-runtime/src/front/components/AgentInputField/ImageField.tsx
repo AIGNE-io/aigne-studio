@@ -46,9 +46,9 @@ export default function ImageField({
         <Stack
           direction="row"
           sx={{
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 1
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
           }}>
           {list.map((url, index) => (
             <ImagePreviewItem

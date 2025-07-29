@@ -2,14 +2,16 @@ import { TextField, TextFieldProps } from '@mui/material';
 
 import { NumberParameter } from '../../../types';
 
-const NumberField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    ...props
-  }
-) => {
+const NumberField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: NumberParameter;
+  onChange: (value: number) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   return (
     <TextField
       ref={ref}
@@ -27,7 +29,7 @@ const NumberField = (
             max: parameter?.max,
             ...props.inputProps,
           },
-        }
+        },
       }}
     />
   );

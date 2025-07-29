@@ -6,7 +6,7 @@ import MessageItemView from './MessageItemView';
 // default hideAvatar to true, only show message when polish agent layout
 export default function ChatOutput({
   hideAvatar = true,
-  renderType,
+  renderType = undefined,
 }: {
   hideAvatar: boolean;
   renderType?: 'parameters' | 'result';

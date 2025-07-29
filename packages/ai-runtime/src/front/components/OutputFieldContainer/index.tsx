@@ -4,13 +4,16 @@ import { memo } from 'react';
 
 import { OutputVariable } from '../../../types';
 
-const OutputFieldContainer = memo(({ output, ...props }: { output?: OutputVariable } & StackProps) => {
+function OutputFieldContainer({ output = undefined, ...props }: { output?: OutputVariable } & StackProps) {
   return (
     <Stack
       {...props}
-      sx={[{
-        gap: 1
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          gap: 1,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {output?.appearance?.title && (
         <Typography
           component="h6"
@@ -26,6 +29,6 @@ const OutputFieldContainer = memo(({ output, ...props }: { output?: OutputVariab
       {props.children}
     </Stack>
   );
-});
+}
 
-export default OutputFieldContainer;
+export default memo(OutputFieldContainer);

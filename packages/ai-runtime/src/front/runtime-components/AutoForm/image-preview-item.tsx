@@ -14,8 +14,8 @@ function ImagePreviewItem({
   return (
     <Box
       sx={{
-        position: "relative",
-        display: "flex"
+        position: 'relative',
+        display: 'flex',
       }}>
       <ImagePreview
         dataSource={[{ src: url, alt: `Uploaded ${index + 1}` }]}

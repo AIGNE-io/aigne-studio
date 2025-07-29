@@ -29,9 +29,12 @@ export default function ScrollView({
       <Box
         component={component}
         {...props}
-        sx={[{
-          flexGrow: 1
-        }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+        sx={[
+          {
+            flexGrow: 1,
+          },
+          ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+        ]}>
         {children}
       </Box>
     );
@@ -61,6 +64,7 @@ function ScrollViewWithinWindow({
     if (scroll === 'window') {
       setTarget(ele);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scroll]);
 
   if (!component) return children;
@@ -70,11 +74,14 @@ function ScrollViewWithinWindow({
       component={component}
       {...props}
       ref={scroll === 'element' ? setTarget : undefined}
-      sx={[{
-        flexGrow: 1,
-        ...(scroll === 'element' ? { flex: 1, height: '100%', overflow: 'auto', overscrollBehavior: 'contain' } : {}),
-        ...props.sx
-      }, ...(Array.isArray(props.sx) ? props.sx : [props.sx])]}>
+      sx={[
+        {
+          flexGrow: 1,
+          ...(scroll === 'element' ? { flex: 1, height: '100%', overflow: 'auto', overscrollBehavior: 'contain' } : {}),
+          ...props.sx,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {children}
     </Box>
   );

@@ -3,14 +3,16 @@ import { pick } from 'lodash';
 
 import { NumberParameter } from '../../types/assistant';
 
-const NumberField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    ...props
-  }
-) => {
+const NumberField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: NumberParameter;
+  onChange: (value: number) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = Number(e.target.value);
     if (parameter?.min !== undefined && newValue < parameter?.min) {
@@ -43,7 +45,7 @@ const NumberField = (
             max: parameter?.max,
             ...props.inputProps,
           },
-        }
+        },
       }}
     />
   );

@@ -9,7 +9,13 @@ interface Props extends IconButtonProps {
   children?: React.ReactNode;
 }
 
-export default function MenuButton({ sx, menus, children, MenuProps, ...restProps }: Props) {
+export default function MenuButton({
+  sx = undefined,
+  menus = undefined,
+  children = undefined,
+  MenuProps = undefined,
+  ...restProps
+}: Props) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -46,7 +52,7 @@ export default function MenuButton({ sx, menus, children, MenuProps, ...restProp
                 borderRadius: 0.5,
               },
             },
-          }
+          },
         }}
         anchorEl={anchorEl}
         anchorOrigin={{

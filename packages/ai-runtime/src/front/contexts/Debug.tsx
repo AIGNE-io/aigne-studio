@@ -21,9 +21,9 @@ export interface DebugContextValue {
 const debugContext = createContext<UseBoundStore<StoreApi<DebugContextValue>> | null>(null);
 
 export function DebugProvider({
-  children,
-  openSettings,
-  agentId: defaultAgentId,
+  children = undefined,
+  openSettings = undefined,
+  agentId: defaultAgentId = undefined,
   autoFocus = false,
 }: {
   children?: React.ReactNode;
@@ -93,7 +93,7 @@ export interface DebugDialogContextValue {
 
 const debugDialogContext = createContext<UseBoundStore<StoreApi<DebugDialogContextValue>> | null>(null);
 
-export function DebugDialogProvider({ children }: { children?: React.ReactNode }) {
+export function DebugDialogProvider({ children = undefined }: { children?: React.ReactNode }) {
   const [state] = useState(() =>
     create(
       immer<DebugDialogContextValue>((set) => ({

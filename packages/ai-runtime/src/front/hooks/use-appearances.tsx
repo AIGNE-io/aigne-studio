@@ -40,6 +40,7 @@ export function useAppearances(args?: { aid: string }) {
       output,
       outputSettings: output ? { id: output.id } : { name: RuntimeOutputVariable.appearancePage },
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agent]);
 
   const appearanceInput = useMemo(() => {
@@ -119,6 +120,7 @@ export function useProfile(args?: { aid: string }) {
           ? { ...entryAppearance, componentId: entryAppearance.componentId }
           : { componentId: DEFAULT_HEADER_COMPONENT_ID },
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agent, entryAgent]);
 }
 

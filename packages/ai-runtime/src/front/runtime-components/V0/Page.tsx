@@ -71,9 +71,10 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
   return (
     <ThemeProvider theme={theme}>
       <CurrentAgentProvider aid={activeAid}>
-        <Box sx={{
-          flex: 1
-        }}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <Container
             sx={{
               height: '100%',
@@ -130,9 +131,11 @@ function V0ListRender() {
   const { t } = useLocaleContext();
 
   return (
-    <Box key="list-render" sx={{
-      flex: 1
-    }}>
+    <Box
+      key="list-render"
+      sx={{
+        flex: 1,
+      }}>
       <Typography variant="h2" color="textColor" sx={{ fontWeight: 'bold', mt: isMobile ? 3 : 6 }}>
         {agent?.project?.name || t('v0.title')}
       </Typography>
@@ -169,9 +172,9 @@ function V0ListRender() {
                   fallback={
                     <Stack
                       sx={{
-                        alignItems: "center",
-                        justifyContent: "center",
-                        my: 4
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        my: 4,
                       }}>
                       <CircularProgress size={24} />
                     </Stack>
@@ -307,6 +310,7 @@ function V0DetailRender() {
         setCurrentMessageTaskId(latestMessage.id);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagesList, currentMessageTaskId]);
 
   const sliderOpen = isMobile ? sliderOpenInMobile : true;
@@ -326,7 +330,7 @@ function V0DetailRender() {
         display: 'flex',
         gap: 2,
         height: '100%',
-        flexDirection: isMobile ? 'column' : 'row'
+        flexDirection: isMobile ? 'column' : 'row',
       }}>
       <Box
         key="slider"
@@ -504,7 +508,7 @@ function V0DetailRender() {
                             enter: 500,
                             exit: 0,
                           },
-                        }
+                        },
                       }}>
                       <Chip
                         label={`V${messagesList.length - i - 1}`}

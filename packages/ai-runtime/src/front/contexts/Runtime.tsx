@@ -12,11 +12,11 @@ import { SessionProvider } from './Session';
 import { SessionsProvider, useSessions } from './Sessions';
 
 export const RuntimeProvider = ({
-  children,
+  children = undefined,
   aid,
-  working,
-  debug,
-  ApiProps,
+  working = undefined,
+  debug = undefined,
+  ApiProps = undefined,
 }: {
   children?: ReactNode;
   aid: string;
@@ -48,7 +48,7 @@ export const RuntimeProvider = ({
   );
 };
 
-function RuntimeView({ children }: { children?: ReactNode }) {
+function RuntimeView({ children = undefined }: { children?: ReactNode }) {
   const {
     currentSessionId,
     setCurrentSessionId,

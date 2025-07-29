@@ -9,6 +9,7 @@ export function useAutoUpdateState<S>(
 
   const state = useMemo<S>(
     () => (typeof initialState === 'function' ? (initialState as Function)() : initialState),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     deps
   );
 
@@ -24,6 +25,7 @@ export function useAutoUpdateState<S>(
   const setState = useCallback<Dispatch<SetStateAction<S>>>((n) => {
     current.current = typeof n === 'function' ? (n as Function)(current.current) : n;
     update();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return [current.current, setState];

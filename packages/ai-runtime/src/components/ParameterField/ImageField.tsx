@@ -5,15 +5,17 @@ import { pick } from 'lodash';
 import { useUploader } from '../../context/uploader';
 import { StringParameter } from '../../types/assistant';
 
-const ImageField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const ImageField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: StringParameter;
+  onChange: (value: string) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   const uploaderRef = useUploader();
 
   return (
@@ -33,8 +35,8 @@ const ImageField = (
               <Stack
                 direction="row"
                 sx={{
-                  alignItems: "center",
-                  gap: 1
+                  alignItems: 'center',
+                  gap: 1,
                 }}>
                 <IconButton
                   onClick={() => {
@@ -50,7 +52,7 @@ const ImageField = (
               </Stack>
             </InputAdornment>
           ),
-        }
+        },
       }}
     />
   );

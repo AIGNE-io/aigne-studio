@@ -7,7 +7,7 @@ import { useSession } from '../../contexts/Session';
 
 export type SuggestedQuestionsViewPropValue = Array<{ question: string }>;
 
-export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMessage?: boolean }) {
+export default function SuggestedQuestionsView({ onlyLastMessage = false }: { onlyLastMessage?: boolean }) {
   const { outputValue, output } = useCurrentMessageOutput<SuggestedQuestionsViewPropValue>();
 
   const { message } = useCurrentMessage({ optional: true }) ?? {};
@@ -23,9 +23,10 @@ export default function SuggestedQuestionsView({ onlyLastMessage }: { onlyLastMe
 
   return (
     <OutputFieldContainer output={output}>
-      <Stack sx={{
-        gap: 1
-      }}>
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         {outputValue.map((item) => (
           <MessageSuggestedQuestion
             key={item.question}

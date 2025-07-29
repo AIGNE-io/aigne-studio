@@ -35,8 +35,10 @@ export async function copyDirectory(
     const destPath = path.join(dest, entry.name);
 
     if (entry.isDirectory()) {
+      // eslint-disable-next-line no-await-in-loop
       await copyDirectory(srcPath, destPath, { skip });
     } else {
+      // eslint-disable-next-line no-await-in-loop
       await copyFile(srcPath, destPath, { skip });
     }
   }

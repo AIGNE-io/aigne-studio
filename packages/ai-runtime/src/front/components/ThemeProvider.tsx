@@ -20,7 +20,7 @@ import { useEntryAgent } from '../contexts/EntryAgent';
 import { chineseFonts } from '../utils/fonts';
 import GlobalLoading from './GlobalLoading';
 
-export default function ThemeProvider({ children }: { children?: ReactNode }) {
+export default function ThemeProvider({ children = undefined }: { children?: ReactNode }) {
   const { aid } = useEntryAgent();
   const agent = useAgent({ aid });
   const { appearance } = agent.project;
@@ -176,6 +176,7 @@ export default function ThemeProvider({ children }: { children?: ReactNode }) {
         ...tempTheme.shadows.slice(3),
       ],
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   const fontUrls = useMemo(() => {
@@ -226,8 +227,8 @@ export default function ThemeProvider({ children }: { children?: ReactNode }) {
             <Stack
               sx={{
                 flexGrow: 1,
-                alignItems: "center",
-                justifyContent: "center"
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
               <CircularProgress size={24} />
             </Stack>

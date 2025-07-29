@@ -54,9 +54,10 @@ export default function PhotoGalleryItem() {
         // 首屏 image 不能用 lazy，会闪烁乱序
         loading={index < 12 ? 'eager' : 'lazy'}
         sx={{
-          width: "100%",
-          height: "100%"
-        }} />
+          width: '100%',
+          height: '100%',
+        }}
+      />
       <Box
         className="photo-wall-item-alt"
         sx={{
@@ -198,7 +199,7 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
         <Stack
           sx={{
             gap: 2.5,
-            flexDirection: { md: 'row' }
+            flexDirection: { md: 'row' },
           }}>
           <Stack sx={{ flex: 3, width: { xs: '100%', md: 0 }, gap: 1 }}>
             <Box

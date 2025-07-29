@@ -58,14 +58,12 @@ const FieldComponentMap = {
   [key: string]: FileItemProps;
 };
 
-const PropertiesSetting = (
-  {
-    ref,
-    ...props
-  }: PropertiesSettingProps & {
-    ref: React.RefObject<unknown | null>;
-  }
-) => {
+const PropertiesSetting = ({
+  ref,
+  ...props
+}: PropertiesSettingProps & {
+  ref: React.RefObject<unknown | null>;
+}) => {
   const { t, locale } = useLocaleContext();
   const ConfirmDialogRef = useRef<any>(undefined);
   const valuesRef = useRef({});

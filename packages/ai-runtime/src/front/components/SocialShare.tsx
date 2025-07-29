@@ -29,7 +29,6 @@ interface SocialShareMenuProps extends BoxProps {
 
 interface SocialShareButtonsProps extends SocialShareMenuProps {
   itemSx?: BoxProps['sx'];
-  onClick?: () => void;
   bgFill?: string;
   iconFill?: string;
   sx?: BoxProps['sx'];
@@ -43,14 +42,13 @@ const getFormattedUrl = (url: string) => {
   return urlObj.toString();
 };
 
-export default function SocialShare(
-  props: SocialShareMenuProps &
-    SocialShareButtonsProps & {
-      type?: 'menu' | 'buttons';
-    }
-) {
-  const { type = 'menu', ...restProps } = props;
-
+export default function SocialShare({
+  type = 'menu',
+  ...restProps
+}: SocialShareMenuProps &
+  SocialShareButtonsProps & {
+    type?: 'menu' | 'buttons';
+  }) {
   const { locale } = useLocaleContext();
 
   const renderContent = useCallback(() => {
@@ -74,7 +72,7 @@ export function SocialShareMenu({
   url = getFormattedUrl(window.location.href),
   content,
   children = <Icon icon="tabler:share" />,
-  MenuProps,
+  MenuProps = undefined,
   disableCopyLink = false,
   ...restProps
 }: SocialShareMenuProps & IconButtonProps) {
@@ -177,11 +175,10 @@ export function SocialShareMenu({
 export function SocialShareButtons({
   url = getFormattedUrl(window.location.href),
   content,
-  sx,
-  itemSx,
-  onClick,
-  bgFill,
-  iconFill,
+  sx = undefined,
+  itemSx = undefined,
+  bgFill = undefined,
+  iconFill = undefined,
   ...rest
 }: SocialShareButtonsProps) {
   const mergedSx: BoxProps['sx'] = [

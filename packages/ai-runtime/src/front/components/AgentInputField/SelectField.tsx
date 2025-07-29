@@ -3,15 +3,17 @@ import { isNil } from 'lodash';
 
 import { SelectParameter } from '../../../types';
 
-const SelectField = (
-  {
-    ref,
-    readOnly,
-    parameter,
-    onChange,
-    ...props
-  }
-) => {
+const SelectField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: SelectParameter;
+  onChange: (value: string | string[]) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   return (
     <TextField
       ref={ref}
@@ -54,7 +56,7 @@ const SelectField = (
               },
             },
           },
-        }
+        },
       }}>
       {parameter?.options?.map((option) => (
         <MenuItem key={option.id} value={option.value || option.label}>

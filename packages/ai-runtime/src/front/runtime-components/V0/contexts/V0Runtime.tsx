@@ -13,7 +13,7 @@ const context = createContext<V0RuntimeContext | undefined>(undefined);
 
 let cancelAutoScrollTimer: any;
 
-export function V0RuntimeProvider({ children }: { children?: ReactNode }) {
+export function V0RuntimeProvider({ children = undefined }: { children?: ReactNode }) {
   const [currentMessageTaskId, setCurrentMessageTaskId] = useState<string | undefined>();
   const [propertiesValueMap, setPropertiesValueMap] = useState(
     {} as {
@@ -24,7 +24,7 @@ export function V0RuntimeProvider({ children }: { children?: ReactNode }) {
 
   const state = useMemo(
     () =>
-      (({
+      ({
         setCurrentMessageTaskId: (taskId: string | undefined) => {
           setCurrentMessageTaskId(taskId);
 
@@ -65,8 +65,8 @@ export function V0RuntimeProvider({ children }: { children?: ReactNode }) {
           });
         },
 
-        isMobile
-      }) as V0RuntimeContext),
+        isMobile,
+      }) as V0RuntimeContext,
     [setCurrentMessageTaskId, currentMessageTaskId, propertiesValueMap, setPropertiesValueMap, isMobile]
   );
 

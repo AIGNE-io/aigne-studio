@@ -34,11 +34,11 @@ export function useUploader() {
 }
 
 export default function UploaderProvider({
-  children,
-  restrictions,
-  plugins,
-  dashboardProps,
-  apiPathProps,
+  children = undefined,
+  restrictions = undefined,
+  plugins = undefined,
+  dashboardProps = undefined,
+  apiPathProps = undefined,
 }: UploaderProviderProps) {
   const uploaderRef = useRef<any>(null);
 

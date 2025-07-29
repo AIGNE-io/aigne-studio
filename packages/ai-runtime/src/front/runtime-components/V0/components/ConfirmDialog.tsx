@@ -16,14 +16,12 @@ type OpenParamsProps = {
 
 interface ConfirmDialogProps extends Omit<DialogProps, 'open'> {}
 
-const ConfirmDialog = (
-  {
-    ref,
-    ...props
-  }: ConfirmDialogProps & {
-    ref: React.RefObject<unknown | null>;
-  }
-) => {
+const ConfirmDialog = ({
+  ref,
+  ...props
+}: ConfirmDialogProps & {
+  ref: React.RefObject<unknown | null>;
+}) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openParams, setOpenParams] = useState<OpenParamsProps>({});
 
@@ -41,13 +39,13 @@ const ConfirmDialog = (
   useImperativeHandle(
     ref,
     () =>
-      (({
+      ({
         open,
-        close
+        close,
       }) as {
         open: (params: OpenParamsProps) => void;
         close: () => void;
-      })
+      }
   );
 
   const { title, children, onConfirm, onCancel, onConfirmProps, onCancelProps } = openParams as OpenParamsProps;

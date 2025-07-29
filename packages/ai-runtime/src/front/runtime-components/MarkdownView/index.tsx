@@ -5,7 +5,7 @@ import MarkdownRenderer from '../../components/MarkdownRenderer';
 import OutputFieldContainer from '../../components/OutputFieldContainer';
 import { useCurrentMessage, useCurrentMessageOutput } from '../../contexts/CurrentMessage';
 
-export default function MarkdownView({ fontSize }: { fontSize?: string | number }) {
+export default function MarkdownView({ fontSize = undefined }: { fontSize?: string | number }) {
   const { outputValue, output } = useCurrentMessageOutput<string | undefined>();
 
   const writing = useCurrentMessage().message.loading && output.name === RuntimeOutputVariable.text;

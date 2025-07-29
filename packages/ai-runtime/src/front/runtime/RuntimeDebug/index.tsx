@@ -36,8 +36,8 @@ import { useAppearances } from '../../hooks/use-appearances';
 
 export default function RuntimeDebug({
   aid,
-  ApiProps,
-  hideSessionsBar,
+  ApiProps = undefined,
+  hideSessionsBar = false,
 }: {
   aid: string;
   ApiProps?: Partial<AIGNEApiContextValue>;
@@ -66,8 +66,8 @@ function DebugView() {
       fallback={
         <Box
           sx={{
-            textAlign: "center",
-            my: 4
+            textAlign: 'center',
+            my: 4,
           }}>
           <CircularProgress size={24} />
         </Box>
@@ -136,8 +136,8 @@ function SessionsBar() {
       direction="row"
       sx={{
         p: 2,
-        alignItems: "center",
-        gap: 2
+        alignItems: 'center',
+        gap: 2,
       }}>
       {loaded && !sessions?.length ? (
         <LoadingButton onClick={newSession}>New Session</LoadingButton>
@@ -148,7 +148,13 @@ function SessionsBar() {
             disableUnderline
             size="small"
             autoWidth
-            placeholder="Select a session"
+            renderValue={(selected) => {
+              if (!selected) {
+                return <em>Select a session</em>;
+              }
+
+              return selected;
+            }}
             displayEmpty
             value={currentSessionId || ''}
             onChange={(e) => setCurrentSessionId(e.target.value)}
@@ -164,8 +170,8 @@ function SessionsBar() {
             <MenuItem disabled value="">
               <Typography
                 sx={{
-                  fontStyle: "italic",
-                  color: "text.secondary"
+                  fontStyle: 'italic',
+                  color: 'text.secondary',
                 }}>
                 Select session
               </Typography>
@@ -196,9 +202,11 @@ function SessionsBar() {
           </Tooltip>
         </>
       )}
-      <Box sx={{
-        flex: 1
-      }} />
+      <Box
+        sx={{
+          flex: 1,
+        }}
+      />
       <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
         <Icon icon={WandIcon} fontSize={18} />
       </LoadingButton>

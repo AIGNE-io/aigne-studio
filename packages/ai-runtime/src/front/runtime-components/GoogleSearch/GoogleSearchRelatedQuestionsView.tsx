@@ -13,7 +13,7 @@ export type GoogleSearchRelatedViewPropValue = Array<{
   title: string;
 }>;
 
-export default function GoogleSearchRelatedView({ onlyLastMessage }: { onlyLastMessage?: boolean }) {
+export default function GoogleSearchRelatedView({ onlyLastMessage = false }: { onlyLastMessage?: boolean }) {
   const { aid } = useCurrentAgent();
   const { message } = useCurrentMessage({ optional: true }) ?? {};
 
