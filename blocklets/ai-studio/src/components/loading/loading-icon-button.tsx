@@ -7,10 +7,10 @@ interface LoadingIconButtonProps extends IconButtonProps {
 }
 
 const LoadingIconButton = ({
-  ref,
+  ref = undefined,
   onClick,
   icon,
-  size,
+  size = undefined,
   ...props
 }: LoadingIconButtonProps & {
   ref?: React.Ref<HTMLButtonElement>;

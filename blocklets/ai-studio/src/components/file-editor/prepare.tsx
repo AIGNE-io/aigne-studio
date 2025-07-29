@@ -12,9 +12,9 @@ export default function Prepare({
   projectId,
   gitRef,
   value,
-  disabled,
-  compareValue,
-  isRemoteCompare,
+  disabled = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;

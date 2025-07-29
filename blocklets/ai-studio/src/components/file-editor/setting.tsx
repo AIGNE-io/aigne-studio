@@ -21,7 +21,7 @@ export default function PromptSetting({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;

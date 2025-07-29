@@ -218,6 +218,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       provider.off('synced', onSynced);
       provider.awareness.off('change', onAwarenessChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, gitRef]);
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
@@ -254,6 +255,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       syncedStore.tree[VARIABLE_FILE_PATH] = VARIABLE_FILE_PATH;
       syncedStore.files[VARIABLE_FILE_PATH] = { variables: [] };
       return syncedStore.files[VARIABLE_FILE_PATH] as MemoryFileYjs;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncedStore.files]),
   };
 };
@@ -289,7 +291,7 @@ export function createFolder({
         i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
       )
     );
-
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const n = index ? `${name} ${index}` : name;
       index++;
@@ -326,7 +328,7 @@ export function createFileName({
         .map((i: any) => i.name)
         .filter((i) => i)
     );
-
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const n = index ? `${defaultName} ${index}` : defaultName;
       index++;

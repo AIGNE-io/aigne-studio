@@ -417,7 +417,7 @@ function ProjectPageView() {
 
 function PanelToggleButton({
   placement,
-  collapsed,
+  collapsed = undefined,
   ...props
 }: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
   const { t } = useLocaleContext();

@@ -4,7 +4,7 @@ import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 export default function ({
-  content,
+  content = undefined,
   ...props
 }: { content?: string } & Pick<BoxProps, 'sx'> & ComponentProps<typeof Markdown>) {
   return (
@@ -37,7 +37,7 @@ export default function ({
 
 const ReactSyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then((m) => ({ default: m.Prism })));
 
-function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
+function MarkdownPre({ children = undefined, ...props }: { children?: ReactNode }) {
   const childrenProps = (children as ReactElement<any>)?.props;
 
   if (!childrenProps?.children) return null;

@@ -67,7 +67,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
 function PublishDialog({
   project,
   onClose,
-  onOpened,
+  onOpened = undefined,
 }: {
   project: Project;
   onClose: () => void;

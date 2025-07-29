@@ -15,7 +15,13 @@ interface Props {
   project?: ProjectSettings;
 }
 
-export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
+export function MultiTenantBrandGuard({
+  deployment = undefined,
+  project = undefined,
+  sx,
+  children,
+  ...rest
+}: Props & BoxProps) {
   const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
   const { session } = useSessionContext();
   const isAdmin = useIsAdmin();

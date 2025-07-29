@@ -12,8 +12,8 @@ export interface ImperativeColumnsLayout {
 
 const ColumnsLayout = ({
   ref,
-  onLeftCollapse,
-  onRightCollapse,
+  onLeftCollapse = undefined,
+  onRightCollapse = undefined,
   ...props
 }: {
   left?: ReactNode | ((props: { isLargeScreen: boolean; leftOpen: boolean; rightOpen: boolean }) => ReactNode);
@@ -160,7 +160,7 @@ const ColumnsLayout = ({
 
 export default ColumnsLayout;
 
-function ResizeHandle({ collapsed, ...props }: { collapsed?: boolean } & BoxProps) {
+function ResizeHandle({ collapsed = undefined, ...props }: { collapsed?: boolean } & BoxProps) {
   return (
     <ResizeHandleRoot
       component={PanelResizeHandle}

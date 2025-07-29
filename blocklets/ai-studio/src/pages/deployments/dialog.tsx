@@ -40,9 +40,9 @@ export default function DeploymentDialog({
   id,
   access,
   categories = [],
-  orderIndex,
-  productHuntUrl,
-  productHuntBannerUrl,
+  orderIndex = undefined,
+  productHuntUrl = undefined,
+  productHuntBannerUrl = undefined,
   showVisibility = true,
   run,
 }: {

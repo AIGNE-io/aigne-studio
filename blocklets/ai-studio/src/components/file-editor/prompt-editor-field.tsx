@@ -28,17 +28,17 @@ const textStyle = `
 `;
 
 export default function PromptEditorField({
-  placeholder,
+  placeholder = undefined,
   projectId,
   gitRef,
   path,
-  assistant,
-  value,
+  assistant = undefined,
+  value = undefined,
   onChange,
-  readOnly,
-  includeOutputVariables,
-  role,
-  CallAssistantIndex,
+  readOnly = undefined,
+  includeOutputVariables = undefined,
+  role = undefined,
+  CallAssistantIndex = undefined,
   ...props
 }: {
   placeholder?: string;

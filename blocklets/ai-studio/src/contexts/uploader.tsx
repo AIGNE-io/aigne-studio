@@ -25,7 +25,7 @@ export function useUploader() {
 }
 
 export function UploaderButton({
-  onChange,
+  onChange = undefined,
   allowedFileTypes = defaultAllowedFileTypes,
   ...props
 }: { onChange?: Function; allowedFileTypes?: string[] } & Omit<IconButtonProps, 'onChange'>) {
@@ -58,7 +58,7 @@ export function UploaderButton({
 }
 
 const UploaderProvider = ({
-  ref,
+  ref = undefined,
   ...props
 }: UploaderProviderProps & {
   ref?: React.Ref<HTMLDivElement>;

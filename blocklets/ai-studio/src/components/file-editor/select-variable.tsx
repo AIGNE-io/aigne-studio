@@ -24,11 +24,11 @@ function sortVariables(variables: VariableYjs[]) {
 const filter = createFilterOptions<any>();
 
 function SelectVariable({
-  placeholder,
+  placeholder = undefined,
   variables,
-  variable,
+  variable = undefined,
   onChange,
-  onDelete,
+  onDelete = undefined,
 }: {
   placeholder?: string;
   variables: VariableYjs[];

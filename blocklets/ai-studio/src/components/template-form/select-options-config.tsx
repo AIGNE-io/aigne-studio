@@ -12,7 +12,7 @@ import Trash from '../../pages/project/icons/trash';
 import { DragSortListYjs } from '../drag-sort-list';
 
 export default function SelectOptionsConfig({
-  readOnly,
+  readOnly = undefined,
   select,
 }: {
   readOnly?: boolean;

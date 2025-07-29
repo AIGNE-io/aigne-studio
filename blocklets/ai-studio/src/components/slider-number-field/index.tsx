@@ -4,13 +4,13 @@ import React from 'react';
 import Slider from '../custom/slider';
 
 export default function SliderNumberField({
-  readOnly,
-  disabled,
-  value,
-  min,
-  max,
-  step,
-  onChange,
+  readOnly = undefined,
+  disabled = undefined,
+  value = undefined,
+  min = undefined,
+  max = undefined,
+  step = undefined,
+  onChange = undefined,
   ...props
 }: {
   readOnly?: boolean;

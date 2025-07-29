@@ -110,6 +110,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
         throw error;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addRemote, form, projectId]
   );
 

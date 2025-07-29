@@ -25,9 +25,9 @@ export default function PromptSetting({
   projectId,
   gitRef,
   value,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -176,9 +176,9 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
 
 function DefaultPromptSetting({
   agent,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   agent: PromptAssistantYjs | RouterAssistantYjs;
   readOnly?: boolean;

@@ -66,7 +66,7 @@ export default function ProjectBrand() {
 function ProjectIcon({
   projectId,
   projectRef,
-  working,
+  working = undefined,
   ...props
 }: { projectId: string; projectRef: string; working?: boolean } & BoxProps) {
   const { projectSetting } = useProjectStore(projectId, projectRef);
@@ -88,7 +88,7 @@ function ProjectIcon({
 function ProjectName({
   projectId,
   projectRef,
-  working,
+  working = undefined,
   ...props
 }: { projectId: string; projectRef: string; working?: boolean } & TypographyProps) {
   const { t } = useLocaleContext();

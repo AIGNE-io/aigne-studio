@@ -194,7 +194,7 @@ const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
   boxShadow: 'none',
 }));
 
-function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
+function BaseTrace({ deep = undefined, input }: { deep?: number; input: MessageInput }) {
   const pickInput = pick(
     input,
     'startTime',
@@ -241,7 +241,7 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
   );
 }
 
-function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
+function BasicTree({ inputs = undefined }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
   if (!Array.isArray(inputs)) return null;
   return (
     <Stack

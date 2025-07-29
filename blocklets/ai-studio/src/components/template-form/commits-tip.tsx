@@ -23,9 +23,9 @@ import { Commit } from '../../libs/log';
 import Avatar from '../avatar';
 
 export default function CommitsTip({
-  loading,
-  commits,
-  hash,
+  loading = undefined,
+  commits = undefined,
+  hash = undefined,
   children,
   onCommitSelect,
 }: {
@@ -103,11 +103,11 @@ const Tooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 export function CommitListView({
-  commits,
-  loading,
-  selected,
-  onClick,
-  listProps,
+  commits = undefined,
+  loading = undefined,
+  selected = undefined,
+  onClick = undefined,
+  listProps = undefined,
 }: {
   commits?: Commit[];
   loading?: boolean;

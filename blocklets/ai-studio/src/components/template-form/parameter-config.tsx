@@ -20,7 +20,7 @@ import SelectOptionsConfig from './select-options-config';
 
 const fixedTrustedIssuers = ['current_application'];
 
-export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
+export default function ParameterConfig({ readOnly = undefined, value }: { readOnly?: boolean; value: ParameterYjs }) {
   const { t } = useLocaleContext();
 
   const stringValue = !value.type || value.type === 'string' ? (value as typeof value & { type: 'string' }) : undefined;

@@ -22,7 +22,7 @@ import { useProjectState } from './state';
 export default function BranchButton({
   projectId,
   gitRef,
-  filepath,
+  filepath = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -229,10 +229,10 @@ function BranchList({
   projectId,
   _ref: ref,
   isDefault,
-  onItemClick,
-  onCreate,
-  onRename,
-  onDelete,
+  onItemClick = undefined,
+  onCreate = undefined,
+  onRename = undefined,
+  onDelete = undefined,
 }: {
   projectId: string;
   _ref: string;

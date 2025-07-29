@@ -1036,12 +1036,12 @@ type Option = {
 };
 
 export function SelectTool<Multiple extends boolean | undefined>({
-  placeholder,
+  placeholder = undefined,
   options,
-  value,
-  onChange,
-  multiple,
-  renderOption,
+  value = undefined,
+  onChange = undefined,
+  multiple = undefined,
+  renderOption = undefined,
 }: {
   placeholder?: string;
   options: Option[];
@@ -1599,7 +1599,7 @@ export function AuthorizeButton({ agent }: { agent: NonNullable<ReturnType<typeo
 
 function AuthorizeParametersFormDialog({
   agent,
-  onSuccess,
+  onSuccess = undefined,
   ...props
 }: { agent: NonNullable<ReturnType<typeof useAgent>>; onSuccess?: () => void } & DialogProps) {
   const { t } = useLocaleContext();
@@ -1673,7 +1673,7 @@ function AuthorizeParametersFormDialog({
 
 function PopperButton({
   parameter,
-  readOnly,
+  readOnly = undefined,
   value,
   projectId,
   gitRef,

@@ -447,7 +447,7 @@ function Actions({
   );
 }
 
-export const DocumentIcon = ({ document }: { document?: KnowledgeDocumentCard }) => {
+export const DocumentIcon = ({ document = undefined }: { document?: KnowledgeDocumentCard }) => {
   if (!document)
     return (
       <Box

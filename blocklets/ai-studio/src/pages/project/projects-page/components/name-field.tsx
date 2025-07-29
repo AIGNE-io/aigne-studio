@@ -14,7 +14,12 @@ interface NameFieldProps {
   beforeDuplicateProjectNavigate?: () => void;
 }
 
-const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicateProjectNavigate }: NameFieldProps) => {
+const NameField = ({
+  form,
+  projectId = undefined,
+  triggerOnMount = false,
+  beforeDuplicateProjectNavigate = undefined,
+}: NameFieldProps) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const [duplicateProject, setDuplicateProject] = useState<Project | undefined>();
@@ -69,9 +74,9 @@ const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicatePro
 };
 
 const HelperText = ({
-  message,
-  project,
-  onDuplicateProject,
+  message = undefined,
+  project = undefined,
+  onDuplicateProject = undefined,
 }: {
   message?: string;
   project?: Project;

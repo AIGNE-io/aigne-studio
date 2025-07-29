@@ -78,7 +78,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   );
 }
 
-function SettingsDialog({ children }: { children?: ReactNode }) {
+function SettingsDialog({ children = undefined }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
   const close = useDebug((s) => s.close);
 
@@ -129,7 +129,7 @@ const internalOutputs = new Set([
   RuntimeOutputVariable.openingQuestions,
 ]);
 
-function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
+function AgentAppearanceSettings({ children = undefined }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
   const agentId = useDebug((s) => s.agentId);
   const outputId = useDebug((s) => s.outputId);
@@ -197,7 +197,12 @@ interface HoverableTabsProps extends TabsProps {
   TabProps?: Partial<TabProps>;
 }
 
-const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: HoverableTabsProps) => {
+const HoverableTabs = ({
+  onTabHover = undefined,
+  onTabMouseLeave = undefined,
+  TabProps = undefined,
+  ...props
+}: HoverableTabsProps) => {
   const hoveredTabId = useDebug((s) => s.tabId);
 
   return (
@@ -224,8 +229,8 @@ const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: Hove
 
 function AppearanceSettingTabs({
   agentId,
-  onTabHover,
-  onTabMouseLeave,
+  onTabHover = undefined,
+  onTabMouseLeave = undefined,
   ...props
 }: { agentId: string; onTabHover?: (value: string) => void; onTabMouseLeave?: () => void } & TabsProps) {
   const { t } = useLocaleContext();

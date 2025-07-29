@@ -165,7 +165,7 @@ function DeployApp({
   projectId,
   projectRef,
   run,
-  sx,
+  sx = undefined,
 }: {
   projectId: string;
   projectRef: string;
@@ -325,7 +325,7 @@ function DeployApp({
   );
 }
 
-function UpdateApp({ id, data, run, sx }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
+function UpdateApp({ id, data, run, sx = undefined }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
 
@@ -608,8 +608,8 @@ function useEnsureEntryAgent() {
 
 function EntryAgentSelect({
   files,
-  value,
-  onChange,
+  value = undefined,
+  onChange = undefined,
 }: {
   files: AssistantYjs[];
   value?: string;

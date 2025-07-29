@@ -19,11 +19,11 @@ export interface PopperMenuImperative {
 }
 
 const PopperMenu = ({
-  ref,
-  children,
-  ButtonProps,
-  BoxProps,
-  PopperProps,
+  ref = undefined,
+  children = undefined,
+  ButtonProps = undefined,
+  BoxProps = undefined,
+  PopperProps = undefined,
 }: {
   children?: ReactNode;
   ButtonProps?: ButtonProps;

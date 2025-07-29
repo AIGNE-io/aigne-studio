@@ -47,7 +47,7 @@ import ImportKnowledge from './import';
 
 function PanelToggleButton({
   placement,
-  collapsed,
+  collapsed = undefined,
   ...props
 }: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
   const { t } = useLocaleContext();
@@ -609,11 +609,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
 const Header = ({
   disabled,
   knowledgeId,
-  title,
-  description,
-  docs,
-  totalSize,
-  icon,
+  title = undefined,
+  description = undefined,
+  docs = undefined,
+  totalSize = undefined,
+  icon = undefined,
   onBack,
   onAdd,
 }: {
@@ -813,7 +813,15 @@ const Header = ({
   );
 };
 
-const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; icon?: string; disabled: boolean }) => {
+const KnowledgeIcon = ({
+  knowledgeId,
+  icon = undefined,
+  disabled,
+}: {
+  knowledgeId: string;
+  icon?: string;
+  disabled: boolean;
+}) => {
   const uploaderRef = useUploader();
   const [localIcon, setIcon] = useState<string | undefined>(icon);
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);

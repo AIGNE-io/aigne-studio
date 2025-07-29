@@ -2,7 +2,7 @@ import { LoadingButtonProps, LoadingButton as MuiLoadingButton } from '@mui/lab'
 import { MouseEvent, useCallback, useState } from 'react';
 
 const LoadingButton = ({
-  ref,
+  ref = undefined,
   onClick,
   ...props
 }: LoadingButtonProps & {

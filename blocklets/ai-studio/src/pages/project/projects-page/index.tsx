@@ -820,19 +820,19 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 }
 
 function ProjectItem({
-  pinned,
-  name,
+  pinned = undefined,
+  name = undefined,
   description,
-  createdAt,
-  actions,
+  createdAt = undefined,
+  actions = undefined,
   section,
-  gitUrl,
-  users,
+  gitUrl = undefined,
+  users = undefined,
   loading = false,
   didSpaceAutoSync,
   id,
   updatedAt,
-  blockletDid,
+  blockletDid = undefined,
   ...props
 }: {
   section: string;
@@ -1146,7 +1146,15 @@ const ProjectListContainer = styled(Box)`
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;
 
-function ButtonPopper({ children, list, onClick }: { children: any; list?: any; onClick?: any }) {
+function ButtonPopper({
+  children,
+  list = undefined,
+  onClick = undefined,
+}: {
+  children: any;
+  list?: any;
+  onClick?: any;
+}) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
 

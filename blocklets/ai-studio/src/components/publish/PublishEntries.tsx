@@ -104,8 +104,8 @@ function EntryItemView({
   drag,
   drop,
   preview,
-  onDelete,
-  onClick,
+  onDelete = undefined,
+  onClick = undefined,
 }: {
   entry: NonNullable<AssistantBase['entries']>[number];
   onDelete?: () => void;

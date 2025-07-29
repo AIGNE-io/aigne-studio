@@ -88,7 +88,7 @@ function createKnowledge(knowledgeId: string, params: CreateKnowledgeParams, doc
 }
 
 export default function ImportKnowledge({
-  documentId,
+  documentId = undefined,
   knowledgeId,
   onClose,
   onSubmit,
@@ -382,11 +382,11 @@ interface FileViewProps {
 
 export const FileView = ({
   ref,
-  fileName,
-  size,
+  fileName = undefined,
+  size = undefined,
   onChange,
 }: FileViewProps & {
-  ref: React.RefObject<HTMLDivElement | null>;
+  ref?: React.Ref<HTMLDivElement>;
 }) => {
   const { t } = useLocaleContext();
 

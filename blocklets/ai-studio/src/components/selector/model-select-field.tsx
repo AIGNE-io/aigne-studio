@@ -21,7 +21,10 @@ import OpenAIIcon from './ai-icons/openai';
 import ReplicateIcon from './ai-icons/replicate';
 import VertexAIIcon from './ai-icons/vertex-ai';
 
-export default function ModelSelectField({ isImageModel, ...props }: { isImageModel?: boolean } & TextFieldProps) {
+export default function ModelSelectField({
+  isImageModel = undefined,
+  ...props
+}: { isImageModel?: boolean } & TextFieldProps) {
   const { t } = useLocaleContext();
 
   const { value, loading, error } = useAsync<() => Promise<(TextModelInfo | ImageModelInfo)[]>>(() => {

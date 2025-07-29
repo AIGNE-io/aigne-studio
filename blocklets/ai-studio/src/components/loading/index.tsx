@@ -4,7 +4,7 @@ export interface LoadingProps extends BoxProps {
   fixed?: boolean;
 }
 
-export default function Loading({ fixed, sx, ...props }: LoadingProps) {
+export default function Loading({ fixed = undefined, sx, ...props }: LoadingProps) {
   return (
     <Box
       {...props}

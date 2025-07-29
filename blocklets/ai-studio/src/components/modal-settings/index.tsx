@@ -38,7 +38,7 @@ export function ModelSetting({
   projectId,
   gitRef,
   value,
-  readOnly,
+  readOnly = undefined,
   files,
 }: {
   projectId: string;

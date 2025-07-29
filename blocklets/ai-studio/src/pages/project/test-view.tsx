@@ -176,6 +176,7 @@ const TestCaseView = ({
       let mainTaskId: string | undefined;
 
       for (;;) {
+        // eslint-disable-next-line no-await-in-loop
         const { value, done } = await reader.read();
         if (value) {
           if (value instanceof Uint8Array) {

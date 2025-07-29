@@ -256,11 +256,11 @@ const KnowledgeCard = ({
   authorAvatar,
   date,
   maxLineClamp = 10,
-  disabled,
-  icon,
-  knowledgeId,
-  resourceBlockletDid,
-  action,
+  disabled = undefined,
+  icon = undefined,
+  knowledgeId = undefined,
+  resourceBlockletDid = undefined,
+  action = undefined,
   ...props
 }: {
   emoji: string;

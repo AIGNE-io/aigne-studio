@@ -54,9 +54,9 @@ export default function RouterAssistantEditor({
   projectId,
   gitRef,
   value,
-  compareValue,
-  disabled,
-  isRemoteCompare,
+  compareValue = undefined,
+  disabled = undefined,
+  isRemoteCompare = undefined,
   openApis = [],
 }: {
   projectId: string;
@@ -321,7 +321,7 @@ export function AgentItemView({
   projectRef,
   agent,
   assistant,
-  readOnly,
+  readOnly = undefined,
   onEdit,
   openApis = [],
   ...props
@@ -714,8 +714,8 @@ function AddSelectAgentPopperButton({
 
 function GroupView({
   name,
-  description,
-  children,
+  description = undefined,
+  children = undefined,
 
   ...props
 }: { name: string; description?: string; children?: any } & ListSubheaderProps) {
@@ -761,7 +761,7 @@ function AgentItemViewParameters({
   gitRef,
   tool,
   assistant,
-  openApis,
+  openApis = undefined,
 }: {
   assistant: RouterAssistantYjs;
   projectId: string;

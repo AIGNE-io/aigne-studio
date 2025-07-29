@@ -22,7 +22,7 @@ function CategoryCard({
   deployment,
   project,
   stats,
-  createdBy,
+  createdBy = undefined,
 }: {
   deployment: Deployment;
   project: ProjectSettings;

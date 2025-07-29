@@ -110,8 +110,8 @@ const FileTree = ({
   ref,
   projectId,
   gitRef,
-  current,
-  mutable,
+  current = undefined,
+  mutable = undefined,
   onLaunch,
   ...props
 }: {
@@ -629,15 +629,15 @@ function TreeItemMenus({
   gitRef,
   isChanged,
   item,
-  onRenameFolder,
-  onCreateFolder,
-  onRenameFile,
-  onCreateFile,
-  onDeleteFile,
-  onLaunch,
-  onCompare,
-  onUndo,
-  onSetAsEntry,
+  onRenameFolder = undefined,
+  onCreateFolder = undefined,
+  onRenameFile = undefined,
+  onCreateFile = undefined,
+  onDeleteFile = undefined,
+  onLaunch = undefined,
+  onCompare = undefined,
+  onUndo = undefined,
+  onSetAsEntry = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -885,13 +885,13 @@ function EditTextItem({
 }
 
 function TreeItem({
-  icon,
-  children,
+  icon = undefined,
+  children = undefined,
   depth = 0,
-  actions,
-  editing,
-  selected,
-  otherActions,
+  actions = undefined,
+  editing = undefined,
+  selected = undefined,
+  otherActions = undefined,
   ...props
 }: {
   icon?: ReactNode;

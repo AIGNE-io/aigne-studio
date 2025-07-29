@@ -63,8 +63,8 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
 
 const CodeEditor = ({
   ref,
-  readOnly,
-  maxHeight,
+  readOnly = undefined,
+  maxHeight = undefined,
   ...props
 }: { readOnly?: boolean; maxHeight?: number } & BoxProps<typeof Editor>) => {
   const monaco = useMonaco();

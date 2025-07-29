@@ -318,8 +318,8 @@ function Tag({ children }: { children: any }) {
 }
 
 export function SegmentsItem({
-  index,
-  content,
+  index = undefined,
+  content = undefined,
   ...props
 }: {
   index?: number;

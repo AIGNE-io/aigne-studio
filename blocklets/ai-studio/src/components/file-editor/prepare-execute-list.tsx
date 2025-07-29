@@ -12,9 +12,9 @@ export default function PrepareExecuteList({
   gitRef,
   value,
   assistant,
-  readOnly,
-  compareAssistant,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareAssistant = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;

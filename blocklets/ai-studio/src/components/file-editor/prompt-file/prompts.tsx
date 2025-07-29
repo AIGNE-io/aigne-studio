@@ -26,9 +26,9 @@ export default function PromptPrompts({
   projectId,
   gitRef,
   value,
-  compareValue,
-  disabled,
-  isRemoteCompare,
+  compareValue = undefined,
+  disabled = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -148,8 +148,8 @@ export default function PromptPrompts({
 function PromptItemMessage({
   assistant,
   value,
-  promptHidden,
-  readOnly,
+  promptHidden = undefined,
+  readOnly = undefined,
   projectId,
   gitRef,
   backgroundColor = {},
@@ -240,8 +240,8 @@ function PromptItemExecuteBlock({
   gitRef,
   value,
   assistant,
-  promptHidden,
-  readOnly,
+  promptHidden = undefined,
+  readOnly = undefined,
   backgroundColor,
 }: {
   projectId: string;

@@ -486,6 +486,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
         let mainTaskId: string | undefined;
 
         for (;;) {
+          // eslint-disable-next-line no-await-in-loop
           const { value, done } = await reader.read();
           if (value) {
             if (value instanceof Uint8Array) {
@@ -695,6 +696,7 @@ async function migrateDebugStateFroMLocalStorageToIndexedDB() {
         const json = JSON.parse(text!);
         const state = json[key];
         if (typeof state.projectId === 'string' && typeof state.templateId === 'string') {
+          // eslint-disable-next-line no-await-in-loop
           await localForage.setItem(key, {
             assistantId: state.templateId,
             ...omit(state, 'templateId'),
@@ -835,6 +837,7 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
       getYjsDoc(store).getMap('files').unobserveDeep(getFile);
       getYjsDoc(store).getMap('tree').unobserveDeep(getFile);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, ref]);
 
   const run = async () => {
@@ -897,6 +900,7 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
 
   useEffect(() => {
     if (projectId && ref) run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, ref]);
 
   return { ...state, changes, run, getOriginTemplate };

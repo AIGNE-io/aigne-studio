@@ -67,7 +67,7 @@ const ToolDialog = ({
   projectId,
   gitRef,
   onSubmit,
-  DialogProps,
+  DialogProps = undefined,
   openApis,
 }: {
   projectId: string;
@@ -272,7 +272,7 @@ const AgentParameters = ({
   assistant,
   openApis,
   form,
-  placeholder,
+  placeholder = undefined,
 }: {
   projectId: string;
   gitRef: string;

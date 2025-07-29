@@ -66,7 +66,13 @@ const init = {
   primaryColor: '#ffffff',
 };
 
-export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxProps; onClose?: () => void }) {
+export default function ProjectSettings({
+  boxProps = undefined,
+  onClose = undefined,
+}: {
+  boxProps?: BoxProps;
+  onClose?: () => void;
+}) {
   const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
 
@@ -130,6 +136,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
       origin.current = merge;
       setValue(merge);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getCurrentBranch, project, projectId, projectSetting?.iconVersion]);
 
   const set = (key: string, value: any) => {
@@ -213,6 +220,7 @@ export default function ProjectSettings({ boxProps, onClose }: { boxProps?: BoxP
         },
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocker.state, changed, t, value]);
 
   if (loading && !isSubmit.current && !project) {
