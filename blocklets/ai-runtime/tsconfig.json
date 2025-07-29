@@ -13,7 +13,7 @@
       "@app/*": ["./src/*"],
       "@api/*": ["./api/src/*"],
       // For local dev
-      "@blocklet/aigne-hub/*": ["../../../ai-kit/packages/ai-kit/src/*"],
+      // "@blocklet/aigne-hub/*": ["../../../ai-kit/packages/ai-kit/src/*"],
       // "@blocklet/pages-kit/*": ["../../../pages-kit/packages/pages-kit/src/*"],
       "@blocklet/ai-runtime": ["../../packages/ai-runtime/src"],
       "@blocklet/ai-runtime/*": ["../../packages/ai-runtime/src/*"],

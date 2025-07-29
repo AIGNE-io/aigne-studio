@@ -1,4 +1,4 @@
-import { embeddings } from '@blocklet/aigne-hub/api/call';
+import { embeddingsV2 } from '@blocklet/aigne-hub/api/call';
 import { EmbeddingInput } from '@blocklet/aigne-hub/api/types/embedding';
 import { Embeddings, EmbeddingsParams } from '@langchain/core/embeddings';
 
@@ -86,6 +86,6 @@ export class AIKitEmbeddings extends Embeddings implements AIKitEmbeddingsParams
   }
 
   private async embeddingWithRetry(request: EmbeddingInput) {
-    return embeddings(request);
+    return embeddingsV2(request);
   }
 }
