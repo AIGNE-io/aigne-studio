@@ -26,7 +26,7 @@ export default function PopperMenuButton({
 
       <Popper transition {...PopperProps} {...bindPopper(state)}>
         {({ TransitionProps }) => (
-          <ClickAwayListener onClickAway={state.close}>
+          <ClickAwayListener onClickAway={() => state.close()}>
             <Grow {...TransitionProps}>
               <Paper>
                 <List

@@ -202,7 +202,7 @@ export default function Knowledge() {
       <SelectKnowledgeModal
         list={list}
         open={dialogState.isOpen}
-        onClose={dialogState.close}
+        onClose={() => dialogState.close()}
         onConfirm={() => {
           dataState.reload();
           dialogState.close();

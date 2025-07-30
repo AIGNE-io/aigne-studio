@@ -208,14 +208,14 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       });
     };
 
-    provider.on('synced', onSynced);
+    provider.on('sync', onSynced);
     provider.awareness.on('change', onAwarenessChange);
     provider.connect();
 
     return () => {
       clearInterval(interval);
       provider.disconnect();
-      provider.off('synced', onSynced);
+      provider.off('sync', onSynced);
       provider.awareness.off('change', onAwarenessChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

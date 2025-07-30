@@ -2,3 +2,17 @@ packages:
   - 'blocklets/*'
   - 'packages/*'
   - 'framework/*'
+
+# 解决二进制文件编译的问题
+onlyBuiltDependencies:
+  - '@blocklet/puppeteer'
+  - canvas
+  - core-js
+  - core-js-pure
+  - cypress
+  - esbuild
+  - fast-folder-size
+  - husky
+  - leveldown
+  - protobufjs
+  - sqlite3
