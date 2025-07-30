@@ -119,7 +119,7 @@ const CodeEditor = ({
 }: {
   keyId: string;
   readOnly?: boolean;
-  locale: string;
+  locale?: string;
   typeScriptNoValidation?: boolean;
   onUpload?: (callback: (url: string) => void) => void;
   fullScreenOptions?: FullScreenOptions;

@@ -66,7 +66,7 @@ function CategoriesSidebar({
   onClose,
   isMobile,
 }: {
-  categories: Category[];
+  categories?: Category[];
   onClose: () => void;
   isMobile: boolean;
 }) {
@@ -249,7 +249,7 @@ export default function ExploreCategoryLayout() {
   );
 }
 
-export function MobileSidebarHeader({ categories = [] }: { categories: Category[] }) {
+export function MobileSidebarHeader({ categories = [] }: { categories?: Category[] }) {
   const params = useParams();
   const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(false);

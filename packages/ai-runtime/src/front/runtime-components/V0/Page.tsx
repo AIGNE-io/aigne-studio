@@ -310,7 +310,6 @@ function V0DetailRender() {
         setCurrentMessageTaskId(latestMessage.id);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagesList, currentMessageTaskId]);
 
   const sliderOpen = isMobile ? sliderOpenInMobile : true;

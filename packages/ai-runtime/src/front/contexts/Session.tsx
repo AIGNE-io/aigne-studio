@@ -53,7 +53,6 @@ export const SessionProvider = ({
 
   const state = useMemo(
     () => createSessionState({ entryAid, sessionId, runAgent, getSession, getMessages, clearSession }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [sessionId]
   );
 
@@ -63,7 +62,6 @@ export const SessionProvider = ({
 
   useEffect(() => {
     if (sid && sid !== sessionId) onChange?.(sid);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sid]);
 
   if (sessionId && !loaded) {
@@ -119,7 +117,6 @@ function createSessionState(
             const reader = res.getReader();
 
             for (;;) {
-              // eslint-disable-next-line no-await-in-loop
               const { value, done } = await reader.read();
               if (done) break;
 

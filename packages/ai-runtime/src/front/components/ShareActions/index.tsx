@@ -117,7 +117,6 @@ function ShareTwitter({
       text,
       url: link,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.outputs]);
 
   if (!query) return null;
@@ -305,7 +304,6 @@ function ShareCommunity({
       content,
       labels: 'demo',
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputs, message.outputs, shareAttach]);
 
   return (

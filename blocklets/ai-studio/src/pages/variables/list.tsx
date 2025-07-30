@@ -102,7 +102,6 @@ function VariableList() {
 
   useEffect(() => {
     setScope((Object.keys(scopeCount)[0] as 'global' | 'user' | 'session') || 'global');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const list = useMemo(() => {
@@ -141,7 +140,6 @@ function VariableList() {
     });
 
     return list;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, synced, JSON.stringify(variableYjs.variables)]);
 
   const updateAgentMemory = (variable: MemoryVariable, key: string) => {
@@ -307,7 +305,6 @@ function VariableList() {
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [t]
   );
 
@@ -793,7 +790,7 @@ function VariableRow({
   onRemove = () => {},
   onChange,
 }: {
-  depth: number;
+  depth?: number;
   variable: OutputVariableYjs;
   onRemove?: () => void;
   onChange: (data: OutputVariableYjs) => void;

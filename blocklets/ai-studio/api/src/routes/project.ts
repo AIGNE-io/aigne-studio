@@ -1100,7 +1100,6 @@ export function projectRoutes(router: Router) {
 
       const branches = await repository.listBranches();
       for (const ref of branches) {
-        // eslint-disable-next-line no-await-in-loop
         await syncRepository({ repository, ref, author: { name: fullName, email: userId } });
         (await repository.working({ ref })).reset();
       }
@@ -1394,7 +1393,6 @@ async function copyProject({
   const agents = Object.values(working.syncedStore.files).filter((i) => !!i && isAssistant(i));
   for (const agent of agents) {
     if (agent.type === 'imageBlender' && agent.templateId) {
-      // eslint-disable-next-line no-await-in-loop
       const { data } = await call({
         name: NFT_BLENDER_COMPONENT_DID,
         path: '/api/sdk/templates/copy-snapshot',

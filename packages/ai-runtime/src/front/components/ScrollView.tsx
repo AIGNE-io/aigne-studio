@@ -64,7 +64,6 @@ function ScrollViewWithinWindow({
     if (scroll === 'window') {
       setTarget(ele);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scroll]);
 
   if (!component) return children;

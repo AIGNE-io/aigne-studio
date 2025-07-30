@@ -51,7 +51,6 @@ export const AIGNEApiProvider = ({
             debug,
           } as Parameters<typeof runAgent>[0])),
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

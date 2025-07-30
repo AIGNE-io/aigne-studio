@@ -84,7 +84,6 @@ export function SessionsProvider({ aid, children = undefined }: { aid: string; c
           }))
         )
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [aid]
   );
 

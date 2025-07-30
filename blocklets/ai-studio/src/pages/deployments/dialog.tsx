@@ -49,7 +49,7 @@ export default function DeploymentDialog({
   dialogState: PopupState;
   id: string;
   access: 'private' | 'public';
-  categories: { id: string; name: string; slug: string }[];
+  categories?: { id: string; name: string; slug: string }[];
   orderIndex?: number;
   productHuntUrl?: string;
   productHuntBannerUrl?: string;

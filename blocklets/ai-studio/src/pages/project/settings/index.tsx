@@ -136,7 +136,6 @@ export default function ProjectSettings({
       origin.current = merge;
       setValue(merge);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getCurrentBranch, project, projectId, projectSetting?.iconVersion]);
 
   const set = (key: string, value: any) => {
@@ -220,7 +219,6 @@ export default function ProjectSettings({
         },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blocker.state, changed, t, value]);
 
   if (loading && !isSubmit.current && !project) {

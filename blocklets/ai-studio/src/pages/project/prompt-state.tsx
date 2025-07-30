@@ -178,7 +178,6 @@ export function usePromptsState({
     //     }
     //   }
     // });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [template]);
 
   const addCustomPrompt = useCallback(
@@ -317,7 +316,6 @@ export function usePromptsState({
         deleteDatasetPrompt();
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assistantParameters]);
 
   return {

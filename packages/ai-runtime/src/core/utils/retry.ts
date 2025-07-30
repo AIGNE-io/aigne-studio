@@ -3,7 +3,6 @@ export default async function retry<T>(fn: () => Promise<T> | T, retries: number
 
   for (;;) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       return await fn();
     } catch (error) {
       if (i < retries) {

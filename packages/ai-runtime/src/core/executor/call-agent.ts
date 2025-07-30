@@ -132,7 +132,6 @@ export class CallAgentExecutor extends AgentExecutorBase<CallAssistant> {
     const accumulatedResults: { [key: string]: any } = {};
 
     for (const agent of calledAgents) {
-      // eslint-disable-next-line no-await-in-loop
       const currentAgentResult = await fn(agent, { variables: accumulatedResults });
       if (agent.item.functionName) accumulatedResults[agent.item.functionName] = currentAgentResult;
 

@@ -165,7 +165,6 @@ export function SaveButtonDialog({
     if (!dialogState.isOpen) {
       savePromise.current?.resolve({ saved: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dialogState.isOpen]);
 
   const branch = form.getValues('branch');
@@ -216,7 +215,6 @@ export function SaveButtonDialog({
         throw error;
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       simpleMode,
       dialogState,
@@ -258,7 +256,6 @@ export function SaveButtonDialog({
       });
     });
     return () => saveButtonState.getState().setSaveHandler(undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dialogState.open, onSave, gitRef]);
 
   const sub = useSubscription(projectId);
@@ -677,7 +674,6 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
       form.setValue('url', url);
       form.setValue('username', username);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.project?.gitUrl]);
 
   const saveSetting = useCallback(
@@ -700,7 +696,6 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         closeDialog();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addRemote, form, projectId]
   );
 
@@ -733,7 +728,6 @@ export function useUnauthorizedDialog({ projectId }: { projectId: string }) {
         onClose: () => resolve(),
       });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, push, showDialog, t]);
 
   return { dialog, showUnauthorizedDialog };

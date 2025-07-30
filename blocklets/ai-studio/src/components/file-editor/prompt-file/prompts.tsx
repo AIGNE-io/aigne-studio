@@ -160,7 +160,7 @@ function PromptItemMessage({
   gitRef: string;
   promptHidden?: boolean;
   readOnly?: boolean;
-  backgroundColor: Object;
+  backgroundColor?: Object;
 }) {
   const { t } = useLocaleContext();
 

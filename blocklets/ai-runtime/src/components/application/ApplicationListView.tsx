@@ -37,7 +37,7 @@ export default function ApplicationListView({
             size={{
               xs: 12,
               sm: 6,
-              md: 4
+              md: 4,
             }}>
             <Card sx={{ height: '100%' }}>
               <CardActionArea
@@ -65,7 +65,7 @@ export default function ApplicationListView({
                       sx={{
                         flex: 1,
                         gap: 1,
-                        width: 0
+                        width: 0,
                       }}>
                       <Typography variant="h6" noWrap>
                         {application.project.name}
@@ -74,42 +74,46 @@ export default function ApplicationListView({
                       <Typography
                         variant="body1"
                         sx={{
-                          color: "text.secondary",
+                          color: 'text.secondary',
                           display: '-webkit-box',
                           WebkitBoxOrient: 'vertical',
                           WebkitLineClamp: 2,
-                          overflow: 'hidden'
+                          overflow: 'hidden',
                         }}>
                         {application.project.description}
                       </Typography>
                     </Stack>
                   </Stack>
 
-                  <Box sx={{
-                    flex: 1
-                  }} />
+                  <Box
+                    sx={{
+                      flex: 1,
+                    }}
+                  />
 
                   <Stack
                     direction="row"
                     spacing={1}
                     sx={{
-                      alignItems: "center",
-                      fontSize: 14
+                      alignItems: 'center',
+                      fontSize: 14,
                     }}>
                     <Typography variant="caption">By</Typography>
 
                     <Box
                       sx={{
                         flex: 1,
-                        width: 0
+                        width: 0,
                       }}>
                       {/* @ts-ignore */}
                       <DID did={application.project.createdBy} copyable={false} />
                     </Box>
 
-                    <Typography variant="caption" sx={{
-                      color: "text.secondary"
-                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                      }}>
                       {/* @ts-ignore */}
                       <RelativeTime value={application.project.updatedAt} />
                     </Typography>

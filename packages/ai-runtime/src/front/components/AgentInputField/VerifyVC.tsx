@@ -36,7 +36,6 @@ export default function VerifyVC({
           ...i,
           label: i.label?.trim() || undefined,
         })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [agent.parameters]
   );
 

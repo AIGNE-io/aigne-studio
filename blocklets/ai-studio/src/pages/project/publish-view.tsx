@@ -52,7 +52,6 @@ function PublishViewContent({
 
   const previewUrl = useMemo(() => {
     return joinURL(globalThis.location.origin, window.blocklet.prefix, '/apps', deploymentId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deploymentId, projectId, projectRef]);
 
   const [copied, setCopied] = useState(false);

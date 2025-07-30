@@ -176,7 +176,6 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
         ...tempTheme.shadows.slice(3),
       ],
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme]);
 
   const fontUrls = useMemo(() => {

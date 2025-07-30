@@ -34,7 +34,7 @@ export function useUploader() {
 }
 
 export default function UploaderProvider({
-  children = undefined,
+  children,
   restrictions = undefined,
   plugins = undefined,
   dashboardProps = undefined,

@@ -235,7 +235,6 @@ function useInitialFormValues() {
       const lastParameters = lastMessage?.inputs;
       if (!isEmpty(lastParameters)) setLastInputs(lastParameters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage]);
 
   return useMemo(() => {

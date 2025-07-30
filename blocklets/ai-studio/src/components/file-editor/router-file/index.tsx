@@ -333,7 +333,7 @@ export function AgentItemView({
   agent: Tool;
   readOnly?: boolean;
   onEdit: () => void;
-  openApis: DatasetObject[];
+  openApis?: DatasetObject[];
 } & StackProps) {
   const navigate = useNavigate();
 

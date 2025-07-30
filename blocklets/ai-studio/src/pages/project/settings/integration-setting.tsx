@@ -170,7 +170,6 @@ function WebhookIntegrationSetting() {
           secret: state.apiSecret,
         })
       : undefined;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId, state?.apiSecret, state?.status]);
 
   const generateSecret = async (enabled: boolean) => {

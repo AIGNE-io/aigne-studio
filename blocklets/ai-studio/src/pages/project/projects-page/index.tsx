@@ -844,7 +844,7 @@ function ProjectItem({
   gitUrl?: string;
   users?: User[];
   actions?: ReactNode;
-  loading: boolean;
+  loading?: boolean;
   didSpaceAutoSync: true | false;
   id: string;
   blockletDid?: string;

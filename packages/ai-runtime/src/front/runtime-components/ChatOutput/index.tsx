@@ -8,7 +8,7 @@ export default function ChatOutput({
   hideAvatar = true,
   renderType = undefined,
 }: {
-  hideAvatar: boolean;
+  hideAvatar?: boolean;
   renderType?: 'parameters' | 'result';
 }) {
   const { message } = useCurrentMessage();

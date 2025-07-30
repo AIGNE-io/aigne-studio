@@ -218,7 +218,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       provider.off('sync', onSynced);
       provider.awareness.off('change', onAwarenessChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, gitRef]);
 
   const syncedStore = useSyncedStore(store.store, [store.store]);
@@ -255,7 +254,6 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       syncedStore.tree[VARIABLE_FILE_PATH] = VARIABLE_FILE_PATH;
       syncedStore.files[VARIABLE_FILE_PATH] = { variables: [] };
       return syncedStore.files[VARIABLE_FILE_PATH] as MemoryFileYjs;
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [syncedStore.files]),
   };
 };

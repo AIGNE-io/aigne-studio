@@ -45,7 +45,6 @@ export default function AutoForm({
       agent.parameters
         ?.filter((i) => isValidInput(i) && !preferences?.hideInputFields?.includes(i.key))
         .map((i) => ({ ...i, label: i.label?.trim() || undefined })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [agent.parameters]
   );
 
@@ -87,7 +86,6 @@ export default function AutoForm({
     if (preferences?.autoGenerate && !form.formState.submitCount) {
       submitRef.current?.form?.requestSubmit();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultForm, preferences?.autoGenerate]);
 
   const isInInput = submitInQuestionField && parameters?.some((i) => i.key === 'question');
@@ -282,7 +280,6 @@ function useInitialFormValues() {
       const lastParameters = lastMessage?.inputs;
       if (!isEmpty(lastParameters)) setLastInputs(lastParameters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastMessage]);
 
   return useMemo(() => {
