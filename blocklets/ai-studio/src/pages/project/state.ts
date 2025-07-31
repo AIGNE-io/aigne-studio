@@ -20,14 +20,11 @@ import { getYjsDoc } from '@blocklet/co-git/yjs';
 import { useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import { Draft, produce } from 'immer';
-import localForage from 'localforage';
 import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
-import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { useCallback, useEffect } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
+import { use, useCallback, useEffect } from 'react';
 import { joinURL } from 'ufo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -38,6 +35,9 @@ import * as branchApi from '../../libs/branch';
 import { Commit, getLogs } from '../../libs/log';
 import * as projectApi from '../../libs/project';
 import * as api from '../../libs/tree';
+import { useAssistantStateStore } from '../../store/assistant-state-store';
+import { useDebugStateStore } from '../../store/debug-state-store';
+import { useProjectStateStore } from '../../store/project-state-store';
 import { PROMPTS_FOLDER_NAME, useProjectStore } from './yjs-state';
 
 export interface ProjectState {
@@ -48,21 +48,12 @@ export interface ProjectState {
   error?: Error;
 }
 
-const projectStates: { [key: string]: RecoilState<ProjectState> } = {};
-
-const projectState = (projectId: string, gitRef: string) => {
-  const key = `${projectId}-${gitRef}`;
-
-  projectStates[key] ??= atom<ProjectState>({
-    key: `projectState-${key}`,
-    default: { branches: [], commits: [] },
-  });
-
-  return projectStates[key]!;
-};
-
 export const useProjectState = (projectId: string, gitRef: string) => {
-  const [state, setState] = useRecoilState(projectState(projectId, gitRef));
+  const key = `${projectId}-${gitRef}`;
+  const { getState, updateState } = useProjectStateStore();
+  const state = getState(key);
+
+  const setState = (updater: (state: ProjectState) => ProjectState) => updateState(key, updater);
 
   const refetch = useCallback(
     async ({ force }: { force?: boolean } = {}) => {
@@ -85,7 +76,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
         });
         setState((v) => ({ ...v, project, branches, commits, error: undefined }));
       } catch (error) {
-        setState((v) => ({ ...v, error }));
+        setState((v) => ({ ...v, error: error as Error }));
         throw error;
       } finally {
         setState((v) => ({ ...v, loading: false }));
@@ -244,64 +235,13 @@ export interface DebugState {
   currentSessionIndex?: number;
 }
 
-const debugStates: { [key: string]: RecoilState<DebugState> } = {};
-
-const getDebugState = (projectId: string, assistantId: string) => {
-  const key = `debugState-${projectId}-${assistantId}` as const;
-
-  debugStates[key] ??= atom<DebugState>({
-    key,
-    default: (async () => {
-      try {
-        await debugStateMigration;
-
-        const res = await localForage.getItem<string>(key);
-        const json: DebugState = typeof res === 'string' ? JSON.parse(res) : res;
-        if (json?.projectId === projectId && json?.assistantId === assistantId) {
-          return {
-            ...json,
-            sessions: json.sessions.map((session) => ({
-              ...session,
-              messages: session.messages.map((i) => omit(i, 'loading')),
-              sessionId: session.sessionId ?? nanoid(),
-            })),
-          };
-        }
-      } catch (error) {
-        console.error('initialize default debug state error', error);
-      }
-
-      const now = new Date().toISOString();
-      return {
-        projectId,
-        assistantId,
-        sessions: [{ index: 1, createdAt: now, updatedAt: now, messages: [], chatType: 'debug', sessionId: nanoid() }],
-        nextSessionIndex: 2,
-      };
-    })(),
-    effects: [
-      (() => {
-        const setItem = debounce((k, v) => {
-          localForage.setItem(k, v);
-        }, 2000);
-
-        const handleBeforeUnload = () => setItem.flush();
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return ({ onSet }) => {
-          onSet((value) => setItem(key, value));
-          return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-      })(),
-    ],
-  });
-
-  return debugStates[key]!;
-};
-
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
-  const debugState = getDebugState(projectId, assistantId);
-  const [state, setState] = useRecoilState(debugState);
+  const key = `debugState-${projectId}-${assistantId}`;
+  const { updateState, getOrCreateState } = useDebugStateStore();
+  // 支持 Suspense
+  const state = use(getOrCreateState(key, projectId, assistantId));
+
+  const setState = (updater: (state: DebugState) => DebugState) => updateState(key, updater);
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -683,34 +623,6 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
   };
 };
 
-async function migrateDebugStateFroMLocalStorageToIndexedDB() {
-  const debugStateKeys = Object.keys(localStorage).filter((key) => key.startsWith('debugState-'));
-
-  for (const key of debugStateKeys) {
-    if (key.startsWith('debugState-')) {
-      const text = localStorage.getItem(key);
-      localStorage.removeItem(key);
-
-      try {
-        const json = JSON.parse(text!);
-        const state = json[key];
-        if (typeof state.projectId === 'string' && typeof state.templateId === 'string') {
-          await localForage.setItem(key, {
-            assistantId: state.templateId,
-            ...omit(state, 'templateId'),
-          });
-        }
-
-        console.warn('migrate debug state from localStorage to indexed db success', key);
-      } catch (error) {
-        console.error('migrate debug state from localStorage to indexed db error', key, error);
-      }
-    }
-  }
-}
-
-const debugStateMigration = migrateDebugStateFroMLocalStorageToIndexedDB();
-
 export type AssistantYjsWithParents = AssistantYjs & { parent: string[] };
 
 export interface AssistantState {
@@ -726,33 +638,13 @@ export interface AssistantState {
   files: AssistantYjsWithParents[];
 }
 
-const assistantStates: { [key: string]: RecoilState<AssistantState> } = {};
-
-const assistantState = (projectId: string, gitRef: string) => {
-  const key = `${projectId}-${gitRef}`;
-
-  assistantStates[key] ??= atom<AssistantState>({
-    key: `assistantState-${key}`,
-    default: {
-      created: [],
-      deleted: [],
-      modified: [],
-      disabled: true,
-      createdMap: {},
-      modifiedMap: {},
-      deletedMap: {},
-      loading: false,
-      assistants: [],
-      files: [],
-    },
-  });
-
-  return assistantStates[key]!;
-};
-
 export const useAssistantChangesState = (projectId: string, ref: string) => {
   const { t } = useLocaleContext();
-  const [state, setState] = useRecoilState(assistantState(projectId, ref));
+  const key = `assistantState-${projectId}-${ref}`;
+  const { getState, updateState } = useAssistantStateStore();
+  const state = getState(key);
+
+  const setState = (updater: (state: AssistantState) => AssistantState) => updateState(key, updater);
 
   const { store, synced } = useProjectStore(projectId, ref);
 

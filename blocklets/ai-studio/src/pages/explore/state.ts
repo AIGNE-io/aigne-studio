@@ -2,12 +2,12 @@ import { Deployment, ProjectStatsItem, getDeploymentsByCategorySlug } from '@app
 import { User } from '@app/libs/project';
 import { ProjectSettings } from '@blocklet/ai-runtime/types';
 import { useInfiniteScroll } from 'ahooks';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { RecoilState, atom, useRecoilState } from 'recoil';
 import { create } from 'zustand';
 
-import { Category, getCategories } from '../../libs/category';
+import { Category } from '../../libs/category';
+import { useCategoryStore } from '../../store/category-store';
 
 interface DeploymentState {
   deployments: Record<
@@ -42,53 +42,17 @@ export interface CategoryState {
   error?: Error;
 }
 
-const categoryStates: { [key: string]: RecoilState<CategoryState> } = {};
-
-const categoryState = () => {
-  const key = 'category';
-
-  categoryStates[key] ??= atom<CategoryState>({
-    key: `categoryState-${key}`,
-    default: { categories: [] },
-  });
-
-  return categoryStates[key]!;
-};
-
-export const useCategories = () => useRecoilState(categoryState())[0];
+export const useCategories = () => useCategoryStore((state) => state.categories);
 
 export const useCategoryState = () => {
-  const [state, setState] = useRecoilState(categoryState());
-
-  const refetch = useCallback(
-    async ({ force }: { force?: boolean } = {}) => {
-      let loading: boolean | undefined = false;
-      setState((v) => {
-        loading = v.loading;
-        return { ...v, loading: true };
-      });
-
-      if (loading && !force) return;
-
-      try {
-        const categories = await getCategories({ page: 1, pageSize: 1000 });
-        setState((v) => ({ ...v, categories: categories.list, error: undefined }));
-      } catch (error) {
-        setState((v) => ({ ...v, error }));
-        throw error;
-      } finally {
-        setState((v) => ({ ...v, loading: false }));
-      }
-    },
-    [setState]
-  );
+  const { categories, loading, error, refetch } = useCategoryStore();
 
   useEffect(() => {
     refetch({ force: true });
   }, [refetch]);
 
   return {
-    state,
+    state: { categories, loading, error },
     refetch,
   };
 };

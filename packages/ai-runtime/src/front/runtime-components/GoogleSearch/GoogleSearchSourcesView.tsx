@@ -63,7 +63,7 @@ export default function GoogleSearchSourcesView() {
             </Grid>
           </>
         )}
-        <TransitionGroup exit={true}>
+        <TransitionGroup exit>
           {itemsToShow.map((item) => (
             <CSSTransition key={item.link} duration={500} classNames="item">
               <Grid

@@ -170,7 +170,6 @@
     "react-use": "^17.5.1",
     "react-virtuoso": "^4.10.1",
     "react-wrap-balancer": "^1.1.1",
-    "recoil": "^0.7.7",
     "reflect-metadata": "^0.2.2",
     "remark-gfm": "^4.0.0",
     "rimraf": "^6.0.1",
@@ -191,7 +190,7 @@
     "y-protocols": "^1.0.6",
     "y-websocket": "^2.0.4",
     "yaml": "^2.5.0",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.2",

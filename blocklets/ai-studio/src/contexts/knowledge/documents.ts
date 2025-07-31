@@ -1,38 +1,17 @@
 import Toast from '@arcblock/ux/lib/Toast';
 import { useCallback, useEffect } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Knowledge from '../../../api/src/store/models/dataset/dataset';
-import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
 import { getErrorMessage } from '../../libs/api';
 import { deleteDocument, getDocuments, getKnowledge } from '../../libs/knowledge';
+import { DatasetState, useKnowledgeDocumentsStore } from '../../store/knowledge-documents-store';
 
-interface DatasetState {
-  dataset?: Knowledge & { blockletDid?: string };
-  items?: KnowledgeDocument[];
-  page: number;
-  size: number;
-  total?: number;
-  loading?: boolean;
-  error?: Error;
-}
+export const useDocumentState = (knowledgeId: string, blockletDid?: string) => {
+  const key = `${knowledgeId}-${blockletDid || ''}`;
+  const { getState, updateState } = useKnowledgeDocumentsStore();
+  const state = getState(key);
 
-const datasets: Record<string, RecoilState<DatasetState>> = {};
-
-const dataset = (knowledgeId: string, blockletDid?: string) => {
-  let dataset = datasets[knowledgeId];
-  if (!dataset) {
-    dataset = atom<DatasetState>({
-      key: `dataset-${knowledgeId}-${blockletDid}`,
-      default: { page: 0, size: 20, loading: true },
-    });
-    datasets[knowledgeId] = dataset;
-  }
-  return dataset;
+  return [state, (updater: (state: DatasetState) => DatasetState) => updateState(key, updater)] as const;
 };
-
-export const useDocumentState = (knowledgeId: string, blockletDid?: string) =>
-  useRecoilState(dataset(knowledgeId, blockletDid));
 
 export const useDocuments = (
   knowledgeId: string,
@@ -52,7 +31,7 @@ export const useDocuments = (
 
         setState((v) => ({ ...v, dataset, items, total }));
       } catch (error) {
-        setState((v) => ({ ...v, error }));
+        setState((v) => ({ ...v, error: error as Error }));
         throw error;
       } finally {
         setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
@@ -75,7 +54,7 @@ export const useDocuments = (
         const [dataset] = await Promise.all([getKnowledge(knowledgeId), refetch()]);
         setState((v) => ({ ...v, loading: false, error: undefined, dataset }));
       } catch (error) {
-        setState((v) => ({ ...v, loading: false, error }));
+        setState((v) => ({ ...v, loading: false, error: error as Error }));
         throw error;
       } finally {
         setState((v) => ({ ...v, page: page ?? v.page, size: size ?? v.size }));
