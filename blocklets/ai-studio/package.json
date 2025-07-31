@@ -159,7 +159,7 @@
     "react-hook-form": "^7.53.0",
     "react-infinite-scroll-hook": "^6.0.1",
     "react-js-cron": "^5.0.1",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^10.0.1",
     "react-promise-suspense": "^0.3.4",
     "react-qr-code": "^2.0.15",
     "react-querybuilder": "^7.7.1",

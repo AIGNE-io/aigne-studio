@@ -195,7 +195,7 @@
     "react-flags-select": "^2.2.3",
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.53.0",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^10.0.1",
     "react-promise-suspense": "^0.3.4",
     "react-querybuilder": "^7.7.1",
     "react-scroll-to-bottom": "^4.2.0",

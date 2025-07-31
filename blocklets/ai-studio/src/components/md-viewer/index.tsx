@@ -1,3 +1,4 @@
+import { TBox } from '@arcblock/ux/lib/MuiWrap';
 import { Box, BoxProps, Stack } from '@mui/material';
 import React, { ComponentProps, ReactElement, ReactNode, Suspense } from 'react';
 import Markdown from 'react-markdown';
@@ -8,7 +9,7 @@ export default function ({
   ...props
 }: { content?: string } & Pick<BoxProps, 'sx'> & ComponentProps<typeof Markdown>) {
   return (
-    <Box
+    <TBox
       component={Markdown}
       {...props}
       sx={{
@@ -31,7 +32,7 @@ export default function ({
         },
       }}>
       {props.children || content}
-    </Box>
+    </TBox>
   );
 }
 
