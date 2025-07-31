@@ -1,38 +1,41 @@
-import { TBox } from '@arcblock/ux/lib/MuiWrap';
 import { Box, BoxProps, Stack } from '@mui/material';
 import React, { ComponentProps, ReactElement, ReactNode, Suspense } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 export default function ({
+  sx,
+  className,
   content = undefined,
   ...props
-}: { content?: string } & Pick<BoxProps, 'sx'> & ComponentProps<typeof Markdown>) {
+}: { content?: string } & Pick<BoxProps, 'sx' | 'className'> & ComponentProps<typeof Markdown>) {
   return (
-    <TBox
-      component={Markdown}
-      {...props}
+    <Box
+      className={className}
       sx={{
-        ...props.sx,
+        ...sx,
         pre: {
           bgcolor: 'grey.100',
           color: 'inherit',
           borderRadius: 1,
         },
-      }}
-      remarkPlugins={[remarkGfm]}
-      components={{
-        pre: MarkdownPre,
-        table: ({ className, children }) => {
-          return (
-            <Box sx={{ overflow: 'auto', my: 1 }}>
-              <table className={className}>{children}</table>
-            </Box>
-          );
-        },
       }}>
-      {props.children || content}
-    </TBox>
+      <Markdown
+        {...props}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          pre: MarkdownPre,
+          table: ({ className: cls, children }) => {
+            return (
+              <Box sx={{ overflow: 'auto', my: 1 }}>
+                <table className={cls}>{children}</table>
+              </Box>
+            );
+          },
+        }}>
+        {props.children || content}
+      </Markdown>
+    </Box>
   );
 }
 

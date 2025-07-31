@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify/react';
-import { Box, Stack, styled } from '@mui/material';
+import { Box, BoxProps, Stack, styled } from '@mui/material';
 import React, { ComponentProps, ReactElement, ReactNode, Suspense } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,22 +9,26 @@ import ActionButton from '../ActionButton';
 
 const ReactSyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then((m) => ({ default: m.Prism })));
 
-const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
-  <Markdown
-    {...props}
-    remarkPlugins={[remarkGfm]}
-    components={{
-      pre: MarkdownPre,
-      table: ({ className, children }) => {
-        return (
-          <Box sx={{ overflow: 'auto', my: 1 }}>
-            <table className={className}>{children}</table>
-          </Box>
-        );
-      },
-    }}
-  />
-))`
+const MarkdownRenderer = styled(
+  ({ sx, className, ...props }: Pick<BoxProps, 'sx' | 'className'> & ComponentProps<typeof Markdown>) => (
+    <Box className={className} sx={sx}>
+      <Markdown
+        {...props}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          pre: MarkdownPre,
+          table: ({ className, children }) => {
+            return (
+              <Box sx={{ overflow: 'auto', my: 1 }}>
+                <table className={className}>{children}</table>
+              </Box>
+            );
+          },
+        }}
+      />
+    </Box>
+  )
+)`
   width: 100%;
   overflow: hidden;
   word-break: break-word;
