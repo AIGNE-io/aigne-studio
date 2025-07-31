@@ -1,8 +1,8 @@
 import { ImagePreviewB64 } from '@app/pages/project/debug-view';
 import { ImageType, MessageInput, SessionItem } from '@app/pages/project/state';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ChatCompletionInput } from '@blocklet/aigne-hub/api/types/chat';
 import { RunAssistantInput, RunAssistantLog, RunAssistantUsage } from '@blocklet/ai-runtime/types';
+import { ChatCompletionInput } from '@blocklet/aigne-hub/api/types/chat';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography, styled } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
