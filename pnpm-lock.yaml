@@ -843,7 +843,7 @@ importers:
         specifier: ^8.8.1
         version: 8.8.1(@types/react@19.1.9)(drizzle-orm@0.44.4(@libsql/client@0.15.10)(@opentelemetry/api@1.9.0)(pg@8.16.3)(sqlite3@5.1.7))(json-logic-js@2.0.5)(react@19.1.1)(redux@5.0.1)(sequelize@6.37.7(pg@8.16.3)(sqlite3@5.1.7))
       react-resizable-panels:
-        specifier: ^3.0.3
+        specifier: ^3.0.4
         version: 3.0.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-router-dom:
         specifier: ^6.26.1
@@ -851,9 +851,9 @@ importers:
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.1(react@19.1.1)
-      react-transition-group:
-        specifier: ^4.4.5
-        version: 4.4.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react-transitioning:
+        specifier: ^1.0.7
+        version: 1.0.7(react@19.1.1)
       react-use:
         specifier: ^17.5.1
         version: 17.6.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1215,9 +1215,9 @@ importers:
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.1(react@19.1.1)
-      react-transition-group:
-        specifier: ^4.4.5
-        version: 4.4.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      react-transitioning:
+        specifier: ^1.0.7
+        version: 1.0.7(react@19.1.1)
       react-wrap-balancer:
         specifier: ^1.1.1
         version: 1.1.1(react@19.1.1)
@@ -18656,6 +18656,11 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-transitioning@1.0.7:
+    resolution: {integrity: sha512-uNe42juxujTzxRzqyNffMXMjFX6yreTYmPvLPW+S3+/WZyLVGp6OC/qatmWA//JOY+rJw6Z1QQCkQex57F7icg==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   react-twitter-embed@4.0.4:
     resolution: {integrity: sha512-2JIL7qF+U62zRzpsh6SZDXNI3hRNVYf5vOZ1WRcMvwKouw+xC00PuFaD0aEp2wlyGaZ+f4x2VvX+uDadFQ3HVA==}
@@ -48609,6 +48614,10 @@ snapshots:
       prop-types: 15.8.1
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
+
+  react-transitioning@1.0.7(react@19.1.1):
+    dependencies:
+      react: 19.1.1
 
   react-twitter-embed@4.0.4(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:

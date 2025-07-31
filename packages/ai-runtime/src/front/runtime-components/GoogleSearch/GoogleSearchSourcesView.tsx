@@ -1,6 +1,6 @@
 import { Avatar, Box, Card, CardActionArea, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { ReactNode, useState } from 'react';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import { CSSTransition, TransitionGroup } from 'react-transitioning';
 
 import OutputFieldContainer from '../../components/OutputFieldContainer';
 import { useCurrentMessage, useCurrentMessageOutput } from '../../contexts/CurrentMessage';
@@ -63,9 +63,9 @@ export default function GoogleSearchSourcesView() {
             </Grid>
           </>
         )}
-        <TransitionGroup component={null}>
+        <TransitionGroup exit={true}>
           {itemsToShow.map((item) => (
-            <CSSTransition key={item.link} timeout={500} classNames="item">
+            <CSSTransition key={item.link} duration={500} classNames="item">
               <Grid
                 size={{
                   xs: 4,
