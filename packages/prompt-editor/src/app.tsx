@@ -10,6 +10,7 @@ import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import VariablePickerPlugin from './plugins/VariablePickerPlugin';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
+import { LexicalContentEditableProps } from './ui/content-editable';
 
 export type { EditorState } from 'lexical';
 
@@ -25,7 +26,7 @@ interface PromptEditorProps extends Omit<BoxProps, 'value' | 'onChange'> {
   autoFocus?: boolean;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
-  ContentProps?: BoxProps;
+  ContentProps?: LexicalContentEditableProps;
   variables?: string[];
   popperElement?: ({
     text,
