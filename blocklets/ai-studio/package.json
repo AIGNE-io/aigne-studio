@@ -157,7 +157,7 @@
     "react-error-boundary": "^4.0.13",
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.53.0",
-    "react-infinite-scroll-hook": "^5.0.1",
+    "react-infinite-scroll-hook": "^6.0.1",
     "react-js-cron": "^5.0.1",
     "react-markdown": "^9.0.1",
     "react-promise-suspense": "^0.3.4",
