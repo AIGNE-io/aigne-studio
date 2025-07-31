@@ -621,8 +621,8 @@ importers:
         specifier: ^1.21.0
         version: 1.21.0
       '@react-querybuilder/material':
-        specifier: ^7.7.1
-        version: 7.7.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/icons-material@7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-querybuilder@7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1))(react@19.1.1)
+        specifier: ^8.8.1
+        version: 8.8.1(f208199383d50622f748ba2e0f6e0d2e)
       '@types/node-fetch':
         specifier: ^2.6.11
         version: 2.6.13
@@ -840,8 +840,8 @@ importers:
         specifier: ^2.0.15
         version: 2.0.18(react@19.1.1)
       react-querybuilder:
-        specifier: ^7.7.1
-        version: 7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1)
+        specifier: ^8.8.1
+        version: 8.8.1(@types/react@19.1.9)(drizzle-orm@0.44.4(@libsql/client@0.15.10)(@opentelemetry/api@1.9.0)(pg@8.16.3)(sqlite3@5.1.7))(json-logic-js@2.0.5)(react@19.1.1)(redux@5.0.1)(sequelize@6.37.7(pg@8.16.3)(sqlite3@5.1.7))
       react-resizable-panels:
         specifier: ^2.1.1
         version: 2.1.9(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -1204,8 +1204,8 @@ importers:
         specifier: ^0.3.4
         version: 0.3.4
       react-querybuilder:
-        specifier: ^7.7.1
-        version: 7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1)
+        specifier: ^8.8.1
+        version: 8.8.1(@types/react@19.1.9)(drizzle-orm@0.44.4(@libsql/client@0.15.10)(@opentelemetry/api@1.9.0)(pg@8.16.3)(sqlite3@5.1.7))(json-logic-js@2.0.5)(react@19.1.1)(redux@5.0.1)(sequelize@6.37.7(pg@8.16.3)(sqlite3@5.1.7))
       react-scroll-to-bottom:
         specifier: ^4.2.0
         version: 4.2.0(react@19.1.1)
@@ -7021,15 +7021,15 @@ packages:
   '@react-dnd/shallowequal@4.0.2':
     resolution: {integrity: sha512-/RVXdLvJxLg4QKvMoM5WlwNR9ViO9z8B/qPcc+C0Sa/teJY7QG7kJ441DwzOjMYEY7GmU4dj5EcGHIkKZiQZCA==}
 
-  '@react-querybuilder/material@7.7.1':
-    resolution: {integrity: sha512-Ek3SN1L5CPahGrWS0HiFRzNHGYMvgsSPFkDie95FwsguZ+s2+3dm/oG0PGhoHPy6Yu7C4v6DJ7fhmcHKHiz11Q==}
+  '@react-querybuilder/material@8.8.1':
+    resolution: {integrity: sha512-lp0hz/v0obd6AfbvOWAmuZZMUd3oiT07/7PEmjMh+iE4/AdRc0i0WkZl2FzefRdxV6OWjSdZWZkBAQ0MrDWajA==}
     peerDependencies:
       '@emotion/react': ^11.14.0
       '@emotion/styled': ^11
       '@mui/icons-material': ^7.2.0
       '@mui/material': ^7.2.0
       react: '>=18'
-      react-querybuilder: 7.7.1
+      react-querybuilder: 8.8.1
 
   '@reactivedata/react@0.2.2':
     resolution: {integrity: sha512-fJ8qoHRbicQnVcnwfHa9FO73mbHFfl590xpuGM4Mo1P2ClaDATfl9oUrrySE+tbA//M9cn8De8HTwjoNqt91sw==}
@@ -18512,11 +18512,6 @@ packages:
     resolution: {integrity: sha512-v1Jqz7urLMhkO6jkgJuBYhnqvXagzceg3qJUWayuCK/c6LTIonpWbwxR1f1APGd4xrW/QcQEovNrAojbUz65Tg==}
     peerDependencies:
       react: '*'
-
-  react-querybuilder@7.7.1:
-    resolution: {integrity: sha512-1AYVNMqw7UDjqd3MchWWJTC1o++xPFUJF+VfajURa6kxqcKBq7SGET5mPXfmM+UdE1zHjToGpE8a+fN8JfAbxw==}
-    peerDependencies:
-      react: '>=18'
 
   react-querybuilder@8.8.1:
     resolution: {integrity: sha512-Owy5auiV5YJFNbbrGGitlXEgdshPd1gvXHmb6rk/6ld3I4EsrCCINWZrhsPCrRjBPPAsf0fWnJ/LtqTeujdXYA==}
@@ -32927,14 +32922,14 @@ snapshots:
 
   '@react-dnd/shallowequal@4.0.2': {}
 
-  '@react-querybuilder/material@7.7.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/icons-material@7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-querybuilder@7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1))(react@19.1.1)':
+  '@react-querybuilder/material@8.8.1(f208199383d50622f748ba2e0f6e0d2e)':
     dependencies:
       '@emotion/react': 11.14.0(@types/react@19.1.9)(react@19.1.1)
       '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1)
       '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.9)(react@19.1.1)
       '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react: 19.1.1
-      react-querybuilder: 7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1)
+      react-querybuilder: 8.8.1(@types/react@19.1.9)(drizzle-orm@0.44.4(@libsql/client@0.15.10)(@opentelemetry/api@1.9.0)(pg@8.16.3)(sqlite3@5.1.7))(json-logic-js@2.0.5)(react@19.1.1)(redux@5.0.1)(sequelize@6.37.7(pg@8.16.3)(sqlite3@5.1.7))
 
   '@reactivedata/react@0.2.2(react@19.1.1)':
     dependencies:
@@ -48307,17 +48302,6 @@ snapshots:
       prop-types: 15.8.1
       qr.js: 0.0.0
       react: 19.1.1
-
-  react-querybuilder@7.7.1(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1):
-    dependencies:
-      '@reduxjs/toolkit': 2.8.2(react-redux@9.2.0(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1))(react@19.1.1)
-      immer: 10.1.1
-      numeric-quantity: 2.1.0
-      react: 19.1.1
-      react-redux: 9.2.0(@types/react@19.1.9)(react@19.1.1)(redux@5.0.1)
-    transitivePeerDependencies:
-      - '@types/react'
-      - redux
 
   react-querybuilder@8.8.1(@types/react@19.1.9)(drizzle-orm@0.44.4(@libsql/client@0.15.10)(@opentelemetry/api@1.9.0)(pg@8.16.3)(sqlite3@5.1.7))(json-logic-js@2.0.5)(react@19.1.1)(redux@5.0.1)(sequelize@6.37.7(pg@8.16.3)(sqlite3@5.1.7)):
     dependencies:
