@@ -1,9 +1,5 @@
 ## 0.4.277 (2025-7-30)
 
-- chore: code review
-- chore: code review
-- chore: remove SubscribeButton
-- chore: code review
 - fix: update ai-kit to aigne-hub
 
 ## 0.4.276 (2025-7-4)
