@@ -1,4 +1,4 @@
-import { ChatCompletionResponse } from '@blocklet/ai-kit/api/types/chat';
+import { ChatCompletionResponse } from '@blocklet/aigne-hub/api/types/chat';
 import Joi from 'joi';
 import { isNil } from 'lodash';
 import omitBy from 'lodash/omitBy';

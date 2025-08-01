@@ -1,3 +1,7 @@
+## 0.4.277 (2025-7-30)
+
+- fix: update ai-kit to aigne-hub
+
 ## 0.4.276 (2025-7-4)
 
 - fix: remove recoil dependency

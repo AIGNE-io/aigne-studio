@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.4.276",
+  "version": "0.4.277",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
@@ -96,8 +96,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/ai-kit": "^0.1.78",
     "@blocklet/ai-runtime": "workspace:^",
+    "@blocklet/aigne-hub": "^0.2.20",
     "@blocklet/js-sdk": "^1.16.44",
     "@blocklet/pages-kit": "^0.5.33",
     "@blocklet/sdk": "^1.16.44",
