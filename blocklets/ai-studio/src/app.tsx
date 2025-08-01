@@ -5,6 +5,7 @@ import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
+import { setAutoFreeze } from 'immer';
 import { ReactNode, Suspense, lazy } from 'react';
 import {
   Navigate,
@@ -26,6 +27,7 @@ import { Config } from './libs/env';
 import { translations } from './locales';
 import { theme } from './theme/theme';
 
+setAutoFreeze(false);
 const basename = window.blocklet?.prefix || '/';
 
 export default function App() {

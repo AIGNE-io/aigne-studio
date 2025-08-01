@@ -1,9 +1,7 @@
 import fs from 'fs';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { mkdir, mkdtemp, readFile, rm } from 'fs/promises';
 import { basename, dirname, isAbsolute, join } from 'path';
 
-import { Runtime } from '@aigne/runtime';
-import { generateWrapperCode } from '@aigne/runtime/cmd';
 import { projectCronManager } from '@api/libs/cron-jobs';
 import { Config } from '@api/libs/env';
 import { NoPermissionError, NotFoundError } from '@api/libs/error';
@@ -572,52 +570,6 @@ export function projectRoutes(router: Router) {
     }
 
     res.json({ outputs, sessionId, projectId, agentId });
-  });
-
-  router.get('/projects/:projectId/npm/package.tgz', async (req, res) => {
-    const { projectId } = req.params;
-    if (!projectId) throw new Error('Missing required param `projectId`');
-
-    const secret = req.query.secret as string | undefined;
-    const extra = await ProjectExtra.findByPk(projectId);
-
-    if (!extra?.npmPackageSecret || secret !== extra.npmPackageSecret) {
-      res.status(401).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const project = await Project.findOne({
-      where: { id: projectId },
-      rejectOnEmpty: new NotFoundError('No such project'),
-    });
-    const repo = await ProjectRepo.load({ projectId });
-
-    const tmpDir = join(config.env.dataDir, 'tmp/npm/', nanoid());
-    const packageDir = join(tmpDir, 'package');
-    const tgzPath = join(tmpDir, 'package.tgz');
-    try {
-      await mkdir(packageDir, { recursive: true });
-
-      await repo.checkout({ ref: project.gitDefaultBranch, dir: packageDir, force: true });
-
-      // TODO: 把 load project 的逻辑提取到一个函数中，替换掉这里的代码
-      const files = await generateWrapperCode((await Runtime.load({ path: packageDir })).options.projectDefinition!);
-
-      for (const { fileName, content } of files) {
-        await writeFile(join(packageDir, fileName), content);
-      }
-
-      await tar.create({ gzip: true, file: tgzPath, C: packageDir }, ['.']);
-
-      await new Promise<void>((resolve, reject) => {
-        res.sendFile(tgzPath, {}, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-    } finally {
-      await rm(packageDir, { recursive: true, force: true });
-    }
   });
 
   const createOrUpdateAgentInputSecretPayloadSchema = Joi.object<CreateOrUpdateAgentInputSecretPayload>({

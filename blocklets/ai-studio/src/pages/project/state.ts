@@ -17,7 +17,7 @@ import {
   isAssistant,
 } from '@blocklet/ai-runtime/types';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
-import { useThrottleEffect } from 'ahooks';
+import { useMemoizedFn, useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import { Draft, produce } from 'immer';
 import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
@@ -53,7 +53,7 @@ export const useProjectState = (projectId: string, gitRef: string) => {
   const { getState, updateState } = useProjectStateStore();
   const state = getState(key);
 
-  const setState = (updater: (state: ProjectState) => ProjectState) => updateState(key, updater);
+  const setState = useMemoizedFn((updater: (state: ProjectState) => ProjectState) => updateState(key, updater));
 
   const refetch = useCallback(
     async ({ force }: { force?: boolean } = {}) => {
@@ -241,7 +241,7 @@ export const useDebugState = ({ projectId, assistantId }: { projectId: string; a
   // 支持 Suspense
   const state = use(getOrCreateState(key, projectId, assistantId));
 
-  const setState = (updater: (state: DebugState) => DebugState) => updateState(key, updater);
+  const setState = useMemoizedFn((updater: (state: DebugState) => DebugState) => updateState(key, updater));
 
   const newSession = useCallback(
     (session?: Partial<SessionItem>) => {
@@ -644,7 +644,7 @@ export const useAssistantChangesState = (projectId: string, ref: string) => {
   const { getState, updateState } = useAssistantStateStore();
   const state = getState(key);
 
-  const setState = (updater: (state: AssistantState) => AssistantState) => updateState(key, updater);
+  const setState = useMemoizedFn((updater: (state: AssistantState) => AssistantState) => updateState(key, updater));
 
   const { store, synced } = useProjectStore(projectId, ref);
 
