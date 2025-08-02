@@ -1,7 +1,6 @@
 import AigneLogo from '@app/components/aigne-logo';
 import { useIsRole, useSessionContext } from '@app/contexts/session';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
 import { Box, Button, Stack, Typography } from '@mui/material';
@@ -16,7 +15,7 @@ export default function Home() {
     <Dashboard
       HeaderProps={{
         logo: <AigneLogo />,
-        addons: (exists: ReactNode[]) => [<SubscribeButton />, ...exists],
+        addons: (exists: ReactNode[]) => [...exists],
       }}>
       <Box
         sx={{

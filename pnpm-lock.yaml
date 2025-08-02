@@ -160,12 +160,12 @@ importers:
       '@arcblock/vc':
         specifier: ^1.21.0
         version: 1.21.0
-      '@blocklet/ai-kit':
-        specifier: ^0.2.6
-        version: 0.2.6(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
+      '@blocklet/aigne-hub':
+        specifier: ^0.2.20
+        version: 0.2.20(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/aigne-sdk':
         specifier: workspace:^
         version: link:../../packages/aigne-sdk
@@ -470,12 +470,12 @@ importers:
       '@beskar-labs/gpt-encoder':
         specifier: ^1.0.7
         version: 1.0.7
-      '@blocklet/ai-kit':
-        specifier: ^0.2.6
-        version: 0.2.6(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../../packages/ai-runtime
+      '@blocklet/aigne-hub':
+        specifier: ^0.2.20
+        version: 0.2.20(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/aigne-sdk':
         specifier: workspace:^
         version: link:../../packages/aigne-sdk
@@ -1053,9 +1053,9 @@ importers:
       '@arcblock/did-connect':
         specifier: ^3.0.33
         version: 3.0.36(@arcblock/ux@3.0.36(5ff7a306c77fbce1dc9de73eb3c41915))(@blocklet/js-sdk@1.16.46)(@blocklet/theme@3.0.36(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)))(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@blocklet/ai-kit':
-        specifier: ^0.2.6
-        version: 0.2.6(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
+      '@blocklet/aigne-hub':
+        specifier: ^0.2.20
+        version: 0.2.20(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/co-git':
         specifier: workspace:^
         version: link:../co-git
@@ -1291,12 +1291,12 @@ importers:
 
   packages/aigne-sdk:
     dependencies:
-      '@blocklet/ai-kit':
-        specifier: ^0.2.6
-        version: 0.2.6(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/ai-runtime':
         specifier: workspace:^
         version: link:../ai-runtime
+      '@blocklet/aigne-hub':
+        specifier: ^0.2.20
+        version: 0.2.20(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)
       '@blocklet/js-sdk':
         specifier: ^1.16.46
         version: 1.16.46
@@ -2999,11 +2999,6 @@ packages:
   '@beskar-labs/gpt-encoder@1.0.7':
     resolution: {integrity: sha512-zitUItoaeDMUfjlcKTEs3acWFzbYxDev2YrxRCrb9LCoBVYB5OGFvTHZirMuTWMX0SgZcrdcRpXJqqUi/Pe97A==}
     deprecated: This package has been deprecated in favor of https://www.npmjs.com/package/gpt-tokenizer
-
-  '@blocklet/ai-kit@0.2.6':
-    resolution: {integrity: sha512-AAqhAlzwnXoNjZUkP98OtPeLTCdOPuDNqg9uWehESr2+AgdqioSqTK0uvqCMdV43NMRit8Uku7qRpvooGoEy4A==}
-    peerDependencies:
-      react: ^18.2.0
 
   '@blocklet/aigne-hub@0.2.20':
     resolution: {integrity: sha512-GjI/mhvCLatf2pNLBGECH0iPfuIEL6m2adVIJylkVgEzVqCJUYA9W/yBa3KrdodZpNsfWMoxI6+HMvevORkLeA==}
@@ -24039,74 +24034,6 @@ snapshots:
   '@bcoe/v8-coverage@0.2.3': {}
 
   '@beskar-labs/gpt-encoder@1.0.7': {}
-
-  '@blocklet/ai-kit@0.2.6(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)':
-    dependencies:
-      '@arcblock/did': 1.21.0
-      '@arcblock/ux': 3.0.36(5ff7a306c77fbce1dc9de73eb3c41915)
-      '@blocklet/logger': 1.16.46
-      '@blocklet/payment-js': 1.19.9(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
-      '@blocklet/sdk': 1.16.46(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
-      '@emotion/css': 11.13.5
-      '@emotion/react': 11.14.0(@types/react@19.1.9)(react@19.1.1)
-      '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1)
-      '@mui/icons-material': 7.2.0(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.9)(react@19.1.1)
-      '@mui/lab': 7.0.0-beta.14(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@mui/material@7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@mui/material': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@mui/system': 7.2.0(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1))(@types/react@19.1.9)(react@19.1.1)
-      '@ocap/mcrypto': 1.21.0
-      '@ocap/util': 1.21.0
-      '@types/express': 5.0.3
-      ahooks: 3.9.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      axios: 1.11.0
-      eventsource-parser: 2.0.1
-      express: 5.1.0
-      file-saver: 2.0.5
-      form-data: 4.0.4
-      immer: 10.1.1
-      joi: 17.13.3
-      json-stable-stringify: 1.3.0
-      lodash: 4.17.21
-      nanoid: 5.1.5
-      openai: 4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@3.25.76)
-      react: 19.1.1
-      react-markdown: 9.1.0(@types/react@19.1.9)(react@19.1.1)
-      react-photo-view: 1.2.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      react-use: 17.6.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      recoil: 0.7.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      sequelize: 6.37.7(pg@8.16.3)(sqlite3@5.1.7)
-      ufo: 1.6.1
-      yaml: 2.8.0
-      zustand: 4.5.7(@types/react@19.1.9)(immer@10.1.1)(react@19.1.1)
-    transitivePeerDependencies:
-      - '@emotion/server'
-      - '@mui/material-pigment-css'
-      - '@mui/utils'
-      - '@types/hoist-non-react-statics'
-      - '@types/node'
-      - '@types/react'
-      - bluebird
-      - bufferutil
-      - debug
-      - encoding
-      - ibm_db
-      - mariadb
-      - mysql2
-      - oracledb
-      - pg
-      - pg-hstore
-      - prop-types
-      - react-dom
-      - react-native
-      - react-router-dom
-      - snowflake-sdk
-      - sqlite3
-      - supports-color
-      - tedious
-      - use-sync-external-store
-      - utf-8-validate
-      - ws
-      - zod
 
   '@blocklet/aigne-hub@0.2.20(@mui/utils@7.2.0(@types/react@19.1.9)(react@19.1.1))(@types/node@22.17.0)(@types/react@19.1.9)(encoding@0.1.13)(pg@8.16.3)(prop-types@15.8.1)(react-dom@18.3.1(react@18.3.1))(react-router-dom@6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@18.3.1)(sqlite3@5.1.7)(use-sync-external-store@1.5.0(react@19.1.1))(ws@8.18.3)(zod@3.25.76)':
     dependencies:

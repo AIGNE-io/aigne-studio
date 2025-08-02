@@ -1,5 +1,5 @@
-import { chatCompletions } from '@blocklet/ai-kit/api/call';
-import { isChatCompletionChunk } from '@blocklet/ai-kit/api/types/index';
+import { chatCompletionsV2 } from '@blocklet/aigne-hub/api/call';
+import { isChatCompletionChunk } from '@blocklet/aigne-hub/api/types/index';
 import { BaseLLMParams, LLM } from '@langchain/core/language_models/llms';
 
 export interface CustomLLMInput extends BaseLLMParams {
@@ -29,7 +29,7 @@ export class CustomLLM extends LLM implements CustomLLMInput {
   }
 
   async _call(prompt: string): Promise<string> {
-    const stream = await chatCompletions({
+    const stream = await chatCompletionsV2({
       temperature: this.temperature,
       model: this.model,
       messages: [{ role: 'user', content: prompt }],

@@ -1,4 +1,4 @@
-import { isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
+import { isChatCompletionChunk } from '@blocklet/aigne-hub/api/types/chat';
 
 import { RouterAssistant } from '../../types';
 import retry from '../utils/retry';

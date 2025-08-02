@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
+import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
 import { CustomComponentRenderer } from '@blocklet/pages-kit/components';
 import { Icon } from '@iconify/react';
 import { Box, BoxProps, Typography } from '@mui/material';

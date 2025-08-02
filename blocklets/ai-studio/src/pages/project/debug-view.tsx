@@ -6,7 +6,6 @@ import BasicTree from '@app/components/trace';
 import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { ImagePreview } from '@blocklet/ai-kit/components';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { ParameterField } from '@blocklet/ai-runtime/components';
 import { CurrentAgentProvider, RuntimeProvider } from '@blocklet/ai-runtime/front';
@@ -17,6 +16,7 @@ import {
   isPromptAssistant,
   parameterFromYjs,
 } from '@blocklet/ai-runtime/types';
+import { ImagePreview } from '@blocklet/aigne-hub/components';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { cx } from '@emotion/css';
 import { Icon } from '@iconify-icon/react';

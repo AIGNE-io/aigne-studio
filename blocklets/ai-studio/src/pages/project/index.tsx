@@ -2,7 +2,6 @@ import AigneLogo from '@app/components/aigne-logo';
 import ErrorBoundary from '@app/components/error/error-boundary';
 import UploaderProvider from '@app/contexts/uploader';
 import currentGitStore from '@app/store/current-git-store';
-import { SubscribeButton } from '@blocklet/ai-kit/components';
 import { Dashboard } from '@blocklet/studio-ui';
 import { GlobalStyles, backdropClasses, circularProgressClasses, paperClasses, styled } from '@mui/material';
 import { Suspense, lazy } from 'react';
@@ -32,7 +31,7 @@ export default function ProjectRoutes() {
         <StyledDashboard
           HeaderProps={{
             logo: <AigneLogo />,
-            addons: (exists) => [<PlanUpgradeButton />, <SubscribeButton />, ...exists],
+            addons: (exists) => [<PlanUpgradeButton />, ...exists],
             homeLink: joinURL(blocklet?.prefix || '', 'projects'),
           }}
           MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}

@@ -1,21 +1,25 @@
-import { proxyToAIKit } from '@blocklet/ai-kit/api/call';
+import { callRemoteApi } from '@blocklet/aigne-hub/api/call';
 import { Router } from 'express';
 
 import { ensureComponentCallOrPromptsEditor } from '../libs/security';
 
 const router = Router();
 
-// @ts-ignore express5 is not compatible
-router.get('/status', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/status'));
+// router.get('/status', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/status'));
 
-router.post(
-  '/:type(chat)?/completions',
-  ensureComponentCallOrPromptsEditor(),
-  // @ts-ignore express5 is not compatible
-  proxyToAIKit('/api/v1/chat/completions')
-);
+router.post('/:type(chat)?/completions', ensureComponentCallOrPromptsEditor(), async (req, res) => {
+  const url = 'api/v2/chat/completions';
+  const { stream } = req.body;
 
-// @ts-ignore express5 is not compatible
-router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));
+  const result = await callRemoteApi(req.body, { endpoint: url }, { responseType: stream ? 'stream' : undefined });
+
+  if (stream) {
+    return result.data.pipe(res);
+  }
+
+  return res.json((await result).data);
+});
+
+// router.post('/image/generations', ensureComponentCallOrPromptsEditor(), proxyToAIKit('/api/v1/image/generations'));
 
 export default router;
