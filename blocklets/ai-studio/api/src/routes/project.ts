@@ -45,7 +45,6 @@ import omitBy from 'lodash/omitBy';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { nanoid } from 'nanoid';
-import * as tar from 'tar';
 import { parseAuth, parseURL } from 'ufo';
 import { parse } from 'yaml';
 
