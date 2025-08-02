@@ -165,6 +165,8 @@ const TestCaseView = forwardRef<
             if (value.taskId === mainTaskId) {
               response += value.delta.content || '';
             }
+          } else if (value.type === AssistantResponseType.PROGRESS) {
+            // @ts-ignore
           } else {
             console.error('Unknown AI response type', value);
           }
