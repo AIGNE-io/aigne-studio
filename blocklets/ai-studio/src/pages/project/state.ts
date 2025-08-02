@@ -24,7 +24,8 @@ import { cloneDeep, differenceBy, get, intersectionBy, omitBy } from 'lodash';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import { nanoid } from 'nanoid';
-import { use, useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import usePromise from 'react-promise-suspense';
 import { joinURL } from 'ufo';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -237,9 +238,10 @@ export interface DebugState {
 
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
   const key = `debugState-${projectId}-${assistantId}`;
-  const { updateState, getOrCreateState } = useDebugStateStore();
-  // 支持 Suspense
-  const state = use(getOrCreateState(key, projectId, assistantId));
+  const { getState, updateState, getOrCreateState } = useDebugStateStore();
+  
+  usePromise(getOrCreateState, [key, projectId, assistantId]);
+  const state = getState(key);
 
   const setState = useMemoizedFn((updater: (state: DebugState) => DebugState) => updateState(key, updater));
 

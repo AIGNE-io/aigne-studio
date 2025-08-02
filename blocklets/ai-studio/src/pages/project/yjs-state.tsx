@@ -25,6 +25,7 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
+import { useMemoizedFn } from 'ahooks';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
@@ -135,7 +136,7 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
   const { getStore, updateStore } = useYjsProjectStore();
   const store = getStore(key) || projectStore(projectId, gitRef);
 
-  const setStore = (updater: (store: StoreContext) => StoreContext) => updateStore(key, updater);
+  const setStore = useMemoizedFn((updater: (store: StoreContext) => StoreContext) => updateStore(key, updater));
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -184,7 +185,8 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       }
 
       setStore((v) => {
-        return { ...v, awareness };
+        v.awareness = awareness;
+        return v;
       });
     };
 

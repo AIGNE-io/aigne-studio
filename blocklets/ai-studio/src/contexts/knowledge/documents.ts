@@ -1,4 +1,5 @@
 import Toast from '@arcblock/ux/lib/Toast';
+import { useMemoizedFn } from 'ahooks';
 import { useCallback, useEffect } from 'react';
 
 import { getErrorMessage } from '../../libs/api';
@@ -9,8 +10,9 @@ export const useDocumentState = (knowledgeId: string, blockletDid?: string) => {
   const key = `${knowledgeId}-${blockletDid || ''}`;
   const { getState, updateState } = useKnowledgeDocumentsStore();
   const state = getState(key);
+  const setState = useMemoizedFn((updater: (state: DatasetState) => DatasetState) => updateState(key, updater));
 
-  return [state, (updater: (state: DatasetState) => DatasetState) => updateState(key, updater)] as const;
+  return [state, setState] as const;
 };
 
 export const useDocuments = (

@@ -1,4 +1,3 @@
-import { produce } from 'immer';
 import localForage from 'localforage';
 import debounce from 'lodash/debounce';
 import omit from 'lodash/omit';
@@ -79,6 +78,26 @@ async function migrateDebugStateFroMLocalStorageToIndexedDB() {
 
 const debugStateMigration = migrateDebugStateFroMLocalStorageToIndexedDB();
 
+// 提炼重复的默认状态创建函数
+const createDefaultDebugState = (projectId: string, assistantId: string): DebugState => ({
+  projectId,
+  assistantId,
+  sessions: [],
+  nextSessionIndex: 1,
+});
+
+const createDefaultSession = (): SessionItem => {
+  const now = new Date().toISOString();
+  return {
+    index: 1,
+    createdAt: now,
+    updatedAt: now,
+    messages: [],
+    chatType: 'debug' as const,
+    sessionId: nanoid(),
+  };
+};
+
 export const useDebugStateStore = create<DebugStateStore>()((set, get) => {
   const setItem = debounce((k: string, v: DebugState) => {
     localForage.setItem(k, v);
@@ -90,38 +109,34 @@ export const useDebugStateStore = create<DebugStateStore>()((set, get) => {
   return {
     states: {},
     setState: (key, state) => {
-      set(
-        produce((draft) => {
-          draft.states[key] = state;
-        })
-      );
+      set((prevState) => ({
+        ...prevState,
+        states: {
+          ...prevState.states,
+          [key]: state,
+        },
+      }));
       setItem(key, state);
     },
     updateState: (key, updater) => {
-      set(
-        produce((draft) => {
-          draft.states[key] = updater(
-            draft.states[key] || {
-              projectId: '',
-              assistantId: '',
-              sessions: [],
-              nextSessionIndex: 1,
-            }
-          );
-        })
-      );
+      set((prevState) => {
+        const currentState = prevState.states[key] || createDefaultDebugState('', '');
+        const newState = updater(currentState);
+        return {
+          ...prevState,
+          states: {
+            ...prevState.states,
+            [key]: newState,
+          },
+        };
+      });
       const newState = get().states[key];
       if (newState) {
         setItem(key, newState);
       }
     },
     getState: (key) =>
-      get().states[key] || {
-        projectId: '',
-        assistantId: '',
-        sessions: [],
-        nextSessionIndex: 1,
-      },
+      get().states[key] || createDefaultDebugState('', ''),
     getOrCreateState: async (key, projectId, assistantId) => {
       try {
         const { states } = get();
@@ -145,11 +160,13 @@ export const useDebugStateStore = create<DebugStateStore>()((set, get) => {
               sessionId: session.sessionId ?? nanoid(),
             })),
           };
-          set(
-            produce((draft) => {
-              draft.states[key] = state;
-            })
-          );
+          set((prevState) => ({
+            ...prevState,
+            states: {
+              ...prevState.states,
+              [key]: state,
+            },
+          }));
           return state;
         }
       } catch (error) {
@@ -157,28 +174,19 @@ export const useDebugStateStore = create<DebugStateStore>()((set, get) => {
       }
 
       // 创建一个新的
-      const now = new Date().toISOString();
       const state = {
-        projectId,
-        assistantId,
-        sessions: [
-          {
-            index: 1,
-            createdAt: now,
-            updatedAt: now,
-            messages: [],
-            chatType: 'debug' as const,
-            sessionId: nanoid(),
-          },
-        ],
+        ...createDefaultDebugState(projectId, assistantId),
+        sessions: [createDefaultSession()],
         nextSessionIndex: 2,
       };
 
-      set(
-        produce((draft) => {
-          draft.states[key] = state;
-        })
-      );
+      set((prevState) => ({
+        ...prevState,
+        states: {
+          ...prevState.states,
+          [key]: state,
+        },
+      }));
       return state;
     },
   };

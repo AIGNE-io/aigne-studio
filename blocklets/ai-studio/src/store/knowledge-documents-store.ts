@@ -1,4 +1,3 @@
-import { produce } from 'immer';
 import { create } from 'zustand';
 
 import Knowledge from '../../api/src/store/models/dataset/dataset';
@@ -21,19 +20,34 @@ interface KnowledgeDocumentsStore {
   getState: (key: string) => DatasetState;
 }
 
+// 提炼重复的默认状态创建函数
+const createDefaultDatasetState = (): DatasetState => ({
+  page: 0,
+  size: 20,
+  loading: true,
+});
+
 export const useKnowledgeDocumentsStore = create<KnowledgeDocumentsStore>()((set, get) => ({
   states: {},
   setState: (key, state) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = state;
-      })
-    ),
+    set((prevState) => ({
+      ...prevState,
+      states: {
+        ...prevState.states,
+        [key]: state,
+      },
+    })),
   updateState: (key, updater) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = updater(draft.states[key] || { page: 0, size: 20, loading: true });
-      })
-    ),
-  getState: (key) => get().states[key] || { page: 0, size: 20, loading: true },
+    set((prevState) => {
+      const currentState = prevState.states[key] || createDefaultDatasetState();
+      const newState = updater(currentState);
+      return {
+        ...prevState,
+        states: {
+          ...prevState.states,
+          [key]: newState,
+        },
+      };
+    }),
+  getState: (key) => get().states[key] || createDefaultDatasetState(),
 }));

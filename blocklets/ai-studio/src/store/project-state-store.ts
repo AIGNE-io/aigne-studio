@@ -1,4 +1,3 @@
-import { produce } from 'immer';
 import { create } from 'zustand';
 
 import Project from '../../api/src/store/models/project';
@@ -19,19 +18,33 @@ interface ProjectStateStore {
   getState: (key: string) => ProjectState;
 }
 
+// 提炼重复的默认状态创建函数
+const createDefaultProjectState = (): ProjectState => ({
+  branches: [],
+  commits: [],
+});
+
 export const useProjectStateStore = create<ProjectStateStore>()((set, get) => ({
   states: {},
   setState: (key, state) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = state;
-      })
-    ),
+    set((prevState) => ({
+      ...prevState,
+      states: {
+        ...prevState.states,
+        [key]: state,
+      },
+    })),
   updateState: (key, updater) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = updater(draft.states[key] || { branches: [], commits: [] });
-      })
-    ),
-  getState: (key) => get().states[key] || { branches: [], commits: [] },
+    set((prevState) => {
+      const currentState = prevState.states[key] || createDefaultProjectState();
+      const newState = updater(currentState);
+      return {
+        ...prevState,
+        states: {
+          ...prevState.states,
+          [key]: newState,
+        },
+      };
+    }),
+  getState: (key) => get().states[key] || createDefaultProjectState(),
 }));

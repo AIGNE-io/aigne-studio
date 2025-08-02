@@ -1,6 +1,5 @@
 import { FileTypeYjs } from '@blocklet/ai-runtime/types';
 import { Doc, syncedStore } from '@blocklet/co-git/yjs';
-import { produce } from 'immer';
 import { joinURL } from 'ufo';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebsocketProvider } from 'y-websocket';
@@ -41,22 +40,37 @@ interface YjsProjectStore {
   createStore: (projectId: string, gitRef: string) => StoreContext;
 }
 
+// 提炼重复的默认 awareness 创建函数
+const createDefaultAwareness = () => ({
+  clients: {},
+  files: {},
+});
+
 export const useYjsProjectStore = create<YjsProjectStore>()((set, get) => ({
   stores: {},
   setStore: (key, store) =>
-    set(
-      produce((draft) => {
-        draft.stores[key] = store;
-      })
-    ),
+    set((prevState) => ({
+      ...prevState,
+      stores: {
+        ...prevState.stores,
+        [key]: store,
+      },
+    })),
   updateStore: (key, updater) =>
-    set(
-      produce((draft) => {
-        if (draft.stores[key]) {
-          draft.stores[key] = updater(draft.stores[key]);
-        }
-      })
-    ),
+    set((prevState) => {
+      const currentStore = prevState.stores[key];
+      if (currentStore) {
+        const newStore = updater(currentStore);
+        return {
+          ...prevState,
+          stores: {
+            ...prevState.stores,
+            [key]: newStore,
+          },
+        };
+      }
+      return prevState;
+    }),
   getStore: (key) => get().stores[key],
   createStore: (projectId, gitRef) => {
     const url = (() => {
@@ -74,7 +88,7 @@ export const useYjsProjectStore = create<YjsProjectStore>()((set, get) => ({
     const storeContext: StoreContext = {
       synced: provider.synced,
       store,
-      awareness: { clients: {}, files: {} },
+      awareness: createDefaultAwareness(),
       provider,
       indexeddb,
     };

@@ -1,3 +1,4 @@
+import { useMemoizedFn } from 'ahooks';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
@@ -9,8 +10,9 @@ export const useSegmentState = (knowledgeId: string, documentId: string) => {
   const key = `${knowledgeId}-${documentId}`;
   const { getState, updateState } = useKnowledgeSegmentsStore();
   const state = getState(key);
+  const setState = useMemoizedFn((updater: (state: SegmentState) => SegmentState) => updateState(key, updater));
 
-  return [state, (updater: (state: SegmentState) => SegmentState) => updateState(key, updater)] as const;
+  return [state, setState] as const;
 };
 
 export const useSegments = (

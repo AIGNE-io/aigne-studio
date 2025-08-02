@@ -1,5 +1,4 @@
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { produce } from 'immer';
 import { create } from 'zustand';
 
 export type AssistantYjsWithParents = AssistantYjs & { parent: string[] };
@@ -17,6 +16,20 @@ export interface AssistantState {
   files: AssistantYjsWithParents[];
 }
 
+// 提炼重复的默认状态
+const getDefaultAssistantState = (): AssistantState => ({
+  created: [],
+  deleted: [],
+  modified: [],
+  createdMap: {},
+  modifiedMap: {},
+  deletedMap: {},
+  disabled: false,
+  loading: false,
+  assistants: [],
+  files: [],
+});
+
 interface AssistantStateStore {
   states: { [key: string]: AssistantState };
   setState: (key: string, state: AssistantState) => void;
@@ -27,41 +40,21 @@ interface AssistantStateStore {
 export const useAssistantStateStore = create<AssistantStateStore>()((set, get) => ({
   states: {},
   setState: (key, state) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = state;
-      })
-    ),
+    set((currentState) => ({
+      ...currentState,
+      states: {
+        ...currentState.states,
+        [key]: state,
+      },
+    })),
   updateState: (key, updater) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = updater(
-          draft.states[key] || {
-            created: [],
-            deleted: [],
-            modified: [],
-            createdMap: {},
-            modifiedMap: {},
-            deletedMap: {},
-            disabled: false,
-            loading: false,
-            assistants: [],
-            files: [],
-          }
-        );
-      })
-    ),
+    set((currentState) => ({
+      ...currentState,
+      states: {
+        ...currentState.states,
+        [key]: updater(currentState.states[key] || getDefaultAssistantState()),
+      },
+    })),
   getState: (key) =>
-    get().states[key] || {
-      created: [],
-      deleted: [],
-      modified: [],
-      createdMap: {},
-      modifiedMap: {},
-      deletedMap: {},
-      disabled: false,
-      loading: false,
-      assistants: [],
-      files: [],
-    },
+    get().states[key] || getDefaultAssistantState(),
 }));

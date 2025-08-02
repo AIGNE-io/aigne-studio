@@ -87,7 +87,8 @@ export function SessionsProvider({ aid, children = undefined }: { aid: string; c
     [aid]
   );
 
-  const { loaded, error } = state((s) => ({ loaded: s.loaded, error: s.error }));
+  const loaded = state((s) => s.loaded);
+  const error = state((s) => s.error);
 
   if (!loaded) {
     // eslint-disable-next-line @typescript-eslint/no-throw-literal

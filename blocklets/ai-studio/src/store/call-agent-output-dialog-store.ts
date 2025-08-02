@@ -1,4 +1,3 @@
-import { produce } from 'immer';
 import { create } from 'zustand';
 
 interface CallAgentCustomOutputDialogState {
@@ -10,6 +9,9 @@ interface CallAgentCustomOutputDialogState {
   };
   name?: string;
 }
+
+// 提炼重复的默认状态
+const getDefaultDialogState = (): CallAgentCustomOutputDialogState => ({});
 
 interface CallAgentOutputDialogStore {
   states: { [key: string]: CallAgentCustomOutputDialogState };
@@ -24,21 +26,28 @@ interface CallAgentOutputDialogStore {
 export const useCallAgentOutputDialogStore = create<CallAgentOutputDialogStore>()((set) => ({
   states: {},
   setState: (key, state) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = state;
-      })
-    ),
+    set((currentState) => ({
+      ...currentState,
+      states: {
+        ...currentState.states,
+        [key]: state,
+      },
+    })),
   updateState: (key, updater) =>
-    set(
-      produce((draft) => {
-        draft.states[key] = updater(draft.states[key] || {});
-      })
-    ),
+    set((currentState) => ({
+      ...currentState,
+      states: {
+        ...currentState.states,
+        [key]: updater(currentState.states[key] || getDefaultDialogState()),
+      },
+    })),
   resetState: (key) =>
-    set(
-      produce((draft) => {
-        delete draft.states[key];
-      })
-    ),
+    set((currentState) => {
+      const newStates = { ...currentState.states };
+      delete newStates[key];
+      return {
+        ...currentState,
+        states: newStates,
+      };
+    }),
 }));
