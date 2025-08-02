@@ -110,7 +110,7 @@ const validateDebugModeAccess = (
 
 const getModelWithBrand = async (model: string) => {
   const models = await getSupportedModels().catch(() => []);
-  const modelInfo = models.find((i) => i.model === model);
+  const modelInfo = models.find((i) => i.model.toLowerCase() === model.toLowerCase());
   if (!modelInfo) {
     return model;
   }
