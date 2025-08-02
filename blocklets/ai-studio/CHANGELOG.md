@@ -1,3 +1,7 @@
+## 0.4.278 (2025-8-2)
+
+- fix: correct model integration with aigne-hub
+
 ## 0.4.277 (2025-7-30)
 
 - fix: update ai-kit to aigne-hub
