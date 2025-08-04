@@ -35,24 +35,14 @@ export function ModelBrandIcon({ model, size = 'medium', sx = undefined, url = u
   ];
   const renderIcon = () => {
     if (url) {
-      return (
-        <Box
-          component="img"
-          src={url}
-          alt={model}
-          sx={{
-            width: '0.85em',
-            height: '0.85em',
-            objectFit: 'cover',
-          }}
-        />
-      );
+      return <Box component="img" src={url} alt={model} sx={{ width: '14px', height: '14px', objectFit: 'cover' }} />;
     }
-    return brand ? (
-      brandIcon(brand)
-    ) : (
-      <Box component={Icon} icon={CubeIcon} sx={{ fontSize: computedSize, color: 'grey.400' }} />
-    );
+
+    if (brand) {
+      return brandIcon(brand);
+    }
+
+    return <Box component={Icon} icon={CubeIcon} sx={{ fontSize: computedSize, color: 'grey.400' }} />;
   };
   return <Box sx={mergedSx}>{renderIcon()}</Box>;
 }
