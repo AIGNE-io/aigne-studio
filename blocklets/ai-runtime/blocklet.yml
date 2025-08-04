@@ -69,12 +69,6 @@ screenshots:
   - bf6c9bd80cd1e5afa46cdef3603d0ad4.png
   - 7db93af939514eecef2a02046c915793.png
 components:
-  - name: ai-kit
-    required: true
-    mountPoint: /ai-kit
-    source:
-      name: ai-kit
-      version: latest
   - name: image-bin
     required: true
     mountPoint: /image-bin

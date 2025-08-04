@@ -1,36 +1,84 @@
-# AIGNE Studio
+# AIGNE Studio  
+**No-Code Generative AI App Engine for Everyone**
 
-[AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB) is a cutting-edge No-code Generative AI Apps Engine designed to empower users to create sophisticated applications effortlessly. Whether you're a developer looking to streamline your workflow or a non-technical user eager to leverage AI, AIGNE Studio enables you to build powerful AI-driven applications without any programming knowledge. Simply use your natural language or sketch your ideas, and the AI will take care of the rest, transforming your concepts into functional, deployable applications seamlessly.
+[AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB) is a no-code platform for creating powerful LLM workflows and AI agents
 
-We make building apps so easy, anyone can do it
+Whether you're a developer accelerating your workflow or a non-technical creator turning ideas into reality, AIGNE Studio empowers you to build, iterate, and launch with ease.
 
-- **No-code**: No programming knowledge needed, use your own language to let AI help.
-- **No UI Designer**: Simply instruct or draw a sketch, and AI will build it for you.
-- **No dependency**: Build complete apps that run on web or mobile, installable anywhere, without 3rd-party dependencies.
+> 🛠️ We make building apps so easy—**anyone** can do it.
 
-## Features
+---
 
-An all-in-one developer platform for every step of the LLM app lifecycle. Tools and best practice from modern software engineering, all applied to AI and LLM.
+## ✨ Why AIGNE Studio?
 
-- **Prompt Engineering**: Best Practice Prompt Engineering with Advanced AI Orchestration can help streamline your development process and improve efficiency.
-- **Version Control**: Git-based version control simplifies prompts and configurations management by tracking all modifications.
-- **Test Automation**: Build and Deploy LLM Apps with Confidence Using Test Cases and Automation.
-- **Deployment**: Fully automate LLM app delivery pipelines to respond to market demands faster with high-quality solutions.
-- **Monitor & Analytics**: Empower your team by using monitoring and analytics to automate menial tasks, saving precious time and money in service operations.
-- **A/B Experiments**: Test efficiency through A/B Experiment and grayscale testing with real users and test groups using optimized prompts and LLM models.
-- **Feedback Management**: Automatically manage user feedback for future LLM fine-tuning and improvements.
-- **Team Collaboration**: Collaborate and Improve Products and Services Together.
+- **No Code? No Problem.**  
+  Just describe your idea in plain language—AI will do the rest.
 
-## Install and Run
+- **No Designer Needed.**  
+  Sketch a UI or give a prompt—Studio turns it into a working app.
 
-1. **Launch the Application**: Click the "Launch" button to begin the setup process.
-2. **Purchase Blocklet Server**: If you don't already have a Blocklet Server, please purchase one to proceed.
-3. **Follow Installation Wizard**: Use the installation wizard to install the blocklet on your Blocklet Server.
-4. **Start the Blocklet**: Launch the installed blocklet from the Blocklet Server console.
-5. **Access the Application**: Open your browser and navigate to the public address of the blocklet to start using the application.
+- **No External Dependencies.**  
+  Build fully self-contained apps for web or mobile with no third-party lock-in.
 
-## Support
+---
 
-We are dedicated to ensuring you have the best experience with [AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB)! If you encounter any issues or have suggestions, please don’t hesitate to reach out. Thank you for your trust and support!
+## 🧩 Core Capabilities
 
-Visit our community forum to find helpful resources, answers, and connect with other users. Click here to join the conversation: [ArcBlock Community](https://community.arcblock.io).
+AIGNE Studio is an all-in-one platform for the entire lifecycle of LLM-based apps—infused with modern software engineering best practices:
+
+- 🧠 **Prompt Engineering** – Standardized prompt workflows + advanced model orchestration  
+- 🔁 **Version Control** – Git-based prompt and configuration tracking  
+- 🧪 **Test Automation** – Automated test cases and CI-friendly app validation  
+- 🚀 **Deployment** – One-click deployment and release pipeline  
+- 📊 **Monitoring & Analytics** – Real-time metrics on usage, performance, and behavior  
+- 🧪 **A/B Experiments** – Run prompt/model experiments and gradual rollouts  
+- 💬 **Feedback Management** – Collect and utilize user feedback for LLM improvement  
+- 🤝 **Team Collaboration** – Real-time multi-user collaboration and publishing
+
+---
+
+## 🚀 Get Started in Minutes
+
+1. **Launch AIGNE Studio**  
+   Click “Launch” to start the installation process.
+
+2. **Get a Blocklet Server**  
+   If you don’t already have a Blocklet Server, you’ll need to purchase and set one up.
+
+3. **Follow the Installation Wizard**  
+   The guided setup will walk you through installing AIGNE Studio on your server.
+
+4. **Start the App**  
+   Launch the app from the Blocklet Server console and wait for deployment to complete.
+
+5. **Access the App**  
+   Open your browser and navigate to the generated public address to start building!
+
+---
+
+## 💡 Use Cases
+
+- Internal tools and automation  
+- AI-powered customer assistants  
+- Educational and content-generation apps  
+- Multimodal UI prototyping  
+- Rapid AI app prototyping and validation
+
+---
+
+## 🧑‍💻 Developer & User Resources
+
+- [📦 AIGNE Studio on Blocklet Store](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB)  
+- [💬 Join the ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)  
+- [📘 AIGNE Studio Docs](https://www.arcblock.io/docs/ai-studio/en/ai-studio)
+
+---
+
+## 🙌 Need Help?
+
+We're committed to providing you with the best experience using [AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB). If you encounter any issues or have suggestions, don’t hesitate to reach out.
+
+Join the community to get help, share ideas, and connect with other users:  
+👉 [ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)
+
+---
