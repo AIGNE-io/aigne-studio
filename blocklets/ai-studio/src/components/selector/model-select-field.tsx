@@ -13,13 +13,20 @@ import {
 } from '@mui/material';
 import { useAsync } from 'react-use';
 
+import AnthropicIcon from './ai-icons/anthropic';
 import AzureIcon from './ai-icons/azure';
+import BedrockIcon from './ai-icons/bedrock';
+import DeepSeekIcon from './ai-icons/deepseek';
+import GeminiIcon from './ai-icons/gemini';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
 import MistralIcon from './ai-icons/mistral.png?url';
+import OllamaIcon from './ai-icons/ollama';
 import OpenAIIcon from './ai-icons/openai';
+import OpenRouterIcon from './ai-icons/openrouter';
 import ReplicateIcon from './ai-icons/replicate';
 import VertexAIIcon from './ai-icons/vertex-ai';
+import XAIIcon from './ai-icons/xai';
 
 export default function ModelSelectField({
   isImageModel = undefined,
@@ -85,15 +92,15 @@ export default function ModelSelectField({
   );
 }
 
-export const brandIcon = (brand: string) =>
-  ({
-    OpenAI: <OpenAIIcon fontSize="small" />,
-    'Azure OpenAI': <AzureIcon fontSize="small" />,
-    'Hugging Face': <HuggingFaceIcon fontSize="small" />,
-    Replicate: <ReplicateIcon fontSize="small" />,
-    'Vertex AI': <VertexAIIcon fontSize="small" />,
-    Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': (
+export const brandIcon = (brand: string) => {
+  const map = {
+    openai: <OpenAIIcon fontSize="small" />,
+    azure: <AzureIcon fontSize="small" />,
+    'hugging face': <HuggingFaceIcon fontSize="small" />,
+    replicate: <ReplicateIcon fontSize="small" />,
+    vertex: <VertexAIIcon fontSize="small" />,
+    google: <GoogleIcon fontSize="small" />,
+    mistral: (
       <Box
         component="img"
         src={MistralIcon}
@@ -104,4 +111,14 @@ export const brandIcon = (brand: string) =>
         }}
       />
     ),
-  })[brand];
+    openrouter: <OpenRouterIcon fontSize="small" />,
+    ollama: <OllamaIcon fontSize="small" />,
+    xai: <XAIIcon fontSize="small" />,
+    deepseek: <DeepSeekIcon fontSize="small" />,
+    anthropic: <AnthropicIcon fontSize="small" />,
+    bedrock: <BedrockIcon fontSize="small" />,
+    gemini: <GeminiIcon fontSize="small" />,
+  };
+
+  return Object.entries(map).find(([key]) => brand.toLowerCase().includes(key))?.[1];
+};

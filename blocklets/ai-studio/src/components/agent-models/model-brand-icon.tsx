@@ -2,35 +2,8 @@ import { Icon } from '@iconify-icon/react';
 import CubeIcon from '@iconify-icons/tabler/cube';
 import { Box, SxProps } from '@mui/material';
 
-import AzureIcon from '../selector/ai-icons/azure';
-import GoogleIcon from '../selector/ai-icons/google';
-import HuggingFaceIcon from '../selector/ai-icons/hugging-face';
-import MistralIcon from '../selector/ai-icons/mistral.png?url';
-import OpenAIIcon from '../selector/ai-icons/openai';
-import ReplicateIcon from '../selector/ai-icons/replicate';
-import VertexAIIcon from '../selector/ai-icons/vertex-ai';
+import { brandIcon } from '../selector/model-select-field';
 import { useModelBrand } from './use-models';
-
-export const brandIcon = (brand: string) =>
-  ({
-    OpenAI: <OpenAIIcon sx={{ fontSize: '1em' }} />,
-    'Azure OpenAI': <AzureIcon sx={{ fontSize: '1em' }} />,
-    'Hugging Face': <HuggingFaceIcon sx={{ fontSize: '1em' }} />,
-    Replicate: <ReplicateIcon sx={{ fontSize: '1em' }} />,
-    'Vertex AI': <VertexAIIcon sx={{ fontSize: '1em' }} />,
-    Google: <GoogleIcon sx={{ fontSize: '1em' }} />,
-    'Mistral AI': (
-      <Box
-        component="img"
-        src={MistralIcon}
-        alt="Mistral AI"
-        sx={{
-          width: '1em',
-          height: '1em',
-        }}
-      />
-    ),
-  })[brand];
 
 interface ModelIconProps {
   model: string;
