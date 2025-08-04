@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/prompt-editor",
-  "version": "0.4.278",
+  "version": "0.4.279",
   "description": "prompt editor for ai studio",
   "author": "arcblock",
   "license": "ISC",
@@ -38,7 +38,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blocklet/ai-studio.git"
+    "url": "git+https://github.com/AIGNE-io/aigne-studio.git"
   },
   "bugs": {
     "url": "https://github.com/blocklet/ai-studio/issues"

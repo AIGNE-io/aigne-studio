@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.4.278",
+  "version": "0.4.279",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -82,7 +82,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/blocklet/ai-studio.git"
+    "url": "git+https://github.com/AIGNE-io/aigne-studio.git"
   },
   "scripts": {
     "lint": "eslint src --ext .mjs,.js,.jsx,.ts,.tsx",

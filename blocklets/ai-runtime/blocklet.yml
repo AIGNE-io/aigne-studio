@@ -13,9 +13,9 @@ author:
   url: https://github.com/blocklet
 repository:
   type: git
-  url: git+https://github.com/blocklet/ai-studio.git
+  url: git+https://github.com/AIGNE-io/aigne-studio.git
 specVersion: 1.2.8
-version: 0.4.278
+version: 0.4.279
 logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
 files:
   - dist
@@ -69,12 +69,6 @@ screenshots:
   - bf6c9bd80cd1e5afa46cdef3603d0ad4.png
   - 7db93af939514eecef2a02046c915793.png
 components:
-  - name: ai-kit
-    required: true
-    mountPoint: /ai-kit
-    source:
-      name: ai-kit
-      version: latest
   - name: image-bin
     required: true
     mountPoint: /image-bin

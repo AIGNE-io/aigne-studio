@@ -1,6 +1,8 @@
 name: ai-studio
 title: AIGNE Studio
-description: No-code Generative AI Apps Engine
+description: >-
+  AIGNE Studio is a no-code platform for creating powerful LLM workflows and AI
+  agents
 keywords:
   - ai
   - aigne
@@ -13,10 +15,10 @@ author:
   url: https://github.com/blocklet
 repository:
   type: git
-  url: git+https://github.com/blocklet/ai-studio.git
+  url: git+https://github.com/AIGNE-io/aigne-studio.git
 specVersion: 1.2.8
-version: 0.4.278
-logo: screenshots/305befbbaa9ea1e61ae18431431cf0d8.png
+version: 0.4.279
+logo: logo.png
 files:
   - dist
   - screenshots
@@ -26,6 +28,7 @@ files:
   - api/dist/migration
   - api/dist/store/migrate.js
   - api/dist/store/migrations/*.js
+  - logo.png
 interfaces:
   - type: web
     name: publicUrl
@@ -39,9 +42,9 @@ interfaces:
           ignoreUrls:
             - /api/webhook/**
     proxyBehavior: service
-community: https://community.arcblock.io
-documentation: https://developer.blocklet.io
-homepage: https://store.blocklet.dev
+community: https://community.arcblock.io/discussions/boards/aigne
+documentation: https://www.arcblock.io/docs/ai-studio/en/ai-studio
+homepage: https://www.aigne.io/en/studio
 license: ''
 payment:
   price: []
@@ -68,12 +71,6 @@ screenshots:
   - 34e81a6b5193d8ede83d664ab686e3f4.png
   - 9af94c0b4071092ac0e3b36d33c2f249.png
 components:
-  - name: ai-kit
-    required: true
-    mountPoint: /ai-kit
-    source:
-      name: ai-kit
-      version: latest
   - name: image-bin
     required: true
     mountPoint: /image-bin
