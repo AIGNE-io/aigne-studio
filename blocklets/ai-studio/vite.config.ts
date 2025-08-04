@@ -48,8 +48,6 @@ if (arcblockUxBasePath) {
   exclude.push('@blocklet/ui-react');
 }
 
-let traceId: NodeJS.Timeout;
-
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
@@ -83,27 +81,6 @@ export default defineConfig(() => {
         embedBuildConcurrency: 3,
       }),
       svgr(),
-      {
-        name: 'vite-plugin-trace-mem',
-        apply: 'build',
-        buildStart() {
-          traceId = setInterval(() => {
-            const { rss, heapUsed, external } = process.memoryUsage();
-            console.log(
-              `[MEM] RSS=${(rss / 1024 / 1024).toFixed(1)}MB, Heap=${(heapUsed / 1024 / 1024).toFixed(1)}MB, External=${(
-                external /
-                1024 /
-                1024
-              ).toFixed(1)}MB`
-            );
-          }, 1000);
-        },
-        closeBundle() {
-          if (traceId) {
-            clearInterval(traceId);
-          }
-        },
-      },
     ],
     server: {
       fs: {
