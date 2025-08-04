@@ -12,6 +12,10 @@
 - chore: replace recoil with zustand
 - chore: replace react-transition-group to react-transitioning
 
+## 0.4.279 (2025-8-4)
+
+- chore: update logo and readme
+
 ## 0.4.278 (2025-8-2)
 
 - fix: correct model integration with aigne-hub
