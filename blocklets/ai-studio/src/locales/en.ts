@@ -974,5 +974,4 @@ export default flatten({
   runType: 'Run Type',
   tokenCount: 'Token Count',
   executionTime: 'Execution Time',
-
 });

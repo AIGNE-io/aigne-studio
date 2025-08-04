@@ -239,7 +239,7 @@ export interface DebugState {
 export const useDebugState = ({ projectId, assistantId }: { projectId: string; assistantId: string }) => {
   const key = `debugState-${projectId}-${assistantId}`;
   const { getState, updateState, getOrCreateState } = useDebugStateStore();
-  
+
   usePromise(getOrCreateState, [key, projectId, assistantId]);
   const state = getState(key);
 

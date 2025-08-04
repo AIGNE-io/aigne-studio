@@ -19,7 +19,7 @@ export const useCategoryStore = create<CategoryStore>()((set) => ({
   setState: (updater) => set(updater),
   refetch: async (options: { force?: boolean } = {}) => {
     const { force } = options;
-    
+
     // 检查当前加载状态
     const currentState = useCategoryStore.getState();
     if (currentState.loading && !force) return;
@@ -29,15 +29,15 @@ export const useCategoryStore = create<CategoryStore>()((set) => ({
 
     try {
       const categories = await getCategories({ page: 1, pageSize: 1000 });
-      set({ 
-        categories: categories.list, 
+      set({
+        categories: categories.list,
         error: undefined,
-        loading: false 
+        loading: false,
       });
     } catch (error) {
-      set({ 
+      set({
         error: error as Error,
-        loading: false 
+        loading: false,
       });
       throw error;
     }

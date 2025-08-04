@@ -135,8 +135,7 @@ export const useDebugStateStore = create<DebugStateStore>()((set, get) => {
         setItem(key, newState);
       }
     },
-    getState: (key) =>
-      get().states[key] || createDefaultDebugState('', ''),
+    getState: (key) => get().states[key] || createDefaultDebugState('', ''),
     getOrCreateState: async (key, projectId, assistantId) => {
       try {
         const { states } = get();

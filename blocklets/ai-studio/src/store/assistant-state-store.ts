@@ -55,6 +55,5 @@ export const useAssistantStateStore = create<AssistantStateStore>()((set, get) =
         [key]: updater(currentState.states[key] || getDefaultAssistantState()),
       },
     })),
-  getState: (key) =>
-    get().states[key] || getDefaultAssistantState(),
+  getState: (key) => get().states[key] || getDefaultAssistantState(),
 }));

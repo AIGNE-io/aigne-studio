@@ -10,7 +10,10 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 const arcblockUxBasePath = process.env.ARCBLOCK_UX_BASE_PATH;
 const exclude: string[] = [];
-const alias: Record<string, string> = {};
+const alias: Record<string, string> = {
+  'js-tiktoken': join(__dirname, '../../node_modules/js-tiktoken/dist/index.js'),
+  typescript: join(__dirname, '../../node_modules/typescript/lib/typescript.js'),
+};
 const excludeLibs: string[] = [
   // 排除 ux repo 中其他的包
   '@arcblock/bridge',
@@ -45,6 +48,8 @@ if (arcblockUxBasePath) {
   exclude.push('@blocklet/ui-react');
 }
 
+let traceId: NodeJS.Timeout;
+
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
@@ -78,10 +83,51 @@ export default defineConfig(() => {
         embedBuildConcurrency: 3,
       }),
       svgr(),
+      {
+        name: 'vite-plugin-trace-mem',
+        apply: 'build',
+        buildStart() {
+          traceId = setInterval(() => {
+            const { rss, heapUsed, external } = process.memoryUsage();
+            console.log(
+              `[MEM] RSS=${(rss / 1024 / 1024).toFixed(1)}MB, Heap=${(heapUsed / 1024 / 1024).toFixed(1)}MB, External=${(
+                external /
+                1024 /
+                1024
+              ).toFixed(1)}MB`
+            );
+          }, 1000);
+        },
+        closeBundle() {
+          if (traceId) {
+            clearInterval(traceId);
+          }
+        },
+      },
     ],
     server: {
       fs: {
         allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('typescript/lib/typescript.js')) {
+              return 'vendor-typescript';
+            }
+            if (id.includes('@excalidraw/mermaid-to-excalidraw')) {
+              return 'vendor-excalidraw-mermaid-to-excalidraw';
+            }
+            if (id.includes('@excalidraw/excalidraw')) {
+              return 'vendor-excalidraw-core';
+            }
+            if (id.includes('js-tiktoken')) {
+              return 'vendor-js-tiktoken';
+            }
+          },
+        },
       },
     },
   };
