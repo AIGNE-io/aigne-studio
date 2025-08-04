@@ -13,7 +13,7 @@ author:
   url: https://github.com/blocklet
 repository:
   type: git
-  url: git+https://github.com/blocklet/ai-studio.git
+  url: git+https://github.com/AIGNE-io/aigne-studio.git
 specVersion: 1.2.8
 version: 0.4.279
 logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
