@@ -9,7 +9,12 @@ import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
-import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
+import {
+  defaultImageModel,
+  defaultTextModel,
+  getSupportedImagesModels,
+  getSupportedModels,
+} from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import {
@@ -103,6 +108,16 @@ const validateDebugModeAccess = (
   }
 };
 
+const getModelWithBrand = async (model: string) => {
+  const models = await getSupportedModels().catch(() => []);
+  const modelInfo = models.find((i) => i.model.toLowerCase() === model.toLowerCase());
+  if (!modelInfo) {
+    return model;
+  }
+
+  return `${(modelInfo.brand || '').toLowerCase()}/${model}`;
+};
+
 router.post('/call', middlewares.session({ componentCall: true }), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
@@ -194,15 +209,17 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>;
     }
 
-    const stream = await chatCompletionsV2({
+    const inputParams = {
       ...input,
-      model: input.model || project.model || defaultTextModel,
+      model: await getModelWithBrand(input.model || project.model || defaultTextModel),
       temperature: input.temperature || project.temperature,
       topP: input.topP || project.topP,
       frequencyPenalty: input.frequencyPenalty || project.frequencyPenalty,
       presencePenalty: input.presencePenalty || project.presencePenalty,
       // maxTokens: input.maxTokens || project?.maxTokens,
-    });
+    };
+    logger.info('call chatCompletionsV2 input', inputParams);
+    const stream = await chatCompletionsV2(inputParams);
 
     return new ReadableStream({
       async start(controller) {
