@@ -193,6 +193,8 @@ export const mergeLogs = ({
             lastInput.logs.push(value);
           }
         });
+      } else if (value.type === AssistantResponseType.PROGRESS) {
+        // @ts-ignore
       } else {
         console.error('Unknown AI response type', value);
       }
