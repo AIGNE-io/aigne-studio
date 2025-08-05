@@ -153,7 +153,26 @@ function SessionsBar() {
                 return <em>Select a session</em>;
               }
 
-              return selected;
+              const session = sessions?.find((s) => s.id === selected);
+
+              if (!session) {
+                return <em>Select a session</em>;
+              }
+
+              return (
+                session?.name || (
+                  <RelativeTime
+                    value={session?.updatedAt}
+                    type="absolute"
+                    locale={locale}
+                    withoutSuffix={undefined}
+                    from={undefined}
+                    to={undefined}
+                    tz={undefined}
+                    relativeRange={undefined}
+                  />
+                )
+              );
             }}
             displayEmpty
             value={currentSessionId || ''}
@@ -168,13 +187,7 @@ function SessionsBar() {
               },
             }}>
             <MenuItem disabled value="">
-              <Typography
-                sx={{
-                  fontStyle: 'italic',
-                  color: 'text.secondary',
-                }}>
-                Select session
-              </Typography>
+              <Typography sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Select session</Typography>
             </MenuItem>
 
             {sessions?.map((session) => (
