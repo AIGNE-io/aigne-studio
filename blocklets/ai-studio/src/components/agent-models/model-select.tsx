@@ -60,7 +60,7 @@ export function ModelSelect({
           return (
             <Stack
               direction="row"
-              key={option.model}
+              key={`${option.model}-${option.name}`}
               onClick={() => {
                 onChange(option.model === value ? null : option.model);
               }}

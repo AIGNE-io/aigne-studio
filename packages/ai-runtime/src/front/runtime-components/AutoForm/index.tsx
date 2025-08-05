@@ -201,7 +201,7 @@ export default function AutoForm({
                                     {changeImageParameterRender && renderImageUploadIcon()}
 
                                     <LoadingButton
-                                    loadingPosition="start"
+                                      loadingPosition="start"
                                       data-testid="runtime-submit-button"
                                       ref={submitRef}
                                       type="submit"

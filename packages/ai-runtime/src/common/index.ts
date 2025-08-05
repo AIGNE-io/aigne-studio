@@ -145,9 +145,9 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
         size: x.modelMetadata?.imageGeneration?.size || [],
         sizeDefault: x.modelMetadata?.imageGeneration?.size?.[0] || 'auto',
         style: x.modelMetadata?.imageGeneration?.style || [],
-        styleDefault: x.modelMetadata?.imageGeneration?.style?.[0] || 'auto',
+        styleDefault: x.modelMetadata?.imageGeneration?.style?.[0] || 'vivid',
         quality: x.modelMetadata?.imageGeneration?.quality || [],
-        qualityDefault: x.modelMetadata?.imageGeneration?.quality?.[0] || 'auto',
+        qualityDefault: x.modelMetadata?.imageGeneration?.quality?.[0] || 'standard',
         tags: [brand],
       };
     }
