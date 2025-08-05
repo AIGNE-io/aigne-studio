@@ -172,6 +172,7 @@ export default function AutoForm({
                   <Stack className="form-item">
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
                     <AgentInputField
+                      inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
                       autoFocus={autoFocus && index === 0}
                       size="small"
@@ -185,37 +186,35 @@ export default function AutoForm({
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message || parameter?.helper}
                       sx={{ flex: 1 }}
-                      slotProps={{
-                        htmlInput: { 'data-testid': `runtime-input-${key}` },
-                        input: {
-                          ...(parameter.key === 'question' && submitInQuestionField
-                            ? {
-                                endAdornment: (
-                                  <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
-                                    <Stack
-                                      direction="row"
-                                      sx={{
-                                        alignItems: 'center',
-                                        gap: 1,
-                                      }}>
-                                      {changeImageParameterRender && renderImageUploadIcon()}
+                      // eslint-disable-next-line react/jsx-no-duplicate-props
+                      InputProps={{
+                        ...(parameter.key === 'question' && submitInQuestionField
+                          ? {
+                              endAdornment: (
+                                <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
+                                  <Stack
+                                    direction="row"
+                                    sx={{
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}>
+                                    {changeImageParameterRender && renderImageUploadIcon()}
 
-                                      <LoadingButton
-                                        data-testid="runtime-submit-button"
-                                        ref={submitRef}
-                                        type="submit"
-                                        variant="contained"
-                                        loading={running}
-                                        disabled={submitDisabled}
-                                        sx={{ borderRadius: 1.5 }}>
-                                        {submitText}
-                                      </LoadingButton>
-                                    </Stack>
-                                  </InputAdornment>
-                                ),
-                              }
-                            : {}),
-                        },
+                                    <LoadingButton
+                                      data-testid="runtime-submit-button"
+                                      ref={submitRef}
+                                      type="submit"
+                                      variant="contained"
+                                      loading={running}
+                                      disabled={submitDisabled}
+                                      sx={{ borderRadius: 1.5 }}>
+                                      {submitText}
+                                    </LoadingButton>
+                                  </Stack>
+                                </InputAdornment>
+                              ),
+                            }
+                          : {}),
                       }}
                     />
                   </Stack>

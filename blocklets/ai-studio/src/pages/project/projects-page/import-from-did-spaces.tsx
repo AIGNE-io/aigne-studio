@@ -11,7 +11,6 @@ import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import ArrowRightAltRoundedIcon from '@iconify-icons/material-symbols/arrow-right-alt-rounded';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   BoxProps,
@@ -22,6 +21,7 @@ import {
   DialogTitle,
   IconButton,
   ListItemText,
+  Button as LoadingButton,
   MenuItem,
   Stack,
   TextField,

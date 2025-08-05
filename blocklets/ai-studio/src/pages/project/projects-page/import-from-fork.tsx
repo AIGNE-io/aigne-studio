@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ProjectSettings } from '@blocklet/ai-runtime/types/resource/project';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   Button,

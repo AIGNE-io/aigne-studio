@@ -7,7 +7,7 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { Icon } from '@iconify-icon/react';
 import FloppyIcon from '@iconify-icons/tabler/device-floppy';
 import { DownloadRounded, SyncRounded, UploadRounded, WarningRounded } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import {
   Alert,
   Autocomplete,

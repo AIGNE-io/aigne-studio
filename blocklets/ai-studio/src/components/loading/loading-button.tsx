@@ -1,4 +1,4 @@
-import { LoadingButtonProps, LoadingButton as MuiLoadingButton } from '@mui/lab';
+import { ButtonProps as LoadingButtonProps, Button as MuiLoadingButton } from '@mui/material';
 import { MouseEvent, useCallback, useState } from 'react';
 
 const LoadingButton = ({
@@ -22,7 +22,7 @@ const LoadingButton = ({
     [onClick]
   );
 
-  return <MuiLoadingButton ref={ref} {...props} loading={props.loading || loading} onClick={handleClick} />;
+  return <MuiLoadingButton ref={ref} {...props} loadingPosition="end" loading={props.loading || loading} onClick={handleClick} />;
 };
 
 export default LoadingButton;

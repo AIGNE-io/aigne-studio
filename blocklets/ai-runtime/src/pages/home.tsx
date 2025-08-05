@@ -6,7 +6,7 @@ import Result from '@arcblock/ux/lib/Result';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 
 export default function HomePage() {
   const applications = useResourceBlockletState()?.applications;

@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import {
   Button,
   Dialog,

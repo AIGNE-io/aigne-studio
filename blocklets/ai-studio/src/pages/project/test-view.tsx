@@ -9,7 +9,7 @@ import BugIcon from '@iconify-icons/tabler/bug';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { Error } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';

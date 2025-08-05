@@ -1,4 +1,4 @@
-import { LoadingButton, LoadingButtonProps } from '@mui/lab';
+import { Button as LoadingButton, ButtonProps as LoadingButtonProps } from '@mui/material';
 import { useState } from 'react';
 
 export default function PromiseLoadingButton(props: LoadingButtonProps) {

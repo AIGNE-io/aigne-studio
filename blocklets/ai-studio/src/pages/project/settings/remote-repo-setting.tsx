@@ -4,7 +4,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
 import { CheckCircleOutlineRounded, ErrorOutlineRounded, SaveRounded, SyncRounded } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   Button,

@@ -7,7 +7,7 @@ import { Icon } from '@iconify-icon/react';
 import MinusIcon from '@iconify-icons/tabler/minus';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
+import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   Button,
