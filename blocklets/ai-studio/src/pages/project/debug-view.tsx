@@ -717,7 +717,7 @@ function ChatModeForm({
             },
           }}
           loading={lastMessage?.loading}
-          loadingPosition="end"
+          loadingPosition="start"
           endIcon={<Icon icon={SendIcon} size={14} />}>
           {t('send')}
         </LoadingButton>
@@ -981,7 +981,7 @@ function DebugModeForm({
               }}
               disabled={!form.formState.isValid}
               loading={lastMessage?.loading}
-              loadingPosition="end"
+              loadingPosition="start"
               endIcon={<Icon icon={SendIcon} size={14} />}>
               {t('execute')}
             </LoadingButton>

@@ -7,7 +7,6 @@ import { Icon } from '@iconify-icon/react';
 import MinusIcon from '@iconify-icons/tabler/minus';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
-import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   Button,
@@ -18,6 +17,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Button as LoadingButton,
   MenuItem,
   Stack,
   Table,
@@ -706,7 +706,11 @@ function VariableList() {
             {t('cancel')}
           </Button>
 
-          <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+          <LoadingButton
+            loadingPosition="start"
+            type="submit"
+            variant="contained"
+            loading={form.formState.isSubmitting}>
             {t('save')}
           </LoadingButton>
         </DialogActions>

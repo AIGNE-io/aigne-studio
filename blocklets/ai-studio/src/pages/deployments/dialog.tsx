@@ -187,7 +187,11 @@ export default function DeploymentDialog({
           <Button variant="outlined" onClick={dialogState.close}>
             {t('cancel')}
           </Button>
-          <LoadingButton variant="contained" onClick={handleSubmit(onSubmit)} data-testid="update-button">
+          <LoadingButton
+            variant="contained"
+            onClick={handleSubmit(onSubmit)}
+            data-testid="update-button"
+            loadingPosition="start">
             {t('update')}
           </LoadingButton>
         </Stack>

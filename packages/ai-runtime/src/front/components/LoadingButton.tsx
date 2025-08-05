@@ -25,7 +25,7 @@ const LoadingButton = ({
   return (
     <MuiLoadingButton
       ref={ref}
-      loadingPosition="end"
+      loadingPosition="start"
       {...props}
       loading={props.loading || loading}
       onClick={handleClick}

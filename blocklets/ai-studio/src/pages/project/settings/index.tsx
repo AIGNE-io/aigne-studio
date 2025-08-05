@@ -8,13 +8,13 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { defaultTextModel, getSupportedModels } from '@blocklet/ai-runtime/common';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
 import { CloseRounded, SaveRounded } from '@mui/icons-material';
-import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   BoxProps,
   Button,
   FormControl,
   FormControlLabel,
+  Button as LoadingButton,
   Radio,
   RadioGroup,
   Stack,

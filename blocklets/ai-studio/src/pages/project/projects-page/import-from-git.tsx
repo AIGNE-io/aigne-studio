@@ -5,7 +5,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { Button as LoadingButton } from '@mui/material';
 import {
   Box,
   Button,
@@ -16,6 +15,7 @@ import {
   IconButton,
   InputAdornment,
   Link,
+  Button as LoadingButton,
   Stack,
   TextField,
   Tooltip,

@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { Button as LoadingButton } from '@mui/material';
 import {
   Button,
   Dialog,
@@ -9,6 +8,7 @@ import {
   DialogProps,
   DialogTitle,
   Link,
+  Button as LoadingButton,
   Stack,
   TextField,
   Typography,
@@ -126,7 +126,7 @@ export default function AgentSettingsDialog({ ...props }: Omit<DialogProps, 'ope
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('cancel')}</Button>
-        <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+        <LoadingButton loadingPosition="start" type="submit" variant="contained" loading={form.formState.isSubmitting}>
           {t('save')}
         </LoadingButton>
       </DialogActions>

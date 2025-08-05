@@ -9,8 +9,7 @@ import BugIcon from '@iconify-icons/tabler/bug';
 import RocketIcon from '@iconify-icons/tabler/rocket';
 import TrashIcon from '@iconify-icons/tabler/trash';
 import { Error } from '@mui/icons-material';
-import { Button as LoadingButton } from '@mui/material';
-import { Alert, Box, Button, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Box, Button, Button as LoadingButton, Stack, Tooltip, Typography } from '@mui/material';
 import { cloneDeep, sortBy } from 'lodash';
 import { nanoid } from 'nanoid';
 import { useImperativeHandle, useRef, useState } from 'react';
@@ -79,6 +78,7 @@ export default function DebugView({
           sx={{ py: 0 }}
           loading={running}
           onClick={runAll}
+          loadingPosition="start"
           startIcon={<Box component={Icon} icon={RocketIcon} sx={{ fontSize: 16 }} />}>
           {t('runAll')}
         </LoadingButton>

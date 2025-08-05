@@ -334,7 +334,7 @@ export default function ImportKnowledge({
         <Button variant="outlined" onClick={onClose}>
           {t('cancel')}
         </Button>
-        <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled}>
+        <LoadingButton variant="contained" onClick={handleSubmit} disabled={disabled} loadingPosition="start">
           {documentId ? t('update') : t('create')}
         </LoadingButton>
       </DialogActions>

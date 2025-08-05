@@ -40,6 +40,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
           variant="outlined"
           color="inherit"
           sx={{ px: 2, minWidth: 0, minHeight: 0, height: 32 }}
+          loadingPosition="start"
           onClick={async (e) => {
             e.stopPropagation();
             await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });

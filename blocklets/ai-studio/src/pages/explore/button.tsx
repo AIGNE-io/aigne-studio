@@ -131,6 +131,7 @@ export function MakeYoursButton({
           color="primary"
           variant="contained"
           startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+          loadingPosition="start"
           {...props}>
           {t('makeYours')}
         </LoadingButton>

@@ -190,6 +190,7 @@ export default function V0Input({
                                 endAdornment: (
                                   <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
                                     <LoadingButton
+                                      loadingPosition="start"
                                       type="submit"
                                       variant="contained"
                                       loading={running}

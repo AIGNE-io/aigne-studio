@@ -78,7 +78,7 @@ function DeleteCacheButton({ agent }: { agent: AssistantYjs }) {
         gap: 1,
         alignItems: 'center',
       }}>
-      <LoadingButton variant="outlined" size="small" onClick={run}>
+      <LoadingButton variant="outlined" size="small" onClick={run} loadingPosition="start">
         {t('cleanCache')}
       </LoadingButton>
       <Fade in={!!data && !error} timeout={300}>

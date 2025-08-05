@@ -22,7 +22,15 @@ const LoadingButton = ({
     [onClick]
   );
 
-  return <MuiLoadingButton ref={ref} {...props} loadingPosition="end" loading={props.loading || loading} onClick={handleClick} />;
+  return (
+    <MuiLoadingButton
+      ref={ref}
+      {...props}
+      loadingPosition="start"
+      loading={props.loading || loading}
+      onClick={handleClick}
+    />
+  );
 };
 
 export default LoadingButton;

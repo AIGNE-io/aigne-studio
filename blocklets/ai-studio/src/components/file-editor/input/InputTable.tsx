@@ -1663,7 +1663,7 @@ function AuthorizeParametersFormDialog({
           {t('cancel')}
         </Button>
 
-        <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+        <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting} loadingPosition="start">
           {t('save')}
         </LoadingButton>
       </DialogActions>

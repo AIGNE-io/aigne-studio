@@ -31,7 +31,7 @@ export default function HomePage() {
                 resourceType="application"
                 autoClose={false}
                 render={({ onClick, loading }) => (
-                  <LoadingButton onClick={onClick} loading={loading} variant="contained">
+                  <LoadingButton onClick={onClick} loading={loading} variant="contained" loadingPosition="start">
                     Install Now
                   </LoadingButton>
                 )}

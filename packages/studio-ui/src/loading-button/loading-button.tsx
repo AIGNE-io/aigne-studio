@@ -7,7 +7,7 @@ export default function LoadingButton(props: LoadingButtonProps) {
   return (
     <MuiLoadingButton
       {...props}
-      loadingPosition="end"
+      loadingPosition="start"
       loading={props.loading || loading}
       onClick={(e) => {
         const res: Promise<any> | undefined = props.onClick?.(e) as any;

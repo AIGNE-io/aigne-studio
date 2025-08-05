@@ -234,7 +234,7 @@ const CreateCard = ({ onImport, onCreate }: { onImport: () => void; onCreate: ()
           p: 2.5,
           gap: 1,
         }}>
-        <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }}>
+        <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }} loadingPosition="start">
           {t('createObject', { object: t('knowledge.knowledgeBase') })}
         </LoadingButton>
         <Button variant="outlined" size="large" onClick={onImport} sx={{ fontSize: 16 }}>
@@ -652,6 +652,7 @@ const SelectKnowledgeModal = (
             <LoadingButton
               variant="contained"
               onClick={() => runImport(selectedKnowledgeIds)}
+              loadingPosition="start"
               disabled={!selectedKnowledgeIds.length || importLoading}>
               {importLoading && <CircularProgress size={14} />}
               {`${t('importObject', { object: t('knowledge.knowledgeBase') })} ${

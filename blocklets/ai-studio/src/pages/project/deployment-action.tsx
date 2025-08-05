@@ -71,6 +71,7 @@ export default function DeploymentAction() {
   return (
     <>
       <LoadingButton
+        loadingPosition="start"
         data-testid="deploy-button"
         variant="contained"
         startIcon={<Box component={Icon} icon={RocketIcon} sx={{ fontSize: 16 }} />}
@@ -316,7 +317,7 @@ function DeployApp({
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit} data-testid="add-deploy-button">
+          <LoadingButton loadingPosition="start" variant="contained" onClick={onSubmit} data-testid="add-deploy-button">
             {t('deploy')}
           </LoadingButton>
         </Stack>
@@ -541,7 +542,11 @@ function UpdateApp({ id, data, run, sx = undefined }: { id: string; data: Deploy
             <PublishButton />
           </Box>
 
-          <LoadingButton variant="contained" onClick={onSubmit} data-testid="update-deploy-button">
+          <LoadingButton
+            loadingPosition="start"
+            variant="contained"
+            onClick={onSubmit}
+            data-testid="update-deploy-button">
             {t('update')}
           </LoadingButton>
         </Stack>

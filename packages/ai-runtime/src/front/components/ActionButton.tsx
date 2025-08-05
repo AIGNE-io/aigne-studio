@@ -63,8 +63,8 @@ export default function ActionButton({
     <Tooltip title={toolTipTitleText} disableInteractive placement={placement} onClose={onClose} onOpen={onOpen}>
       <span>
         <LoadingButton
+          loadingPosition="start"
           startIcon={realIcon && (typeof realIcon === 'string' ? <Icon icon={realIcon} /> : realIcon)}
-          loadingPosition={realIcon ? 'start' : undefined}
           {...props}
           onClick={async (e: any) => {
             if (!props.onClick) return;
