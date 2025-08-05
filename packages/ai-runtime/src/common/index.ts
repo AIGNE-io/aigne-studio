@@ -1,4 +1,3 @@
-import { uniqBy } from 'lodash';
 import { LRUCache } from 'lru-cache';
 import { joinURL, withQuery } from 'ufo';
 
@@ -42,6 +41,10 @@ const fetchAigneHubModelsFromWindow = async (type: 'chatCompletion' | 'image') =
 
 const fetchAigneHubModelsFromNode = async (type: 'chatCompletion' | 'image') => {
   const apiURL = process.env.BLOCKLET_AIGNE_API_URL || '';
+  if (!process.env.BLOCKLET_AIGNE_API_URL) {
+    throw new Error('Please connect aigne hub first');
+  }
+
   const BLOCKLET_JSON_PATH = '__blocklet__.js?type=json';
   const blockletURL = joinURL(apiURL, BLOCKLET_JSON_PATH);
 
@@ -73,7 +76,7 @@ const fetchAigneHubModels = async (type: 'chatCompletion' | 'image') => {
 
 export async function getSupportedModels(): Promise<TextModelInfo[]> {
   const models = await fetchAigneHubModels('chatCompletion');
-  const formatModels = models.map(
+  const formatModels: TextModelInfo[] = models.map(
     (x: {
       key: string;
       model: string;
@@ -97,66 +100,7 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
     }
   );
 
-  const result = uniqBy(
-    [
-      {
-        brand: 'OpenAI',
-        model: 'gpt-4o',
-        name: 'GPT4o',
-        maxTokensMin: 1,
-        maxTokensMax: 128000,
-        maxTokensDefault: 128000,
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-4o-mini',
-        name: 'GPT4o mini',
-        maxTokensMin: 1,
-        maxTokensMax: 128000,
-        maxTokensDefault: 128000,
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-3.5-turbo',
-        name: 'GPT3.5 turbo',
-        maxTokensMin: 1,
-        maxTokensMax: 4096,
-        maxTokensDefault: 4096,
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-3.5-turbo-16k',
-        name: 'GPT3.5 turbo 16k',
-        maxTokensMin: 1,
-        maxTokensMax: 16385,
-        maxTokensDefault: 16385,
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-4',
-        name: 'GPT4',
-        maxTokensMin: 1,
-        maxTokensMax: 8192,
-        maxTokensDefault: 8192,
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-4-32k',
-        name: 'GPT4 32k',
-        maxTokensMin: 1,
-        maxTokensMax: 32768,
-        maxTokensDefault: 32768,
-        tags: ['OpenAI'],
-      },
-      ...formatModels,
-    ],
-    'model'
-  ).map((model) => ({
+  const result = formatModels.map((model) => ({
     ...model,
     ...textModelParamsDefault,
   }));
@@ -172,7 +116,7 @@ const imageModelParamsDefault = {
 
 export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
   const models = await fetchAigneHubModels('image');
-  const formatModels = models.map(
+  const formatModels: ImageModelInfo[] = models.map(
     (x: {
       key: string;
       model: string;
@@ -209,57 +153,7 @@ export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
     }
   );
 
-  const result = uniqBy(
-    [
-      {
-        brand: 'OpenAI',
-        model: 'dall-e-2',
-        nMin: 1,
-        nMax: 10,
-        nDefault: 1,
-        size: ['256x256', '512x512', '1024x1024'],
-        sizeDefault: '256x256',
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'dall-e-3',
-        nMin: 1,
-        nMax: 1,
-        nDefault: 1,
-        quality: ['standard', 'hd'],
-        qualityDefault: 'standard',
-        size: ['1024x1024', '1792x1024', '1024x1792'],
-        sizeDefault: '1024x1024',
-        style: ['vivid', 'natural'],
-        styleDefault: 'vivid',
-        tags: ['OpenAI'],
-      },
-      {
-        brand: 'OpenAI',
-        model: 'gpt-image-1',
-        nMin: 1,
-        nMax: 10,
-        nDefault: 1,
-        quality: ['high', 'medium', 'low', 'auto'],
-        qualityDefault: 'auto',
-        size: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
-        sizeDefault: 'auto',
-        moderation: ['low', 'auto'],
-        moderationDefault: 'auto',
-        background: ['transparent', 'opaque', 'auto'],
-        backgroundDefault: 'auto',
-        outputFormat: ['jpeg', 'png', 'webp'],
-        outputFormatDefault: 'jpeg',
-        outputCompressionMin: 0,
-        outputCompressionMax: 100,
-        outputCompressionDefault: 100,
-        tags: ['OpenAI'],
-      },
-      ...formatModels,
-    ],
-    'model'
-  ).map((model) => ({
+  const result = formatModels.map((model) => ({
     ...model,
     ...imageModelParamsDefault,
   }));
