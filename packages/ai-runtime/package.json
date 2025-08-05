@@ -155,7 +155,7 @@
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.46",
     "@blocklet/logger": "^1.16.46",
-    "@blocklet/pages-kit": "^0.6.34",
+    "@blocklet/pages-kit": "^0.6.36",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.46",
     "@blocklet/uploader": "^0.2.5",

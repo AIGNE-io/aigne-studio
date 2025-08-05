@@ -53,7 +53,7 @@
     "@blocklet/editor": "^2.4.32",
     "@blocklet/js-sdk": "^1.16.46",
     "@blocklet/logger": "^1.16.46",
-    "@blocklet/pages-kit": "^0.6.34",
+    "@blocklet/pages-kit": "^0.6.36",
     "@blocklet/payment-js": "^1.19.11",
     "@blocklet/pdf": "^2.4.32",
     "@blocklet/prompt-editor": "workspace:^",
