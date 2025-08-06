@@ -1,3 +1,4 @@
+import sortBy from 'lodash/sortBy';
 import { LRUCache } from 'lru-cache';
 import { joinURL, withQuery } from 'ufo';
 
@@ -100,10 +101,13 @@ export async function getSupportedModels(): Promise<TextModelInfo[]> {
     }
   );
 
-  const result = formatModels.map((model) => ({
-    ...model,
-    ...textModelParamsDefault,
-  }));
+  const result = sortBy(
+    formatModels.map((model) => ({
+      ...model,
+      ...textModelParamsDefault,
+    })),
+    (key) => !key.brand.toLocaleLowerCase().includes('openai')
+  );
 
   return result;
 }

@@ -34,6 +34,7 @@ import { useAllModels } from './use-models';
 import { sortModels } from './utils';
 
 interface Props {
+  tag: string | null;
   options: TextModelInfo[] | ImageModelInfo[];
   value?: string | null;
   onChange: (value: string | null) => void;
@@ -44,6 +45,7 @@ interface Props {
 const TAG_FAVORITES = 'favorites';
 
 export function ModelSelect({
+  tag,
   options,
   value = undefined,
   onChange,
@@ -52,7 +54,7 @@ export function ModelSelect({
   ...rest
 }: Props) {
   return (
-    <Box {...rest}>
+    <Box key={tag} {...rest}>
       <Box>
         {options.map((option) => {
           const isSelected = option.model === value;
@@ -60,7 +62,7 @@ export function ModelSelect({
           return (
             <Stack
               direction="row"
-              key={`${option.model}-${option.name}`}
+              key={`${option.model}-${option.name}-${tag}`}
               onClick={() => {
                 onChange(option.model === value ? null : option.model);
               }}
@@ -233,6 +235,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
         </Box>
         {sortedOptions.length > 0 ? (
           <ModelSelect
+            tag={currentTag}
             options={sortedOptions}
             value={selected}
             onChange={setSelected}

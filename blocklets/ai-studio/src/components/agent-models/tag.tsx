@@ -1,4 +1,5 @@
 import { Chip, ChipProps, Stack } from '@mui/material';
+import upperFirst from 'lodash/upperFirst';
 
 export function Tag({ label, selected, ...rest }: { selected: boolean } & ChipProps) {
   const selectedStyle = {
@@ -48,7 +49,7 @@ export function TagFilter({ value, onChange, prepend = undefined, tags }: TagFil
       }}>
       {prepend}
       {tags.map((tag) => (
-        <Tag key={tag} label={tag} selected={value === tag} onClick={() => handleTagClick(tag)} />
+        <Tag key={tag} label={upperFirst(tag)} selected={value === tag} onClick={() => handleTagClick(tag)} />
       ))}
     </Stack>
   );
