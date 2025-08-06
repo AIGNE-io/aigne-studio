@@ -1,3 +1,7 @@
+## 0.5.1 (2025-8-6)
+
+- chore: update package deps
+
 ## 0.5.0 (2025-8-2)
 
 - chore: upgrade react19, mui7, vite7
