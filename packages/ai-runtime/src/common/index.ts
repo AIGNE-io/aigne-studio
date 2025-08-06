@@ -7,11 +7,41 @@ export const defaultTextModel = 'gpt-4o-mini';
 
 const AIGNE_RUNTIME_DID = 'z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2';
 
+const CACHE_DURATION = 5 * 60 * 1000;
+
+function setCache(key: string, data: any) {
+  const payload = {
+    data,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(key, JSON.stringify(payload));
+}
+
+function getCache(key: string) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+
+  const { data, timestamp } = JSON.parse(raw);
+  if (Date.now() - timestamp > CACHE_DURATION) {
+    localStorage.removeItem(key);
+    return null;
+  }
+
+  return data;
+}
+
 const fetchAigneHubModelsFromWindow = async (type: 'chatCompletion' | 'image') => {
   const f = (blocklet?.componentMountPoints || []).find((m: { did: string }) => m.did === AIGNE_RUNTIME_DID);
   const url = withQuery(joinURL(window.location.origin, f?.mountPoint || '', '/api/models'), { type });
+
+  const cached = getCache(url);
+  if (cached) {
+    return cached;
+  }
+
   const response = await fetch(url);
   const data = await response.json();
+  setCache(url, data);
   return data;
 };
 
