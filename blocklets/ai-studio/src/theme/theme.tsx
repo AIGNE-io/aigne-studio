@@ -1,10 +1,10 @@
 import { Icon } from '@iconify-icon/react';
 import ChevronDownIcon from '@iconify-icons/tabler/chevron-down';
-import { loadingButtonClasses } from '@mui/lab';
 import {
   Box,
   BoxProps,
   autocompleteClasses,
+  buttonClasses,
   filledInputClasses,
   inputBaseClasses,
   inputClasses,
@@ -753,7 +753,7 @@ export const theme = createTheme({
             backgroundColor: '#030712',
           },
 
-          [`&.${loadingButtonClasses.loading}`]: {
+          [`&.${buttonClasses.loading}`]: {
             color: 'grey',
           },
         },

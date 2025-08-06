@@ -20,8 +20,8 @@ export default function IndicatorTextField({
   projectId,
   gitRef,
   path,
-  TextFiledProps,
-  boxProps,
+  TextFiledProps = undefined,
+  boxProps = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -37,13 +37,20 @@ export default function IndicatorTextField({
   const field = path.slice(1);
   const current = file.length ? (field.length ? files[file[0]!]?.fields[field.join('.')] : files[file[0]!]) : undefined;
   const filterClients = uniqBy(current?.clients, 'clientID');
+  const boxSx = boxProps?.sx ?? {};
 
   return (
-    <Box {...boxProps} position="relative">
+    <Box
+      {...boxProps}
+      sx={[
+        {
+          position: 'relative',
+        },
+        ...(Array.isArray(boxSx) ? boxSx : [boxSx]),
+      ]}>
       <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={path}>
         <TextField {...TextFiledProps} />
       </WithAwareness>
-
       {!!current?.clients.length && (
         <Tooltip
           placement="top"

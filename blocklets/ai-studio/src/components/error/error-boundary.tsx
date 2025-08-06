@@ -51,7 +51,16 @@ function ErrorView({
   }
 
   return (
-    <Stack position="fixed" left={0} top={0} right={0} bottom={0} alignItems="center" justifyContent="center">
+    <Stack
+      sx={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
       <CircularProgress size={24} />
     </Stack>
   );
@@ -72,13 +81,17 @@ function Actions() {
   const isHome = window.location.pathname === '/';
 
   return (
-    <Stack direction="row" gap={1} alignItems="center">
+    <Stack
+      direction="row"
+      sx={{
+        gap: 1,
+        alignItems: 'center',
+      }}>
       {!isHome && (
         <Button variant="outlined" size="small" color="primary" component={Link} href="/">
           Back Home
         </Button>
       )}
-
       <Button variant="outlined" size="small" color="primary" onClick={() => window.location.reload()}>
         Reload
       </Button>

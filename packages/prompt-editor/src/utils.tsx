@@ -97,7 +97,11 @@ export function text2EditorState(content?: string): Promise<EditorState> {
       root.append(paragraph);
     });
 
-    editor.registerUpdateListener(({ editorState }) => resolve(editorState));
+    editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        resolve(editorState);
+      });
+    });
   });
 }
 

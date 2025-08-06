@@ -9,7 +9,14 @@ import { nanoid } from 'nanoid';
 import { useRef } from 'react';
 
 function CustomTextField(props: any) {
-  return <TextField {...props} InputProps={{ startAdornment: null, endAdornment: props?.InputProps?.endAdornment }} />;
+  return (
+    <TextField
+      {...props}
+      slotProps={{
+        input: { startAdornment: null, endAdornment: props?.InputProps?.endAdornment },
+      }}
+    />
+  );
 }
 
 function ConfigWrapper(props: any) {

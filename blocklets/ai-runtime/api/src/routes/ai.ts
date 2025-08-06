@@ -281,6 +281,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       background: input.background || imageModel?.backgroundDefault,
       moderation: input.moderation || imageModel?.moderationDefault,
     };
+    logger.info('call imageGenerationsV2 input', model);
 
     const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
     return imageGenerationsV2(

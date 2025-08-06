@@ -1,4 +1,4 @@
-import { Badge, Paper, SxProps, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Badge, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 interface Option {
   value: string;
@@ -11,10 +11,9 @@ interface Props {
   value: string;
   options: Option[];
   onChange?: (value: any) => void;
-  sx?: SxProps;
 }
 
-export default function SegmentedControl({ value, options, onChange, sx, ...rest }: Props) {
+export default function SegmentedControl({ value, options, onChange = undefined, ...rest }: Props) {
   const mergedSx = {
     display: 'inline-flex',
     borderRadius: '100vh',

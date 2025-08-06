@@ -23,7 +23,7 @@ export function useActiveAgent() {
   return context;
 }
 
-export function ActiveAgentProvider({ children }: { children?: ReactNode }) {
+export function ActiveAgentProvider({ children = undefined }: { children?: ReactNode }) {
   const { aid: entryAid } = useEntryAgent();
   const agent = useAgent({ aid: entryAid });
 

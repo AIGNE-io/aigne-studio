@@ -5,10 +5,8 @@ import { INSERT_VARIABLE_COMMAND, VariablePickerOption } from '@blocklet/prompt-
 import { DataObjectRounded } from '@mui/icons-material';
 import { alpha } from '@mui/material';
 import { useCallback, useMemo } from 'react';
-import { atom, useRecoilState } from 'recoil';
 
-const highlightedState = atom<null | string>({ key: 'highlightedState', default: null });
-const useHighlightedState = () => useRecoilState(highlightedState);
+import { useHighlightedStore } from '../../store/highlighted-store';
 
 type VariableEditorOptions = {
   from?: 'editor' | 'agentParameter' | 'knowledgeParameter' | 'blockletAPIParameter' | 'imageBlenderParameter';
@@ -21,7 +19,7 @@ export default function useVariablesEditorOptions(
   { includeOutputVariables, CallAssistantIndex }: { includeOutputVariables?: boolean; CallAssistantIndex?: number } = {}
 ) {
   const { t } = useLocaleContext();
-  const [highlightedId, setHighlightedId] = useHighlightedState();
+  const { highlightedId, setHighlightedId } = useHighlightedStore();
   const from: 'editor' = 'editor';
 
   const resolveCallAssistantOptions = () => {

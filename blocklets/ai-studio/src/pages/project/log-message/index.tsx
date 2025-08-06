@@ -123,7 +123,11 @@ const LogMessages = () => {
 
   return (
     <>
-      <Box overflow="auto" height="100%">
+      <Box
+        sx={{
+          overflow: 'auto',
+          height: '100%',
+        }}>
         <Container maxWidth="lg" sx={{ height: '100%' }}>
           {hasAppHistory && (
             <Button
@@ -158,7 +162,11 @@ const LogMessages = () => {
           </Header>
 
           <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 2 }}>
-            <Stack flex={1} sx={{ overflowX: 'auto' }}>
+            <Stack
+              sx={{
+                flex: 1,
+                overflowX: 'auto',
+              }}>
               <Table
                 sx={{
                   minWidth: 800,
@@ -187,8 +195,16 @@ const LogMessages = () => {
                 loading={loading}
                 slots={{
                   noRowsOverlay: () => (
-                    <Box className="center" height={200}>
-                      <Typography color="text.secondary" fontSize={16}>
+                    <Box
+                      className="center"
+                      sx={{
+                        height: 200,
+                      }}>
+                      <Typography
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: 16,
+                        }}>
                         {t('noLogs')}
                       </Typography>
                     </Box>
@@ -234,7 +250,6 @@ const LogMessages = () => {
           </Box>
         </Container>
       </Box>
-
       {dialog}
     </>
   );

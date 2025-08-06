@@ -6,13 +6,13 @@ import { ReactNode, useRef, useState } from 'react';
 import LoadingButton from './LoadingButton';
 
 export default function ActionButton({
-  tip,
-  tipSucceed,
-  title,
-  titleSucceed,
-  icon,
-  iconSucceed,
-  autoReset,
+  tip = undefined,
+  tipSucceed = undefined,
+  title = undefined,
+  titleSucceed = undefined,
+  icon = undefined,
+  iconSucceed = undefined,
+  autoReset = undefined,
   placement = 'top',
   ...props
 }: {
@@ -29,7 +29,7 @@ export default function ActionButton({
   const [active, setActive] = useState(false);
   const [error, setError] = useState<Error>();
 
-  const timer = useRef<number>();
+  const timer = useRef<number>(undefined);
 
   const onClose = () => {
     setError(undefined);
@@ -47,15 +47,24 @@ export default function ActionButton({
 
   const realIcon = active ? iconSucceed : icon;
 
-  const toolTipTitleText = error ? <Box color="error">{error.message}</Box> : (active && tipSucceed) || tip;
+  const toolTipTitleText = error ? (
+    <Box
+      sx={{
+        color: 'error',
+      }}>
+      {error.message}
+    </Box>
+  ) : (
+    (active && tipSucceed) || tip
+  );
   const buttonText = active ? titleSucceed : title;
 
   return (
     <Tooltip title={toolTipTitleText} disableInteractive placement={placement} onClose={onClose} onOpen={onOpen}>
       <span>
         <LoadingButton
+          loadingPosition="start"
           startIcon={realIcon && (typeof realIcon === 'string' ? <Icon icon={realIcon} /> : realIcon)}
-          loadingPosition={realIcon ? 'start' : undefined}
           {...props}
           onClick={async (e: any) => {
             if (!props.onClick) return;

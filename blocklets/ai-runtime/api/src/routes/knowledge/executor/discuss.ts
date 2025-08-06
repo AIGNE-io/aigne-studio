@@ -35,7 +35,6 @@ const getDiscussionContent = async (discussionId: string) => {
   const languagesResult = [];
   for (const language of languages) {
     if (language !== post?.locale) {
-      // eslint-disable-next-line no-await-in-loop
       const res = await getDiscussion(discussionId, language);
       if (res?.post) languagesResult.push(res?.post);
     }
@@ -128,7 +127,6 @@ export class DiscussKitProcessor extends BaseProcessor {
     const posts: Record<string, any> = {};
     for (const discussionId of ids) {
       try {
-        // eslint-disable-next-line no-await-in-loop
         const post = await this.getDiscussionWithLanguagesAndComments(discussionId);
         posts[discussionId] = post;
       } catch (error) {
@@ -155,7 +153,6 @@ export class DiscussKitProcessor extends BaseProcessor {
     const posts: Record<string, any> = {};
     for (const discussionId of ids) {
       try {
-        // eslint-disable-next-line no-await-in-loop
         const post = await this.getDiscussionWithLanguagesAndComments(discussionId);
         posts[discussionId] = post;
       } catch (error) {

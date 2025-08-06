@@ -6,7 +6,6 @@ import Toast from '@arcblock/ux/lib/Toast';
 import { RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -17,6 +16,7 @@ import {
   DialogTitle,
   IconButton,
   InputAdornment,
+  Button as LoadingButton,
   MenuItem,
   Stack,
   TextField,
@@ -106,10 +106,17 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
-        <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
-          <Stack flex={1} gap={2.5}>
+        <Stack
+          sx={{
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2.5, md: 4 },
+          }}>
+          <Stack
+            sx={{
+              flex: 1,
+              gap: 2.5,
+            }}>
             <Box>
               <Typography variant="subtitle2">{t('choose')}</Typography>
 
@@ -132,42 +139,64 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                         background: 'transparent',
                       },
                     }}
-                    SelectProps={{
-                      displayEmpty: true,
-                      renderValue: (selected) => {
-                        const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
-                        if (!selectedItem) {
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
+                          </InputAdornment>
+                        ),
+                      },
+
+                      select: {
+                        displayEmpty: true,
+                        renderValue: (selected) => {
+                          const selectedItem = templates.find((item) => `${item.blockletDid}-${item.id}` === selected);
+                          if (!selectedItem) {
+                            return (
+                              <Stack
+                                direction="row"
+                                spacing={1}
+                                sx={{
+                                  alignItems: 'center',
+                                }}>
+                                <DidAvatar did={window.blocklet.appId} size={20} src="" />
+                                <Typography variant="subtitle2" noWrap>
+                                  {t('blankTemplate')}
+                                </Typography>
+                              </Stack>
+                            );
+                          }
+
                           return (
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                              <DidAvatar did={window.blocklet.appId} size={20} src="" />
-                              <Typography variant="subtitle2" noWrap>
-                                {t('blankTemplate')}
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              sx={{
+                                alignItems: 'center',
+                              }}>
+                              <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
+                              <Typography variant="body2" noWrap>
+                                {selectedItem?.name || t('unnamed')}
                               </Typography>
                             </Stack>
                           );
-                        }
-
-                        return (
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <DidAvatar did={selectedItem.blockletDid} size={20} src="" />
-                            <Typography variant="body2" noWrap>
-                              {selectedItem?.name || t('unnamed')}
-                            </Typography>
-                          </Stack>
-                        );
+                        },
                       },
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          {loading && <CircularProgress size={12} sx={{ mr: 2 }} />}
-                        </InputAdornment>
-                      ),
                     }}>
                     <MenuItem value="">
-                      <Stack direction="row" alignItems="stretch" gap={1}>
+                      <Stack
+                        direction="row"
+                        sx={{
+                          alignItems: 'stretch',
+                          gap: 1,
+                        }}>
                         <DidAvatar did={window.blocklet.appId} size={40} src="" />
-                        <Stack flex={1} width={1}>
+                        <Stack
+                          sx={{
+                            flex: 1,
+                            width: 1,
+                          }}>
                           <Typography variant="subtitle2" noWrap>
                             {t('blankTemplate')}
                           </Typography>
@@ -177,9 +206,18 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
 
                     {templates.map((item) => (
                       <MenuItem key={item.id} value={`${item.blockletDid}-${item.id}`}>
-                        <Stack direction="row" alignItems="stretch" gap={1}>
+                        <Stack
+                          direction="row"
+                          sx={{
+                            alignItems: 'stretch',
+                            gap: 1,
+                          }}>
                           <DidAvatar did={item.blockletDid} size={40} src="" />
-                          <Stack flex={1} width={1}>
+                          <Stack
+                            sx={{
+                              flex: 1,
+                              width: 1,
+                            }}>
                             <Typography variant="subtitle2" noWrap>
                               {item?.name || t('unnamed')}
                             </Typography>
@@ -201,7 +239,11 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                 )}
               />
 
-              <Typography variant="caption" color="text.disabled">
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.disabled',
+                }}>
                 {t('selectTemplate')}
               </Typography>
             </Box>
@@ -213,7 +255,11 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
             )}
           </Stack>
 
-          <Stack flex={1} gap={2.5}>
+          <Stack
+            sx={{
+              flex: 1,
+              gap: 2.5,
+            }}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
               <NameField form={form} beforeDuplicateProjectNavigate={onClose} />
@@ -235,7 +281,6 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
           </Stack>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} className="cancel" variant="outlined">
           {t('cancel')}

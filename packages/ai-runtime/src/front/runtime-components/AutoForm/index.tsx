@@ -17,11 +17,11 @@ import { isValidInput } from '../../utils/agent-inputs';
 import { ImagePreview, ImageUpload } from './image-upload';
 
 export default function AutoForm({
-  submitText,
-  inlineLabel,
+  submitText = '',
+  inlineLabel = false,
   autoFillLastForm = true,
-  submitInQuestionField,
-  chatMode,
+  submitInQuestionField = false,
+  chatMode = false,
 }: {
   submitText?: string;
   inlineLabel?: boolean;
@@ -138,7 +138,6 @@ export default function AutoForm({
       className={cx('form', `label-position-${inlineLabel ? 'start' : 'top'}`)}
       onSubmit={form.handleSubmit(onSubmit)}>
       {isInInput && changeImageParameterRender && renderImageUploadPreview()}
-
       {parameters?.map((parameter, index) => {
         const { key, required } = parameter ?? {};
         if (!key) return null;
@@ -172,7 +171,6 @@ export default function AutoForm({
                 return (
                   <Stack className="form-item">
                     {parameter.label && <FormLabel>{parameter.label}</FormLabel>}
-
                     <AgentInputField
                       inputProps={{ 'data-testid': `runtime-input-${key}` }}
                       inputRef={field.ref}
@@ -188,15 +186,22 @@ export default function AutoForm({
                       error={Boolean(fieldState.error)}
                       helperText={fieldState.error?.message || parameter?.helper}
                       sx={{ flex: 1 }}
+                      // eslint-disable-next-line react/jsx-no-duplicate-props
                       InputProps={{
                         ...(parameter.key === 'question' && submitInQuestionField
                           ? {
                               endAdornment: (
                                 <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
-                                  <Stack direction="row" alignItems="center" gap={1}>
+                                  <Stack
+                                    direction="row"
+                                    sx={{
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}>
                                     {changeImageParameterRender && renderImageUploadIcon()}
 
                                     <LoadingButton
+                                      loadingPosition="start"
                                       data-testid="runtime-submit-button"
                                       ref={submitRef}
                                       type="submit"
@@ -220,15 +225,23 @@ export default function AutoForm({
           </Box>
         );
       })}
-
       {!isInInput && (
-        <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {changeImageParameterRender && renderImageUploadPreview()}
 
-          <Stack gap={1} direction="row" alignItems="center">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+              alignItems: 'center',
+            }}>
             {changeImageParameterRender && renderImageUploadIcon()}
 
             <LoadingButton
+              loadingPosition="start"
               hidden={hiddenSubmit}
               data-testid="runtime-submit-button"
               ref={submitRef}

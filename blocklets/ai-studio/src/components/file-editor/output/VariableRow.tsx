@@ -194,7 +194,7 @@ function VariableRow({
             }}>
             {renderCustomColumn?.(variable)}
 
-            <Box component={TableCell} onClick={open}>
+            <TableCell onClick={open}>
               {firstColumnChildren}
 
               {showColumn?.includes('name') && (
@@ -217,10 +217,10 @@ function VariableRow({
                   />
                 </Box>
               )}
-            </Box>
+            </TableCell>
 
             {showColumn?.includes('from') && (
-              <Box component={TableCell}>
+              <TableCell>
                 <OutputFromSelector
                   projectId={projectId}
                   gitRef={gitRef}
@@ -228,11 +228,11 @@ function VariableRow({
                   output={variable}
                   openSettings={open}
                 />
-              </Box>
+              </TableCell>
             )}
 
             {showColumn?.includes('description') && (
-              <Box component={TableCell}>
+              <TableCell>
                 <OutputDescriptionCell
                   data-testid="output-variable-description"
                   projectId={projectId}
@@ -241,11 +241,11 @@ function VariableRow({
                   output={variable}
                   TextFieldProps={{ disabled: readOnly }}
                 />
-              </Box>
+              </TableCell>
             )}
 
             {showColumn?.includes('format') && (
-              <Box component={TableCell} onClick={open}>
+              <TableCell onClick={open}>
                 <OutputFormatCell
                   data-testid="output-variable-format"
                   assistant={value}
@@ -253,17 +253,17 @@ function VariableRow({
                   variable={datastoreVariable}
                   TextFieldProps={{ disabled: readOnly }}
                 />
-              </Box>
+              </TableCell>
             )}
 
             {showColumn?.includes('required') && (
-              <Box component={TableCell} onClick={open}>
+              <TableCell onClick={open}>
                 <OutputRequiredCell data-testid="output-required-cell" output={variable} disabled={Boolean(disabled)} />
-              </Box>
+              </TableCell>
             )}
 
             {showColumn?.includes('appearance') && (
-              <Box component={TableCell} onClick={open}>
+              <TableCell onClick={open}>
                 <OutputAppearanceCell
                   data-testid="output-appearance-cell"
                   projectId={projectId}
@@ -271,11 +271,11 @@ function VariableRow({
                   assistant={value}
                   output={variable}
                 />
-              </Box>
+              </TableCell>
             )}
 
             {showColumn?.includes('actions') && (
-              <Box component={TableCell} align="right">
+              <TableCell align="right">
                 <OutputActionsCell
                   data-testid="output-variable-actions"
                   depth={depth}
@@ -287,7 +287,7 @@ function VariableRow({
                   gitRef={gitRef}
                   assistant={value}
                 />
-              </Box>
+              </TableCell>
             )}
           </Box>
         </Tooltip>
@@ -462,24 +462,33 @@ function OutputFromSelector({
 
         return (
           <Box
-            maxWidth={300}
             className="center"
-            gap={0.5}
-            justifyContent="flex-start"
-            color="action.disabled"
             onClick={() =>
               onEdit?.(true, {
                 id: output.id,
                 agentInstanceId: agentInstanceId,
                 outputVariableId: outputVariableId,
               })
-            }>
+            }
+            sx={{
+              maxWidth: 300,
+              gap: 0.5,
+              justifyContent: 'flex-start',
+              color: 'action.disabled',
+            }}>
             <Typography className="ellipsis">
               {outputVariableName
                 ? t('agentSpecificOutput', { agentName, outputName: outputVariableName })
                 : t('agentAllOutputs', { agentName })}
             </Typography>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} sx={{ mt: 0.3 }} />
+            <Box
+              component={Icon}
+              icon={ChevronDownIcon}
+              sx={{
+                width: 15,
+                mt: 0.3,
+              }}
+            />
           </Box>
         );
       }
@@ -504,9 +513,20 @@ function OutputFromSelector({
         },
         disabled: output.hidden || current?.hidden,
         children: (
-          <Box className="center" gap={1} justifyContent="flex-start">
+          <Box
+            className="center"
+            sx={{
+              gap: 1,
+              justifyContent: 'flex-start',
+            }}>
             <Box>{current?.label && <current.label output={output} />}</Box>
-            <Box component={Icon} icon={ChevronDownIcon} width={15} />
+            <Box
+              component={Icon}
+              icon={ChevronDownIcon}
+              sx={{
+                width: 15,
+              }}
+            />
           </Box>
         ),
       }}>

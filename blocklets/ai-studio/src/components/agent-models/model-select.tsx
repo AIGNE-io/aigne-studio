@@ -3,7 +3,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageModelInfo, ModelBasedAssistantYjs, TextModelInfo } from '@blocklet/ai-runtime/types';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { AddComponent } from '@blocklet/ui-react';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
 import { Icon } from '@iconify-icon/react';
 import HelpIcon from '@iconify-icons/tabler/help';
 import StarIcon from '@iconify-icons/tabler/star';
@@ -34,6 +34,7 @@ import { useAllModels } from './use-models';
 import { sortModels } from './utils';
 
 interface Props {
+  tag: string | null;
   options: TextModelInfo[] | ImageModelInfo[];
   value?: string | null;
   onChange: (value: string | null) => void;
@@ -43,9 +44,17 @@ interface Props {
 
 const TAG_FAVORITES = 'favorites';
 
-export function ModelSelect({ options, value, onChange, onStar, starredModels, ...rest }: Props) {
+export function ModelSelect({
+  tag,
+  options,
+  value = undefined,
+  onChange,
+  onStar,
+  starredModels = undefined,
+  ...rest
+}: Props) {
   return (
-    <Box {...rest}>
+    <Box key={tag} {...rest}>
       <Box>
         {options.map((option) => {
           const isSelected = option.model === value;
@@ -53,13 +62,13 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
           return (
             <Stack
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              key={option.model}
+              key={`${option.model}-${option.name}-${tag}`}
               onClick={() => {
                 onChange(option.model === value ? null : option.model);
               }}
               sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 width: '100%',
                 height: 72,
                 mt: 2,
@@ -71,7 +80,12 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                 ...(isSelected && { bgcolor: 'action.selected', borderColor: 'primary.main' }),
                 ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
               }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}>
                 <ModelBrandIcon model={option.model} url={option.icon} size="large" />
                 <Box>{option.name}</Box>
                 {'maxTokensMax' in option && option.maxTokensMax && (
@@ -89,7 +103,6 @@ export function ModelSelect({ options, value, onChange, onStar, starredModels, .
                   </Box>
                 )}
               </Stack>
-
               <Box
                 onClick={(e) => {
                   e.stopPropagation();
@@ -125,7 +138,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
   const allTags = Array.from(new Set(models.map((x) => x.tags || []).flat()));
   const [selected, setSelected] = useState<string | null>(null);
   const isAdmin = useIsAdmin();
-  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>(undefined);
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
   const downSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
@@ -222,6 +235,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
         </Box>
         {sortedOptions.length > 0 ? (
           <ModelSelect
+            tag={currentTag}
             options={sortedOptions}
             value={selected}
             onChange={setSelected}

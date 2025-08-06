@@ -3,13 +3,12 @@ import './index.css';
 import { HistoryState, createEmptyHistoryState } from '@lexical/history';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
-import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
-import { BoxProps } from '@mui/material';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
-import { ComponentProps, MutableRefObject, useEffect, useState } from 'react';
+import { ComponentProps, JSX, RefObject, useEffect, useState } from 'react';
 
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
@@ -17,7 +16,7 @@ import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
 import TreeViewPlugin from './plugins/TreeViewPlugin';
 import VariablePickerPlugin from './plugins/VariablePickerPlugin';
 import VariablePlugin from './plugins/VariablePlugin';
-import ContentEditable from './ui/content-editable';
+import ContentEditable, { LexicalContentEditableProps } from './ui/content-editable';
 import Placeholder from './ui/content-placeholder';
 
 function ResettableHistoryPlugin() {
@@ -33,19 +32,19 @@ function ResettableHistoryPlugin() {
 export default function Editor({
   useVariableNode = false,
   isDebug = false,
-  floatElement,
+  floatElement = undefined,
   children,
-  placeholder,
-  onChange,
+  placeholder = undefined,
+  onChange = undefined,
   autoFocus = true,
-  editorRef,
-  popperElement,
-  componentPickerProps,
-  variablePickerProps,
-  ContentProps,
-  variables,
-  placeholderClassName,
-  onChangeVariableNode,
+  editorRef = undefined,
+  popperElement = undefined,
+  componentPickerProps = undefined,
+  variablePickerProps = undefined,
+  ContentProps = undefined,
+  variables = undefined,
+  placeholderClassName = undefined,
+  onChangeVariableNode = undefined,
 }: {
   useVariableNode?: boolean;
   isDebug?: boolean;
@@ -54,10 +53,10 @@ export default function Editor({
   placeholder?: string;
   onChange?: (editorState: EditorState, editor: LexicalEditor) => void;
   autoFocus?: boolean;
-  editorRef?: React.RefCallback<LexicalEditor> | MutableRefObject<LexicalEditor | null>;
+  editorRef?: React.RefCallback<LexicalEditor> | RefObject<LexicalEditor | null>;
   componentPickerProps?: ComponentProps<typeof ComponentPickerMenuPlugin>;
   variablePickerProps?: ComponentProps<typeof VariablePickerPlugin>;
-  ContentProps?: BoxProps;
+  ContentProps?: LexicalContentEditableProps;
   variables?: string[];
   popperElement?: ({
     text,

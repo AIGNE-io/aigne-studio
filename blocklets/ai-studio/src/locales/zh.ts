@@ -938,7 +938,7 @@ export default flatten({
   moreModels: '更多模型',
   installMoreModelsTip: '要安装更多模型，请安装并启动您自己的 AIGNE Studio',
   generateObject: '生成{object}',
-  clickToGenerateNpmLink: '点击生成 NPM Package 链接',
+
   modelSettingsTip: '我们为您提供了一些标准设置，您可以直接使用，也可以根据需要进行定制。',
   favorites: '收藏',
   variableNotDefined: '变量 {variables} 未被定义，可能会导致运行异常, 请先添加变量或者修改变量名称',
@@ -950,7 +950,7 @@ export default flatten({
   as: '作为',
   customOutputName: '自定义输出名称',
   webhookSetting: 'Webhook 设置',
-  packageSetting: 'Package 设置',
+
   agentLog: 'Agent 日志',
   viewLog: '查看日志',
   logDate: '日志日期',
@@ -961,5 +961,4 @@ export default flatten({
   runType: '运行类型',
   tokenCount: 'Token 数量',
   executionTime: '执行时间',
-  aigneCliTip: '支持直接从命令行运行该项目',
 });

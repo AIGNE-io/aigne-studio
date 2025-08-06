@@ -5,8 +5,8 @@ import { useResourceBlockletState } from '@app/contexts/use-resource-blocklet-st
 import Result from '@arcblock/ux/lib/Result';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
-import { AddComponent } from '@blocklet/ui-react';
-import { LoadingButton } from '@mui/lab';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
+import { Button as LoadingButton } from '@mui/material';
 
 export default function HomePage() {
   const applications = useResourceBlockletState()?.applications;
@@ -31,7 +31,7 @@ export default function HomePage() {
                 resourceType="application"
                 autoClose={false}
                 render={({ onClick, loading }) => (
-                  <LoadingButton onClick={onClick} loading={loading} variant="contained">
+                  <LoadingButton onClick={onClick} loading={loading} variant="contained" loadingPosition="start">
                     Install Now
                   </LoadingButton>
                 )}

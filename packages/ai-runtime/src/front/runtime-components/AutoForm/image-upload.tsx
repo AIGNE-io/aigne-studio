@@ -18,7 +18,7 @@ interface ImageUploadProps {
 
 const MAX_IMAGE_FILES = window.blocklet?.preferences?.maxImageCount || 1;
 
-export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps) {
+export function ImageUpload({ control, parameter, isInInput = false }: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocaleContext();
@@ -69,7 +69,6 @@ export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps)
               ref={fileInputRef}
               onChange={(e) => handleFiles(Array.from(e.target.files || []))}
             />
-
             <input
               type="file"
               accept="image/*"
@@ -79,8 +78,11 @@ export function ImageUpload({ control, parameter, isInInput }: ImageUploadProps)
               ref={cameraInputRef}
               onChange={(e) => handleFiles(Array.from(e.target.files || []))}
             />
-
-            <Stack flexDirection="row" gap={0}>
+            <Stack
+              sx={{
+                flexDirection: 'row',
+                gap: 0,
+              }}>
               <IconButton
                 onClick={() => cameraInputRef.current?.click()}
                 disabled={list.length >= MAX_IMAGE_FILES}
@@ -110,7 +112,13 @@ export function ImagePreview({ value, parameter, onRemove }: ImagePreviewProps) 
   if (!list.length || !parameter) return null;
 
   return (
-    <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 1,
+      }}>
       {list.map((url, index) => (
         <ImagePreviewItem key={url} url={url} index={index} onRemove={() => onRemove(index)} />
       ))}

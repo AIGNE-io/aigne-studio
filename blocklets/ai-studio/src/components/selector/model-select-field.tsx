@@ -13,15 +13,25 @@ import {
 } from '@mui/material';
 import { useAsync } from 'react-use';
 
+import AnthropicIcon from './ai-icons/anthropic';
 import AzureIcon from './ai-icons/azure';
+import BedrockIcon from './ai-icons/bedrock';
+import DeepSeekIcon from './ai-icons/deepseek';
+import GeminiIcon from './ai-icons/gemini';
 import GoogleIcon from './ai-icons/google';
 import HuggingFaceIcon from './ai-icons/hugging-face';
 import MistralIcon from './ai-icons/mistral.png?url';
+import OllamaIcon from './ai-icons/ollama';
 import OpenAIIcon from './ai-icons/openai';
+import OpenRouterIcon from './ai-icons/openrouter';
 import ReplicateIcon from './ai-icons/replicate';
 import VertexAIIcon from './ai-icons/vertex-ai';
+import XAIIcon from './ai-icons/xai';
 
-export default function ModelSelectField({ isImageModel, ...props }: { isImageModel?: boolean } & TextFieldProps) {
+export default function ModelSelectField({
+  isImageModel = undefined,
+  ...props
+}: { isImageModel?: boolean } & TextFieldProps) {
   const { t } = useLocaleContext();
 
   const { value, loading, error } = useAsync<() => Promise<(TextModelInfo | ImageModelInfo)[]>>(() => {
@@ -47,14 +57,21 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
             value={model.model}
             disabled={model.disabled}
             sx={{ [`&.${menuItemClasses.disabled}`]: { opacity: 1 } }}>
-            <Box display="flex" gap={1} alignItems="center">
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: 'center',
+              }}>
               <ListItemIcon>{icon}</ListItemIcon>
 
               <ListItemText
                 sx={{ display: 'inline-flex', alignItems: 'baseline' }}
                 primary={model.name || model.model}
                 secondary={model.disabled ? '(coming soon)' : undefined}
-                secondaryTypographyProps={{ fontStyle: 'italic', ml: 1 }}
+                slotProps={{
+                  secondary: { fontStyle: 'italic', ml: 1 },
+                }}
               />
             </Box>
           </MenuItem>
@@ -75,13 +92,33 @@ export default function ModelSelectField({ isImageModel, ...props }: { isImageMo
   );
 }
 
-export const brandIcon = (brand: string) =>
-  ({
-    OpenAI: <OpenAIIcon fontSize="small" />,
-    'Azure OpenAI': <AzureIcon fontSize="small" />,
-    'Hugging Face': <HuggingFaceIcon fontSize="small" />,
-    Replicate: <ReplicateIcon fontSize="small" />,
-    'Vertex AI': <VertexAIIcon fontSize="small" />,
-    Google: <GoogleIcon fontSize="small" />,
-    'Mistral AI': <Box component="img" src={MistralIcon} width="1rem" height="1rem" alt="Mistral AI" />,
-  })[brand];
+export const brandIcon = (brand: string) => {
+  const map = {
+    openai: <OpenAIIcon fontSize="small" />,
+    azure: <AzureIcon fontSize="small" />,
+    'hugging face': <HuggingFaceIcon fontSize="small" />,
+    replicate: <ReplicateIcon fontSize="small" />,
+    vertex: <VertexAIIcon fontSize="small" />,
+    google: <GoogleIcon fontSize="small" />,
+    mistral: (
+      <Box
+        component="img"
+        src={MistralIcon}
+        alt="Mistral AI"
+        sx={{
+          width: '1rem',
+          height: '1rem',
+        }}
+      />
+    ),
+    openrouter: <OpenRouterIcon fontSize="small" />,
+    ollama: <OllamaIcon fontSize="small" />,
+    xai: <XAIIcon fontSize="small" />,
+    deepseek: <DeepSeekIcon fontSize="small" />,
+    anthropic: <AnthropicIcon fontSize="small" />,
+    bedrock: <BedrockIcon fontSize="small" />,
+    gemini: <GeminiIcon fontSize="small" />,
+  };
+
+  return Object.entries(map).find(([key]) => brand.toLowerCase().includes(key))?.[1];
+};

@@ -23,16 +23,16 @@ import { Commit } from '../../libs/log';
 import Avatar from '../avatar';
 
 export default function CommitsTip({
-  loading,
-  commits,
-  hash,
+  loading = undefined,
+  commits = undefined,
+  hash = undefined,
   children,
   onCommitSelect,
 }: {
   loading?: boolean;
   commits?: Commit[];
   hash?: string;
-  children: ReactElement;
+  children: ReactElement<any>;
   onCommitSelect: (commit: Commit) => any;
 }) {
   const [open, setOpen] = useState(false);
@@ -103,11 +103,11 @@ const Tooltip = styled(({ className, ...props }: TooltipProps) => (
 }));
 
 export function CommitListView({
-  commits,
-  loading,
-  selected,
-  onClick,
-  listProps,
+  commits = undefined,
+  loading = undefined,
+  selected = undefined,
+  onClick = undefined,
+  listProps = undefined,
 }: {
   commits?: Commit[];
   loading?: boolean;
@@ -139,10 +139,18 @@ export function CommitListView({
               primary={item.commit.message}
               // @ts-ignore
               secondary={<RelativeTime locale={locale} value={item.commit.author.timestamp * 1000} />}
-              primaryTypographyProps={{ noWrap: true }}
-              secondaryTypographyProps={{ noWrap: true }}
+              slotProps={{
+                primary: { noWrap: true },
+                secondary: { noWrap: true },
+              }}
             />
-            <Box width={20} ml={1} display="flex" alignItems="center">
+            <Box
+              sx={{
+                width: 20,
+                ml: 1,
+                display: 'flex',
+                alignItems: 'center',
+              }}>
               {loadingItemHash === item.oid && <CircularProgress size={16} />}
             </Box>
           </ListItemButton>
@@ -155,7 +163,12 @@ export function CommitListView({
       ) : (
         !commits?.length && (
           <ListItem>
-            <ListItemText primary={t('alert.noCommits')} primaryTypographyProps={{ textAlign: 'center' }} />
+            <ListItemText
+              primary={t('alert.noCommits')}
+              slotProps={{
+                primary: { textAlign: 'center' },
+              }}
+            />
           </ListItem>
         )
       )}

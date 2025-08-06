@@ -11,7 +11,7 @@ const BASE_QUESTION_SX = {
   fontSize: 13,
 };
 
-export default function UserQuestion({ question }: { question?: string }) {
+export default function UserQuestion({ question = '' }: { question?: string }) {
   const { session: authSession } = useSessionContext();
   const { user } = authSession;
   const { locale } = useLocaleContext();
@@ -55,9 +55,9 @@ export default function UserQuestion({ question }: { question?: string }) {
             return (
               <Box
                 ref={containerRef}
-                display="flex"
-                alignItems="center"
                 sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   ...BASE_QUESTION_SX,
                   color: 'textColor',
                 }}>

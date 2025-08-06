@@ -4,8 +4,8 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Box, Stack, Typography } from '@mui/material';
 
 export default function LogoField({
-  value,
-  onChange,
+  value = undefined,
+  onChange = undefined,
 }: {
   value?: { url: string; width?: number; height?: number };
   onChange?: (value: { url: string; width?: number; height?: number }) => void;
@@ -35,8 +35,11 @@ export default function LogoField({
         });
       }}>
       <Box component={Avatar} src={value?.url!} did={window.blocklet.appId} size={100} sx={{ borderRadius: 1 }} />
-
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'text.secondary',
+        }}>
         {t('clickToUploadAgentLogo')}
       </Typography>
     </Stack>
@@ -44,9 +47,9 @@ export default function LogoField({
 }
 
 export function AssetField({
-  value,
-  children,
-  onChange,
+  value = undefined,
+  children = undefined,
+  onChange = undefined,
 }: {
   value?: { url: string; width?: number; height?: number };
   children?: React.ReactNode;

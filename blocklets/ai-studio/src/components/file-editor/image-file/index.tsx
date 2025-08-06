@@ -7,7 +7,7 @@ export default function ImageAssistantEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -15,9 +15,11 @@ export default function ImageAssistantEditor({
   disabled?: boolean;
 }) {
   return (
-    <Stack gap={2.5}>
+    <Stack
+      sx={{
+        gap: 2.5,
+      }}>
       <ImageAssistantEditorFormatPrompt projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
-
       {/* <Box sx={{ borderRadius: 1 }}>
         <ImageAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box> */}

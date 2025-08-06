@@ -20,7 +20,7 @@ export interface InputsViewProps extends StackProps {
   collapsible?: boolean;
 }
 
-export default function InputsView({ collapsible, ...props }: InputsViewProps) {
+export default function InputsView({ collapsible = false, ...props }: InputsViewProps) {
   const { aid } = useActiveAgent();
   const agent = useAgent({ aid });
 
@@ -31,15 +31,27 @@ export default function InputsView({ collapsible, ...props }: InputsViewProps) {
   const [open, setOpen] = useState(true);
 
   return (
-    <Stack gap={1} py={1} {...props}>
+    <Stack
+      {...props}
+      sx={[
+        {
+          gap: 1,
+          py: 1,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {enableCollapse && (
-        <Stack direction="row" justifyContent="center" onClick={() => setOpen(!open)} mb={-1}>
+        <Stack
+          direction="row"
+          onClick={() => setOpen(!open)}
+          sx={{
+            justifyContent: 'center',
+            mb: -1,
+          }}>
           <DrawerOpenCloseIcon color="grey.500" arrowDirection={open ? 'down' : 'up'} />
         </Stack>
       )}
-
       <AgentList sx={{ px: { xs: 2, sm: 3 } }} />
-
       <Collapse
         key={inputs?.length}
         in={!enableCollapse || open}
@@ -73,7 +85,17 @@ const AgentList = memo(({ ...props }: StackProps) => {
   if (!children?.length || children.length <= 1) return null;
 
   return (
-    <Stack direction="row" gap={2} py={1} overflow="auto" {...props}>
+    <Stack
+      direction="row"
+      {...props}
+      sx={[
+        {
+          gap: 2,
+          py: 1,
+          overflow: 'auto',
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {children?.map((child) => (
         <CurrentAgentProvider key={child.aid} aid={child.aid}>
           <AgentAvatar selected={activeAid === child.aid} onClick={() => setActiveAid(child.aid)} />
@@ -83,7 +105,7 @@ const AgentList = memo(({ ...props }: StackProps) => {
   );
 });
 
-function AgentAvatar({ selected, ...props }: { selected?: boolean } & IconButtonProps) {
+function AgentAvatar({ selected = false, ...props }: { selected?: boolean } & IconButtonProps) {
   const { aid } = useEntryAgent();
 
   const { appearanceInput } = useAppearances();

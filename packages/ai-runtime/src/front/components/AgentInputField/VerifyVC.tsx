@@ -17,8 +17,8 @@ import { useSessionContext } from '../../utils/session';
 
 export default function VerifyVC({
   parameter,
-  value,
-  onChange,
+  value = undefined,
+  onChange = undefined,
 }: {
   parameter: VerifyVCParameter;
   value?: any;
@@ -79,10 +79,19 @@ export default function VerifyVC({
             },
           });
         }}
-        endIcon={verified ? <Box component={Icon} icon={VerifiedIcon} color="success.main" /> : undefined}>
+        endIcon={
+          verified ? (
+            <Box
+              component={Icon}
+              icon={VerifiedIcon}
+              sx={{
+                color: 'success.main',
+              }}
+            />
+          ) : undefined
+        }>
         {verified ? parameter.buttonTitleVerified || 'Verify Succeed' : parameter.buttonTitle || 'Verify VC'}
       </Button>
-
       {parameter.placeholder && <FormHelperText>{parameter.placeholder}</FormHelperText>}
     </>
   );

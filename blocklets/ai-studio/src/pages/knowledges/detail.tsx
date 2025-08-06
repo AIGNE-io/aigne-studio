@@ -47,7 +47,7 @@ import ImportKnowledge from './import';
 
 function PanelToggleButton({
   placement,
-  collapsed,
+  collapsed = undefined,
   ...props
 }: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
   const { t } = useLocaleContext();
@@ -55,7 +55,14 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        <Box component={Icon} icon={placement === 'left' ? SidebarLeft : SidebarRight} fontSize={20} color="#3B82F6" />
+        <Box
+          component={Icon}
+          icon={placement === 'left' ? SidebarLeft : SidebarRight}
+          sx={{
+            fontSize: 20,
+            color: '#3B82F6',
+          }}
+        />
       </Button>
     </Tooltip>
   );
@@ -182,7 +189,6 @@ export default function KnowledgeDetail() {
                   scrollButtons={false}
                   value={currentTab}
                   onChange={(_, tab) => setCurrentTab(tab)}
-                  TabIndicatorProps={{ children: <Box component="span" /> }}
                   sx={{
                     ml: -1,
                     minHeight: 32,
@@ -203,11 +209,18 @@ export default function KnowledgeDetail() {
                         height: '100%',
                       },
                     },
+                  }}
+                  slotProps={{
+                    indicator: { children: <Box component="span" /> },
                   }}>
                   <Tab value="playground" label={t('knowledge.playground')} data-testid="debug-preview-view" />
                 </Tabs>
 
-                <Box flex={1} />
+                <Box
+                  sx={{
+                    flex: 1,
+                  }}
+                />
 
                 {/* <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} /> */}
               </Box>
@@ -235,7 +248,11 @@ export default function KnowledgeDetail() {
                     />
                   )}
 
-                  <Box flex={1} />
+                  <Box
+                    sx={{
+                      flex: 1,
+                    }}
+                  />
 
                   {!rightOpen && (
                     <PanelToggleButton
@@ -248,8 +265,16 @@ export default function KnowledgeDetail() {
               )}
             </Box>
 
-            <Box flexGrow={1} overflow="hidden">
-              <Stack p={2.5} height={1}>
+            <Box
+              sx={{
+                flexGrow: 1,
+                overflow: 'hidden',
+              }}>
+              <Stack
+                sx={{
+                  p: 2.5,
+                  height: 1,
+                }}>
                 <Header
                   knowledgeId={knowledgeId}
                   disabled={loading ? true : Boolean(disabled)}
@@ -263,11 +288,20 @@ export default function KnowledgeDetail() {
                 />
 
                 {loading ? (
-                  <Box flexGrow={1} className="center" width={1} height={1}>
+                  <Box
+                    className="center"
+                    sx={{
+                      flexGrow: 1,
+                      width: 1,
+                      height: 1,
+                    }}>
                     <CircularProgress />
                   </Box>
                 ) : (
-                  <Box flexGrow={1}>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                    }}>
                     {document?.items?.length ? (
                       <KnowledgeDocuments
                         disabled={Boolean(disabled)}
@@ -296,7 +330,6 @@ export default function KnowledgeDetail() {
           </Stack>
         )}
       </ColumnsLayout>
-
       {showImportDialog && !disabled && (
         <ImportKnowledge
           documentId={editDocumentId}
@@ -373,7 +406,10 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
     .filter((x) => x?.content);
 
   return (
-    <Stack height={1}>
+    <Stack
+      sx={{
+        height: 1,
+      }}>
       <Box
         component="form"
         onSubmit={async (e) => {
@@ -432,17 +468,36 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
               Toast.error(error?.message);
             }
           }}>
-          <Box component={Icon} icon={SearchIcon} fontSize={15} />
+          <Box
+            component={Icon}
+            icon={SearchIcon}
+            sx={{
+              fontSize: 15,
+            }}
+          />
           <Box>{t('search')}</Box>
         </IconButton>
       </Box>
-      <Box flexGrow={1} height={0} overflow="auto">
+      <Box
+        sx={{
+          flexGrow: 1,
+          height: 0,
+          overflow: 'auto',
+        }}>
         {loading ? (
-          <Box className="center" width={1} height={1}>
+          <Box
+            className="center"
+            sx={{
+              width: 1,
+              height: 1,
+            }}>
             <CircularProgress size={20} />
           </Box>
         ) : results.length ? (
-          <Box px={2.5}>
+          <Box
+            sx={{
+              px: 2.5,
+            }}>
             {results.map((result, index) => {
               const title = result?.metadata?.document?.name || result?.metadata?.metadata?.title;
               const relevanceScore = result?.metadata?.metadata?.relevanceScore;
@@ -450,25 +505,28 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
               return (
                 <Box
                   key={index}
-                  py={2.5}
-                  borderBottom="1px solid #EFF1F5"
+                  onClick={() => {
+                    if (!result?.metadata?.document?.id) return;
+                    navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
+                  }}
                   sx={{
+                    py: 2.5,
+                    borderBottom: '1px solid #EFF1F5',
                     cursor: result?.metadata?.document?.id ? 'pointer' : 'default',
+
                     pre: {
                       border: '1px solid #eff1f5',
                       borderTop: 0,
                       whiteSpace: 'pre-wrap',
                     },
+
                     h4: {
                       marginBottom: 1,
                     },
+
                     'div > p': {
                       padding: 0,
                     },
-                  }}
-                  onClick={() => {
-                    if (!result?.metadata?.document?.id) return;
-                    navigate(joinURL('document', result?.metadata?.document?.id, 'segments'));
                   }}>
                   <Box>
                     {(typeof result.content === 'string'
@@ -476,21 +534,32 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                       : JSON.stringify(result.content, null, 2)
                     ).replace(/\\n+/g, '<br />')}
                   </Box>
-
                   {title && (
                     <Stack
-                      width="fit-content"
-                      flexDirection="row"
-                      alignItems="center"
-                      gap={1}
-                      mt={1.5}
-                      py={1}
-                      px={1.5}
-                      borderRadius={1}
-                      border="1px solid #EFF1F5">
-                      <Stack direction="row" gap={1} alignItems="center" flex={1}>
+                      sx={{
+                        width: 'fit-content',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 1,
+                        mt: 1.5,
+                        py: 1,
+                        px: 1.5,
+                        borderRadius: 1,
+                        border: '1px solid #EFF1F5',
+                      }}>
+                      <Stack
+                        direction="row"
+                        sx={{
+                          gap: 1,
+                          alignItems: 'center',
+                          flex: 1,
+                        }}>
                         <DocumentIcon document={result.metadata.document} />
-                        <Box flexGrow={1} color="#030712">
+                        <Box
+                          sx={{
+                            flexGrow: 1,
+                            color: '#030712',
+                          }}>
                           {title}
                         </Box>
                       </Stack>
@@ -499,7 +568,12 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         <>
                           <Divider orientation="vertical" variant="middle" flexItem sx={{ my: 0.5 }} />
 
-                          <Stack direction="row" gap={1} alignItems="center">
+                          <Stack
+                            direction="row"
+                            sx={{
+                              gap: 1,
+                              alignItems: 'center',
+                            }}>
                             <Typography
                               sx={{
                                 fontSize: 13,
@@ -518,7 +592,12 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
             })}
           </Box>
         ) : (
-          <Box className="center" width={1} height={1}>
+          <Box
+            className="center"
+            sx={{
+              width: 1,
+              height: 1,
+            }}>
             {loaded ? <Typography variant="subtitle3">{t('noResults')}</Typography> : null}
           </Box>
         )}
@@ -530,11 +609,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
 const Header = ({
   disabled,
   knowledgeId,
-  title,
-  description,
-  docs,
-  totalSize,
-  icon,
+  title = undefined,
+  description = undefined,
+  docs = undefined,
+  totalSize = undefined,
+  icon = undefined,
   onBack,
   onAdd,
 }: {
@@ -569,20 +648,40 @@ const Header = ({
         maxFileSize: (Number(window.blocklet?.preferences?.uploadFileLimit) || 10) * 1024 * 1024,
       }}
       dashboardProps={{}}>
-      <Stack gap={2.5}>
+      <Stack
+        sx={{
+          gap: 2.5,
+        }}>
         <Stack
           direction="row"
-          gap={0.5}
-          alignItems="center"
-          color="#3B82F6"
-          sx={{ cursor: 'pointer' }}
-          onClick={onBack}>
-          <Box component={Icon} icon={ArrowLeftCircleIcon} fontSize={15} />
+          onClick={onBack}
+          sx={{
+            gap: 0.5,
+            alignItems: 'center',
+            color: '#3B82F6',
+            cursor: 'pointer',
+          }}>
+          <Box
+            component={Icon}
+            icon={ArrowLeftCircleIcon}
+            sx={{
+              fontSize: 15,
+            }}
+          />
           <Typography>{t('back')}</Typography>
         </Stack>
 
-        <Stack direction="row" justifyContent="space-between" alignItems="self-end">
-          <Stack direction="row" gap={1}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'self-end',
+          }}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+            }}>
             <KnowledgeIcon knowledgeId={knowledgeId} icon={icon} disabled={disabled} />
 
             <Stack sx={{ alignSelf: 'flex-end' }}>
@@ -662,19 +761,43 @@ const Header = ({
             </Stack>
           </Stack>
 
-          <Stack direction="row" gap={1.25} alignItems="center" mt={2.5} color="#9CA3AF">
-            <Stack direction="row" gap={0.5} alignItems="center">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1.25,
+              alignItems: 'center',
+              mt: 2.5,
+              color: '#9CA3AF',
+            }}>
+            <Stack
+              direction="row"
+              sx={{
+                gap: 0.5,
+                alignItems: 'center',
+              }}>
               <Box component={Icon} icon={FileIcon} />
               <Typography variant="subtitle5">{`${docs || 0} ${t('knowledge.docs')}`}</Typography>
             </Stack>
 
-            <Stack direction="row" gap={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              sx={{
+                gap: 0.5,
+                alignItems: 'center',
+              }}>
               <Box component={Icon} icon={DatabaseIcon} />
               <Typography variant="subtitle5">{bytes.format(totalSize || 0)}</Typography>
             </Stack>
 
             {!disabled && (
-              <Stack direction="row" gap={0.5} alignItems="center" sx={{ cursor: 'pointer' }} onClick={onAdd}>
+              <Stack
+                direction="row"
+                onClick={onAdd}
+                sx={{
+                  gap: 0.5,
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}>
                 <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
                 <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
                   {t('addObject', { object: t('knowledge.knowledge') })}
@@ -690,7 +813,15 @@ const Header = ({
   );
 };
 
-const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; icon?: string; disabled: boolean }) => {
+const KnowledgeIcon = ({
+  knowledgeId,
+  icon = undefined,
+  disabled,
+}: {
+  knowledgeId: string;
+  icon?: string;
+  disabled: boolean;
+}) => {
   const uploaderRef = useUploader();
   const [localIcon, setIcon] = useState<string | undefined>(icon);
   const url = joinURL(AIGNE_RUNTIME_MOUNT_POINT, `/api/datasets/${knowledgeId}/icon.png?icon=${localIcon}`);
@@ -735,11 +866,14 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
             }}
           />
         ) : null}
-        <Typography fontSize={24} style={{ display: localIcon ? 'none' : 'block' }}>
+        <Typography
+          style={{ display: localIcon ? 'none' : 'block' }}
+          sx={{
+            fontSize: 24,
+          }}>
           📖
         </Typography>
       </Box>
-
       <Box
         className="center edit-overlay"
         sx={{
@@ -762,7 +896,14 @@ const KnowledgeIcon = ({ knowledgeId, icon, disabled }: { knowledgeId: string; i
             update();
           });
         }}>
-        <Box component={Icon} icon={PencilIcon} fontSize={15} sx={{ color: '#fff' }} />
+        <Box
+          component={Icon}
+          icon={PencilIcon}
+          sx={{
+            fontSize: 15,
+            color: '#fff',
+          }}
+        />
       </Box>
     </Box>
   );

@@ -23,17 +23,24 @@ interface SettingItemProps {
   agentId: string;
   path: string[];
   sx?: SxProps;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
 }
 
-function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingItemProps) {
+function SettingItem({ label, tooltip, agentId, path, sx = undefined, children }: SettingItemProps) {
   const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
   const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
 
   return (
-    <Box position="relative" className="between">
-      <Box flex={1}>
+    <Box
+      className="between"
+      sx={{
+        position: 'relative',
+      }}>
+      <Box
+        sx={{
+          flex: 1,
+        }}>
         <Tooltip
           title={t(tooltip)}
           placement="top"
@@ -46,7 +53,15 @@ function SettingItem({ label, tooltip, agentId, path, sx, children }: SettingIte
           </FormLabel>
         </Tooltip>
       </Box>
-      <Box flex={1} display="flex" justifyContent="flex-end" sx={sx}>
+      <Box
+        sx={[
+          {
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          },
+          ...(Array.isArray(sx) ? sx : [sx]),
+        ]}>
         <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={projectRef} path={[agentId, ...path]}>
           {children}
         </WithAwareness>
@@ -74,11 +89,17 @@ function AgentParametersForm({
   if (!agent) return null;
 
   return (
-    <Stack gap={2}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-        <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
             if (data.key === 'prompt' || data.key === 'model') return null;
@@ -136,15 +157,16 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           />
         </SettingItem>
       )}
-
       {model.quality && model.quality.length > 0 && (
         <SettingItem label="quality" tooltip="qualityTip" agentId={agent.id} path={['quality']}>
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={quality}
-            onChange={(e) => (agent.quality = e.target.value)}>
+            onChange={(e) => (agent.quality = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {(model.quality || []).map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -153,15 +175,16 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {model.size && model.size.length > 0 && (
         <SettingItem label="size" tooltip="sizeTip" agentId={agent.id} path={['size']}>
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={size}
-            onChange={(e) => (agent.size = e.target.value)}>
+            onChange={(e) => (agent.size = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {model.size.map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -170,15 +193,16 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {model.style && model.style.length > 0 && (
         <SettingItem label="style" tooltip="styleTip" agentId={agent.id} path={['style']}>
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={agent.style ?? model.styleDefault}
-            onChange={(e) => (agent.style = e.target.value)}>
+            onChange={(e) => (agent.style = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {(model.style || []).map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -187,15 +211,16 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {model.background && model.background.length > 0 && (
         <SettingItem label="background" tooltip="backgroundTip" agentId={agent.id} path={['background']}>
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={agent.background ?? model.backgroundDefault}
-            onChange={(e) => (agent.background = e.target.value)}>
+            onChange={(e) => (agent.background = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {(model.background || []).map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -204,7 +229,6 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {model.outputFormat && model.outputFormat.length > 0 && (
         <SettingItem
           label="gptImageOutputFormat"
@@ -214,9 +238,11 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={agent.outputFormat ?? model.outputFormatDefault}
-            onChange={(e) => (agent.outputFormat = e.target.value)}>
+            onChange={(e) => (agent.outputFormat = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {(model.outputFormat || []).map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -225,15 +251,16 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {model.moderation && model.moderation.length > 0 && (
         <SettingItem label="moderation" tooltip="moderationTip" agentId={agent.id} path={['moderation']}>
           <TextField
             hiddenLabel
             select
-            SelectProps={{ autoWidth: true }}
             value={agent.moderation ?? model.moderationDefault}
-            onChange={(e) => (agent.moderation = e.target.value)}>
+            onChange={(e) => (agent.moderation = e.target.value)}
+            slotProps={{
+              select: { autoWidth: true },
+            }}>
             {(model.moderation || []).map((i) => (
               <MenuItem key={i} value={i}>
                 {i}
@@ -242,7 +269,6 @@ export function AIGCModelSettings({ agent, model }: AIGCModelSettingsProps) {
           </TextField>
         </SettingItem>
       )}
-
       {typeof model.outputCompressionMin === 'number' && typeof model.outputCompressionMax === 'number' && (
         <SettingItem
           label="outputCompression"

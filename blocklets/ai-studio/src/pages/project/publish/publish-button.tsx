@@ -5,7 +5,7 @@ import { useIsAdmin } from '@app/contexts/session';
 import { getProjectIconUrl } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/ai-runtime/constants';
-import { BlockletStudio } from '@blocklet/ui-react';
+import BlockletStudio from '@blocklet/ui-react/lib/BlockletStudio';
 // import { Icon } from '@iconify-icon/react';
 // import BrandAppgalleryIcon from '@iconify-icons/tabler/brand-appgallery';
 import { LoadingButtonProps } from '@mui/lab';
@@ -40,6 +40,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
           variant="outlined"
           color="inherit"
           sx={{ px: 2, minWidth: 0, minHeight: 0, height: 32 }}
+          loadingPosition="start"
           onClick={async (e) => {
             e.stopPropagation();
             await saveButtonState.getState().save?.({ skipConfirm: true, skipCommitIfNoChanges: true });
@@ -67,7 +68,7 @@ export default function PublishButton({ ...props }: LoadingButtonProps) {
 function PublishDialog({
   project,
   onClose,
-  onOpened,
+  onOpened = undefined,
 }: {
   project: Project;
   onClose: () => void;

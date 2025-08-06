@@ -10,7 +10,7 @@ import {
   COMMAND_PRIORITY_HIGH,
   KEY_DOWN_COMMAND,
 } from 'lexical';
-import { useEffect } from 'react';
+import { JSX, useEffect } from 'react';
 
 import { IS_APPLE } from '../../utils/environment';
 import replaceNodes from '../VariablePlugin/utils/replace-nodes';

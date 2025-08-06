@@ -16,7 +16,7 @@ import TransparentTooltip from './TransparentTooltip';
 
 const codeField = 'code';
 
-function RetryComponent({ message, tip }: { message: MessageItem | undefined; tip?: string }) {
+function RetryComponent({ message, tip = '' }: { message: MessageItem | undefined; tip?: string }) {
   const { t } = useLocaleContext();
   const runAgent = useSession((s) => s.runAgent);
   const { aid } = useCurrentAgent();
@@ -43,9 +43,11 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
           fontSize: 120,
         }}
       />
-
       {message?.error?.type === SubscriptionErrorType.UNSUBSCRIBED ? (
-        <Box width="100%">
+        <Box
+          sx={{
+            width: '100%',
+          }}>
           <AgentErrorView error={message.error} />
         </Box>
       ) : (
@@ -78,7 +80,6 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
           </TransparentTooltip>
         </Typography>
       )}
-
       <LoadingButton
         variant="contained"
         loading={loading}
@@ -115,8 +116,8 @@ function RetryComponent({ message, tip }: { message: MessageItem | undefined; ti
 export default function CodePreview({
   componentId = 'mock-dev-component',
   code,
-  propertiesValue,
-  message,
+  propertiesValue = undefined,
+  message = undefined,
   ...restProps
 }: {
   componentId?: string;
@@ -159,11 +160,11 @@ export default function CodePreview({
 export const CodePreviewMemo = memo(CodePreview);
 
 export function CodeRenderByMessage({
-  zoom,
+  zoom = undefined,
   message,
   minHeight = 200,
-  sx,
-  propertiesValueMap,
+  sx = undefined,
+  propertiesValueMap = undefined,
 }: {
   zoom?: number;
   message: MessageItem | undefined;

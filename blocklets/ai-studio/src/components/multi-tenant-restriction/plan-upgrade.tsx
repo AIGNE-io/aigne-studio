@@ -66,7 +66,9 @@ export function PlanUpgrade() {
       fullScreen={downSm}
       open={planUpgradeVisible}
       onClose={hidePlanUpgrade}
-      PaperProps={{ sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%', pb: 2 } }}>
+      slotProps={{
+        paper: { sx: { width: { xs: '100%', md: 860, lg: 1100 }, maxWidth: '100%', pb: 2 } },
+      }}>
       <DialogTitle className="between" sx={{ border: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Icon icon={ArrowUpIcon} />
@@ -77,7 +79,6 @@ export function PlanUpgrade() {
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
         {type && (
           <Alert

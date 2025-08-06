@@ -8,7 +8,7 @@ export default function ApiAssistantEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -18,7 +18,10 @@ export default function ApiAssistantEditor({
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
 
   return (
-    <Stack gap={2.5}>
+    <Stack
+      sx={{
+        gap: 2.5,
+      }}>
       <Box sx={{ borderRadius: 1 }}>
         <ApiAssistantSetting projectId={projectId} gitRef={gitRef} value={value} readOnly={readOnly} />
       </Box>

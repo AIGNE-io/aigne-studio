@@ -22,7 +22,7 @@ import { useProjectState } from './state';
 export default function BranchButton({
   projectId,
   gitRef,
-  filepath,
+  filepath = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -44,9 +44,7 @@ export default function BranchButton({
   return (
     <>
       {dialog}
-
       {createBranchDialog}
-
       <Dropdown
         placement="bottom-start"
         sx={{
@@ -117,7 +115,13 @@ export default function BranchButton({
                 ),
                 content: (
                   <Box>
-                    <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: 16,
+                        lineHeight: '28px',
+                        color: '#4B5563',
+                      }}>
                       This will permanently delete this branch
                     </Typography>
                   </Box>
@@ -148,7 +152,11 @@ export default function BranchButton({
                 content: (
                   <Stack>
                     <Box>
-                      <Typography variant="subtitle2" mb={0.5}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 0.5,
+                        }}>
                         {t('branchName')}
                       </Typography>
                       <TextField
@@ -179,12 +187,38 @@ export default function BranchButton({
             }}
           />
         }>
-        <Stack flexDirection="row" gap={0.5} className="center" sx={{ cursor: 'pointer' }} data-testid="branch-icon">
-          <Box component={Icon} icon={ArrowRightIcon} width={15} color="#9CA3AF" />
-          <Typography variant="subtitle3" color="#9CA3AF" lineHeight={1}>
+        <Stack
+          className="center"
+          data-testid="branch-icon"
+          sx={{
+            flexDirection: 'row',
+            gap: 0.5,
+            cursor: 'pointer',
+          }}>
+          <Box
+            component={Icon}
+            icon={ArrowRightIcon}
+            sx={{
+              width: 15,
+              color: '#9CA3AF',
+            }}
+          />
+          <Typography
+            variant="subtitle3"
+            sx={{
+              color: '#9CA3AF',
+              lineHeight: 1,
+            }}>
             {gitRef}
           </Typography>
-          <Box component={Icon} icon={ArrowDownIcon} width={15} color="#030712" />
+          <Box
+            component={Icon}
+            icon={ArrowDownIcon}
+            sx={{
+              width: 15,
+              color: '#030712',
+            }}
+          />
         </Stack>
       </Dropdown>
     </>
@@ -195,10 +229,10 @@ function BranchList({
   projectId,
   _ref: ref,
   isDefault,
-  onItemClick,
-  onCreate,
-  onRename,
-  onDelete,
+  onItemClick = undefined,
+  onCreate = undefined,
+  onRename = undefined,
+  onDelete = undefined,
 }: {
   projectId: string;
   _ref: string;
@@ -234,29 +268,66 @@ function BranchList({
       }}>
       {branches.map((branch) => (
         <MenuItem className="branch-item" key={branch} selected={branch === ref} onClick={() => onItemClick?.(branch)}>
-          {branch === ref ? <Box component={Icon} icon={CheckIcon} mr={1} width={15} /> : <Box mr={1} width={15} />}
+          {branch === ref ? (
+            <Box
+              component={Icon}
+              icon={CheckIcon}
+              sx={{
+                mr: 1,
+                width: 15,
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                mr: 1,
+                width: 15,
+              }}
+            />
+          )}
           {branch}
         </MenuItem>
       ))}
-
       <Divider sx={{ m: '0 !important' }} />
-
       <MenuItem onClick={onCreate} sx={{ color: '#3B82F6' }}>
-        <Box component={Icon} icon={ArrowLeftIcon} mr={1} width={15} color="'#3B82F6'" />
+        <Box
+          component={Icon}
+          icon={ArrowLeftIcon}
+          sx={{
+            mr: 1,
+            width: 15,
+            color: "'#3B82F6'",
+          }}
+        />
         {t('newObject', { object: t('branch') })}
       </MenuItem>
-
       {!isDefault && (
         <>
           <Divider sx={{ m: '0 !important' }} />
 
           <MenuItem onClick={onRename}>
-            <Box component={Icon} icon={PencilIcon} mr={1} width={15} color="#030712" />
+            <Box
+              component={Icon}
+              icon={PencilIcon}
+              sx={{
+                mr: 1,
+                width: 15,
+                color: '#030712',
+              }}
+            />
             {t('rename')}
           </MenuItem>
 
           <MenuItem onClick={onDelete} sx={{ color: '#E11D48' }}>
-            <Box component={Icon} icon={TrashIcon} mr={1} width={15} color="#E11D48" />
+            <Box
+              component={Icon}
+              icon={TrashIcon}
+              sx={{
+                mr: 1,
+                width: 15,
+                color: '#E11D48',
+              }}
+            />
             {t('delete')}
           </MenuItem>
         </>
@@ -292,9 +363,16 @@ function CreateBranch({
   }, [states, rows]);
 
   return (
-    <Stack gap={1.5}>
+    <Stack
+      sx={{
+        gap: 1.5,
+      }}>
       <Box>
-        <Typography variant="subtitle2" mb={0.5}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 0.5,
+          }}>
           {t('name')}
         </Typography>
         <TextField
@@ -305,9 +383,12 @@ function CreateBranch({
           onChange={(e) => setStates((r) => ({ ...r, new: e.target.value }))}
         />
       </Box>
-
       <Box>
-        <Typography variant="subtitle2" mb={0.5}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            mb: 0.5,
+          }}>
           {t('sourceBranch')}
         </Typography>
         <TextField

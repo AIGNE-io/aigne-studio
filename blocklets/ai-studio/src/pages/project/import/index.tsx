@@ -111,7 +111,12 @@ export default function ImportFrom({
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box display="flex" alignItems="center" gap={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+        }}>
         <Autocomplete
           key={Boolean(projectValue).toString()}
           disabled={!state.projects?.length}
@@ -155,17 +160,33 @@ export default function ImportFrom({
           }}
         />
       </Box>
-
       {state.loading ? (
-        <Box display="center" justifyContent="center" alignItems="center" width={1} height={150}>
+        <Box
+          sx={{
+            display: 'center',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 1,
+            height: 150,
+          }}>
           <CircularProgress size={30} />
         </Box>
       ) : (
-        <Box flex={1} height={0} overflow="auto" mb={7}>
+        <Box
+          sx={{
+            flex: 1,
+            height: 0,
+            overflow: 'auto',
+            mb: 7,
+          }}>
           <Box component="h4">{t('agents')}</Box>
 
           {!tree.length && (
-            <Box fontSize={12} color={(theme) => theme.palette.text.disabled}>
+            <Box
+              sx={{
+                fontSize: 12,
+                color: (theme) => theme.palette.text.disabled,
+              }}>
               {t('import.empty')}
             </Box>
           )}
@@ -183,13 +204,27 @@ export default function ImportFrom({
             const name = getName(item);
 
             return (
-              <Stack key={item.id} mb={0.25}>
+              <Stack
+                key={item.id}
+                sx={{
+                  mb: 0.25,
+                }}>
                 <FormControlLabel
                   sx={{ pl: 0 }}
                   disabled={Boolean(Number(counts.current[item.text]) > 0)}
                   label={
-                    <Box display="flex" alignItems="center">
-                      {item.parent && <Box mr={1} sx={{ color: '#ccc' }}>{`${item.parent} / `}</Box>}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}>
+                      {item.parent && (
+                        <Box
+                          sx={{
+                            mr: 1,
+                            color: '#ccc',
+                          }}>{`${item.parent} / `}</Box>
+                      )}
 
                       <Box>{name}</Box>
 
@@ -197,9 +232,21 @@ export default function ImportFrom({
                         <Tooltip
                           title={[
                             `${t('dependents')}: `,
-                            (deps.current[item.text] || []).map((item) => <Box pl={1}>{getName(item)}</Box>),
+                            (deps.current[item.text] || []).map((item) => (
+                              <Box
+                                sx={{
+                                  pl: 1,
+                                }}>
+                                {getName(item)}
+                              </Box>
+                            )),
                           ]}>
-                          <Box display="flex" color="primary.main" ml={1}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              color: 'primary.main',
+                              ml: 1,
+                            }}>
                             <WarningCircle sx={{ fontSize: 18 }} />
                           </Box>
                         </Tooltip>

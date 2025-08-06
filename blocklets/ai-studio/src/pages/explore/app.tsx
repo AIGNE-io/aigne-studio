@@ -77,7 +77,12 @@ export default function AppPage() {
 
 function Loading() {
   return (
-    <Stack my={10} alignItems="center" justifyContent="center">
+    <Stack
+      sx={{
+        my: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
       <CircularProgress size={24} />
     </Stack>
   );

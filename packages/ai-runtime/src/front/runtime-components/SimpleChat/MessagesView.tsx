@@ -22,9 +22,15 @@ export default function MessagesView({ ...props }: StackProps) {
   const showOpeningMessage = !sessionId || loaded;
 
   return (
-    <Stack gap={2} {...props}>
+    <Stack
+      {...props}
+      sx={[
+        {
+          gap: 2,
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
       {showOpeningMessage && <OpeningMessageView />}
-
       {mapRight(messages, (message, index) => (
         <React.Fragment key={message.id}>
           <MessageView message={message} />
@@ -32,7 +38,6 @@ export default function MessagesView({ ...props }: StackProps) {
           {divider && index !== messages.length - 1 ? <Divider sx={{ my: 2 }} /> : undefined}
         </React.Fragment>
       ))}
-
       {error && <AgentErrorView error={error} />}
     </Stack>
   );

@@ -38,6 +38,8 @@
 import * as CSS from 'csstype';
 import * as PropTypes from 'prop-types';
 
+import type { JSX } from "react";
+
 type NativeAnimationEvent = AnimationEvent;
 type NativeClipboardEvent = ClipboardEvent;
 type NativeCompositionEvent = CompositionEvent;
@@ -81,13 +83,13 @@ declare namespace React {
   type ReactType<P = any> = ElementType<P>;
   type ComponentType<P = {}> = ComponentClass<P> | FunctionComponent<P>;
 
-  type JSXElementConstructor<P> = ((props: P) => ReactElement | null) | (new (props: P) => Component<P, any>);
+  type JSXElementConstructor<P> = ((props: P) => ReactElement<any> | null) | (new (props: P) => Component<P, any>);
 
   interface RefObject<T> {
     readonly current: T | null;
   }
   type RefCallback<T> = { bivarianceHack(instance: T | null): void }['bivarianceHack'];
-  type Ref<T> = RefCallback<T> | RefObject<T> | null;
+  type Ref<T> = RefCallback<T> | RefObject<T | null> | null;
   type LegacyRef<T> = string | Ref<T>;
   /**
    * Gets the instance type for a React element. The instance will be different for various component types:
@@ -110,7 +112,7 @@ declare namespace React {
     C extends
       | ForwardRefExoticComponent<any>
       | { new (props: any): Component<any> }
-      | ((props: any, context?: any) => ReactElement | null)
+      | ((props: any, context?: any) => ReactElement<any> | null)
       | keyof JSX.IntrinsicElements,
   > =
     // need to check first if `ref` is a valid prop for ts@3.0
@@ -236,7 +238,7 @@ declare namespace React {
   // ----------------------------------------------------------------------
 
   type ReactText = string | number;
-  type ReactChild = ReactElement | ReactText;
+  type ReactChild = ReactElement<any> | ReactText;
 
   interface ReactNodeArray extends Array<ReactNode> {}
   type ReactFragment = {} | ReactNodeArray;
@@ -374,7 +376,7 @@ declare namespace React {
     /**
      * **NOTE**: Exotic components are not callable.
      */
-    (props: P): ReactElement | null;
+    (props: P): ReactElement<any> | null;
     readonly $$typeof: symbol;
   }
 
@@ -573,7 +575,7 @@ declare namespace React {
     (
       props: PropsWithChildren<P>,
       ref: ((instance: T | null) => void) | MutableRefObject<T | null> | null
-    ): ReactElement | null;
+    ): ReactElement<any> | null;
     displayName?: string;
     // explicit rejected with `never` required due to
     // https://github.com/microsoft/TypeScript/issues/36826
@@ -803,7 +805,7 @@ declare namespace React {
     [propertyName: string]: any;
   }
 
-  function createRef<T>(): RefObject<T>;
+  function createRef<T>(): RefObject<T | null>;
 
   // will show `ForwardRef(${Component.displayName || Component.name})` in devtools by default,
   // but can be given its own specific name
@@ -1048,7 +1050,7 @@ declare namespace React {
    * @see https://reactjs.org/docs/hooks-reference.html#useref
    */
   // TODO (TypeScript 3.0): <T extends unknown>
-  function useRef<T>(initialValue: T | null): RefObject<T>;
+  function useRef<T>(initialValue: T | null): RefObject<T | null>;
   // convenience overload for potentially undefined initialValue / call with 0 arguments
   // has a default to stop it from defaulting to {} instead
   /**

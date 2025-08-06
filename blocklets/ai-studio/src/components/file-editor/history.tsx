@@ -9,7 +9,7 @@ export default function AssistantHistory({
   projectId,
   gitRef,
   value,
-  readOnly,
+  readOnly = undefined,
   parameter,
 }: {
   readOnly?: boolean;
@@ -29,7 +29,10 @@ export default function AssistantHistory({
         <Box>
           <Typography variant="subtitle2">{t('history.limit')}</Typography>
 
-          <Box flex={1}>
+          <Box
+            sx={{
+              flex: 1,
+            }}>
             <SliderNumberField
               min={1}
               max={100}
@@ -44,11 +47,13 @@ export default function AssistantHistory({
             />
           </Box>
         </Box>
-
         <Box>
           <Typography variant="subtitle2">{t('history.keyword')}</Typography>
 
-          <Box flex={1}>
+          <Box
+            sx={{
+              flex: 1,
+            }}>
             <PromptEditorField
               readOnly={readOnly}
               projectId={projectId}

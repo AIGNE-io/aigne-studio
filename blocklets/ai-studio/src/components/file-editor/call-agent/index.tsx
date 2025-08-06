@@ -32,7 +32,7 @@ import {
 import { cloneDeep, sortBy } from 'lodash';
 import { bindDialog, usePopupState } from 'material-ui-popup-state/hooks';
 import { nanoid } from 'nanoid';
-import { ForwardedRef, forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { useImperativeHandle, useMemo, useRef } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { joinURL } from 'ufo';
@@ -46,7 +46,7 @@ export default function CallAgentEditor({
   projectId,
   gitRef,
   value,
-  disabled,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -57,14 +57,18 @@ export default function CallAgentEditor({
   const { getFileById } = useProjectStore(projectId, gitRef);
 
   const toolForm = useRef<ToolDialogImperative | null>(null);
-  const selectedTool = useRef<ToolDialogForm | undefined>();
+  const selectedTool = useRef<ToolDialogForm | undefined>(undefined);
   const dialogState = usePopupState({ variant: 'dialog' });
   const readOnly = useReadOnly({ ref: gitRef }) || disabled;
   const agents = value.agents && sortBy(Object.values(value.agents), (i) => i.index);
 
   return (
     <>
-      <Stack gap={1} width={1}>
+      <Stack
+        sx={{
+          gap: 1,
+          width: 1,
+        }}>
         <DragSortListYjs
           sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
           disabled={readOnly}
@@ -98,7 +102,11 @@ export default function CallAgentEditor({
           }}
         />
 
-        <Box display="flex" sx={{ ml: -0.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            ml: -0.5,
+          }}>
           <Button
             disabled={disabled}
             startIcon={<Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16 }} />}
@@ -110,7 +118,6 @@ export default function CallAgentEditor({
           </Button>
         </Box>
       </Stack>
-
       <ToolDialog
         ref={toolForm}
         projectId={projectId}
@@ -173,16 +180,22 @@ export default function CallAgentEditor({
 export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
-export const ToolDialog = forwardRef<
-  ToolDialogImperative,
-  {
-    projectId: string;
-    gitRef: string;
-    onSubmit: (value: ToolDialogForm) => any;
-    DialogProps?: DialogProps;
-    assistant: AssistantYjs;
-  }
->(({ assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+export const ToolDialog = ({
+  ref,
+  assistant,
+  projectId,
+  gitRef,
+  onSubmit,
+  DialogProps = undefined,
+}: {
+  projectId: string;
+  gitRef: string;
+  onSubmit: (value: ToolDialogForm) => any;
+  DialogProps?: DialogProps;
+  assistant: AssistantYjs;
+} & {
+  ref: React.RefObject<ToolDialogImperative | null>;
+}) => {
   const { t } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -207,10 +220,15 @@ export const ToolDialog = forwardRef<
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
-
       <DialogContent>
-        <Stack gap={2}>
-          <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 2,
+          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
             <Controller
               name="id"
               control={form.control}
@@ -277,7 +295,6 @@ export const ToolDialog = forwardRef<
           </Stack>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         {DialogProps?.onClose && (
           <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
@@ -291,243 +308,270 @@ export const ToolDialog = forwardRef<
       </DialogActions>
     </Dialog>
   );
-});
+};
 
-export const AgentItemView = forwardRef(
-  (
-    {
-      projectId,
-      gitRef,
-      agent,
-      assistant,
-      readOnly,
-      onEdit,
-      CallAssistantIndex,
-      dragRef,
-      ...props
-    }: {
-      assistant: CallAssistantYjs;
-      projectId: string;
-      gitRef: string;
-      agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
-      readOnly?: boolean;
-      onEdit: () => void;
-      CallAssistantIndex?: number;
-      dragRef?: (el: HTMLElement | null) => void;
-    } & StackProps,
-    ref: ForwardedRef<HTMLDivElement>
-  ) => {
-    const navigate = useNavigate();
+export const AgentItemView = ({
+  ref,
+  projectId,
+  gitRef,
+  agent,
+  assistant,
+  readOnly = undefined,
+  onEdit,
+  CallAssistantIndex = undefined,
+  dragRef = undefined,
+  ...props
+}: {
+  assistant: CallAssistantYjs;
+  projectId: string;
+  gitRef: string;
+  agent: NonNullable<CallAssistantYjs['agents']>[string]['data'];
+  readOnly?: boolean;
+  onEdit: () => void;
+  CallAssistantIndex?: number;
+  dragRef?: (el: HTMLElement | null) => void;
+} & StackProps) => {
+  const navigate = useNavigate();
 
-    const { t } = useLocaleContext();
-    const { addParameter } = useVariablesEditorOptions(assistant);
+  const { t } = useLocaleContext();
+  const { addParameter } = useVariablesEditorOptions(assistant);
 
-    const target = useAgents({ type: 'tool' }).agentMap[agent.id];
+  const target = useAgents({ type: 'tool' }).agentMap[agent.id];
 
-    const parameters = useMemo(() => {
-      return target?.parameters?.filter((i): i is typeof i & { key: string; hidden?: boolean } => !!i.key && !i.hidden);
-    }, [target]);
+  const parameters = useMemo(() => {
+    return target?.parameters?.filter((i): i is typeof i & { key: string; hidden?: boolean } => !!i.key && !i.hidden);
+  }, [target]);
 
-    const checkParametersInParameter = (key: string) => {
-      const parameters =
-        (assistant?.parameters &&
-          sortBy(Object.values(assistant.parameters), (i) => i.index).filter((i) => !i.data.hidden)) ||
-        [];
-      return Boolean(parameters.find((i) => i.data.key === key));
-    };
+  const checkParametersInParameter = (key: string) => {
+    const parameters =
+      (assistant?.parameters &&
+        sortBy(Object.values(assistant.parameters), (i) => i.index).filter((i) => !i.data.hidden)) ||
+      [];
+    return Boolean(parameters.find((i) => i.data.key === key));
+  };
 
-    if (!target) return null;
-    const { name, description } = target;
+  if (!target) return null;
+  const { name, description } = target;
 
-    return (
-      <Stack
-        ref={ref}
-        {...props}
-        sx={{
-          position: 'relative',
-          background: '#F9FAFB',
-          py: 1,
-          px: 1.5,
-          minHeight: 40,
-          gap: 1,
-          alignItems: 'center',
-          borderRadius: 1,
-          border: '1px solid transparent',
-          borderColor: 'primary.main',
-          cursor: 'pointer',
-          '&:hover': {
-            '.hover-visible': {
-              display: 'flex',
-            },
+  return (
+    <Stack
+      ref={ref}
+      {...props}
+      sx={{
+        position: 'relative',
+        background: '#F9FAFB',
+        py: 1,
+        px: 1.5,
+        minHeight: 40,
+        gap: 1,
+        alignItems: 'center',
+        borderRadius: 1,
+        border: '1px solid transparent',
+        borderColor: 'primary.main',
+        cursor: 'pointer',
+        '&:hover': {
+          '.hover-visible': {
+            display: 'flex',
           },
+        },
+      }}>
+      <Box
+        ref={dragRef}
+        sx={{
+          display: readOnly ? 'none' : 'block',
+          position: 'absolute',
+          left: -15,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          cursor: 'move',
         }}>
-        <Box
-          ref={dragRef}
+        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+      </Box>
+      <Stack
+        sx={{
+          width: 1,
+        }}>
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={name || t('unnamed')}
+          size="small"
+          variant="standard"
+          value={agent.functionName ?? (name || t('unnamed'))}
+          onChange={(e) => (agent.functionName = e.target.value)}
           sx={{
-            display: readOnly ? 'none' : 'block',
-            position: 'absolute',
-            left: -15,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            cursor: 'move',
-          }}>
-          <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
-        </Box>
+            mb: 0,
+            lineHeight: '20px',
+            fontWeight: 500,
+            input: {
+              fontSize: '18px',
+              color: 'primary.main',
+            },
+          }}
+        />
 
-        <Stack width={1}>
-          <TextField
-            onClick={(e) => e.stopPropagation()}
-            hiddenLabel
-            placeholder={name || t('unnamed')}
-            size="small"
-            variant="standard"
-            value={agent.functionName ?? (name || t('unnamed'))}
-            onChange={(e) => (agent.functionName = e.target.value)}
-            sx={{
-              mb: 0,
-              lineHeight: '20px',
-              fontWeight: 500,
-              input: {
-                fontSize: '18px',
-                color: 'primary.main',
-              },
-            }}
-          />
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={name || t('unnamed')}
+          size="small"
+          variant="standard"
+          value={name || t('unnamed')}
+          sx={{
+            lineHeight: '10px',
+            input: { fontSize: '10px', color: 'text.disabled' },
+          }}
+          slotProps={{
+            input: { readOnly: true },
+          }}
+        />
 
-          <TextField
-            onClick={(e) => e.stopPropagation()}
-            hiddenLabel
-            placeholder={name || t('unnamed')}
-            size="small"
-            variant="standard"
-            value={name || t('unnamed')}
-            InputProps={{ readOnly: true }}
-            sx={{
-              lineHeight: '10px',
-              input: { fontSize: '10px', color: 'text.disabled' },
-            }}
-          />
+        <TextField
+          onClick={(e) => e.stopPropagation()}
+          hiddenLabel
+          placeholder={description || t('description')}
+          size="small"
+          variant="standard"
+          value={description}
+          onChange={(e) => (agent.functionName = e.target.value)}
+          sx={{
+            lineHeight: '10px',
+            input: { fontSize: '10px', color: 'text.disabled' },
+          }}
+          slotProps={{
+            htmlInput: { readOnly: true },
+          }}
+        />
 
-          <TextField
-            onClick={(e) => e.stopPropagation()}
-            hiddenLabel
-            placeholder={description || t('description')}
-            size="small"
-            variant="standard"
-            value={description}
-            onChange={(e) => (agent.functionName = e.target.value)}
-            sx={{
-              lineHeight: '10px',
-              input: { fontSize: '10px', color: 'text.disabled' },
-            }}
-            inputProps={{ readOnly: true }}
-          />
+        <Box>
+          <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}>
+              <Typography
+                variant="subtitle5"
+                sx={{
+                  color: 'text.secondary',
+                  mb: 0,
+                }}>
+                {t('parameters')}
+              </Typography>
 
-          <Box>
-            <Tooltip title={t('parametersTip', { variable: '{variable}' })} placement="top-start" disableInteractive>
-              <Stack justifyContent="space-between" direction="row" alignItems="center">
-                <Typography variant="subtitle5" color="text.secondary" mb={0}>
-                  {t('parameters')}
-                </Typography>
-
-                <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
-              </Stack>
-            </Tooltip>
-
-            <Stack gap={1}>
-              {parameters?.map((parameter) => {
-                if (!parameter?.key) return null;
-                if (!isValidInput(parameter)) return null;
-                const className = `hover-visible-${parameter.key}`;
-
-                return (
-                  <Stack
-                    key={parameter.id}
-                    sx={{
-                      ':hover': { [`.${className}`]: { display: 'flex' } },
-                    }}>
-                    <Stack flexDirection="row" alignItems="center" mb={0.5}>
-                      <Typography variant="caption" mx={1}>
-                        {parameter.label || parameter.key}
-                      </Typography>
-
-                      {agent.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
-                        <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParameter') : undefined}>
-                          <Box
-                            className={className}
-                            component={Icon}
-                            icon={PlusIcon}
-                            sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
-                            onClick={() => {
-                              agent.parameters ??= {};
-                              agent.parameters[parameter.key] = `{{${parameter.key}}}`;
-                              addParameter(parameter.key);
-                            }}
-                          />
-                        </Tooltip>
-                      )}
-                    </Stack>
-
-                    <PromptEditorField
-                      CallAssistantIndex={CallAssistantIndex}
-                      placeholder={`{{${parameter.label || parameter.key}}}`}
-                      value={agent.parameters?.[parameter.key] || ''}
-                      projectId={projectId}
-                      gitRef={gitRef}
-                      assistant={assistant}
-                      path={[]}
-                      onChange={(value) => {
-                        agent.parameters ??= {};
-                        if (parameter.key) agent.parameters[parameter.key] = value;
-                      }}
-                    />
-                  </Stack>
-                );
-              })}
+              <InfoOutlined fontSize="small" sx={{ color: 'info.main', fontSize: 14 }} />
             </Stack>
-          </Box>
-        </Stack>
+          </Tooltip>
 
-        <Stack
-          direction="row"
-          className="hover-visible"
-          sx={{ position: 'absolute', right: 10, top: 10, display: 'none' }}
-          gap={0.5}
-          flex={1}>
-          <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
-            <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
-          </Button>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
+            {parameters?.map((parameter) => {
+              if (!parameter?.key) return null;
+              if (!isValidInput(parameter)) return null;
+              const className = `hover-visible-${parameter.key}`;
 
-          {!readOnly && (
-            <Button
-              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                const doc = (getYjsValue(assistant) as Map<any>).doc!;
-                doc.transact(() => {
-                  const key = agent.instanceId || agent.id;
-                  if (assistant.agents?.[key]) {
-                    delete assistant.agents[key];
-                    sortBy(Object.values(assistant.agents), 'index').forEach((i, index) => (i.index = index));
-                  }
-                });
-              }}>
-              <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
-            </Button>
-          )}
+              return (
+                <Stack
+                  key={parameter.id}
+                  sx={{
+                    ':hover': { [`.${className}`]: { display: 'flex' } },
+                  }}>
+                  <Stack
+                    sx={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      mb: 0.5,
+                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        mx: 1,
+                      }}>
+                      {parameter.label || parameter.key}
+                    </Typography>
 
-          {target && (
-            <Button
-              sx={{ minWidth: 24, minHeight: 24, p: 0 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(joinURL('.', `${target.id}.yaml`));
-              }}>
-              <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
-            </Button>
-          )}
-        </Stack>
+                    {agent.parameters?.[parameter.key] || checkParametersInParameter(parameter.key) ? null : (
+                      <Tooltip title={!agent.parameters?.[parameter.key] ? t('addParameter') : undefined}>
+                        <Box
+                          className={className}
+                          component={Icon}
+                          icon={PlusIcon}
+                          sx={{ fontSize: 12, cursor: 'pointer', color: 'primary.main', display: 'none' }}
+                          onClick={() => {
+                            agent.parameters ??= {};
+                            agent.parameters[parameter.key] = `{{${parameter.key}}}`;
+                            addParameter(parameter.key);
+                          }}
+                        />
+                      </Tooltip>
+                    )}
+                  </Stack>
+                  <PromptEditorField
+                    CallAssistantIndex={CallAssistantIndex}
+                    placeholder={`{{${parameter.label || parameter.key}}}`}
+                    value={agent.parameters?.[parameter.key] || ''}
+                    projectId={projectId}
+                    gitRef={gitRef}
+                    assistant={assistant}
+                    path={[]}
+                    onChange={(value) => {
+                      agent.parameters ??= {};
+                      if (parameter.key) agent.parameters[parameter.key] = value;
+                    }}
+                  />
+                </Stack>
+              );
+            })}
+          </Stack>
+        </Box>
       </Stack>
-    );
-  }
-);
+      <Stack
+        direction="row"
+        className="hover-visible"
+        sx={{
+          gap: 0.5,
+          flex: 1,
+          position: 'absolute',
+          right: 10,
+          top: 10,
+          display: 'none',
+        }}>
+        <Button sx={{ minWidth: 24, minHeight: 24, p: 0 }} onClick={onEdit}>
+          <Box component={Icon} icon={PencilIcon} sx={{ fontSize: 18, color: 'text.secondary' }} />
+        </Button>
+
+        {!readOnly && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const doc = (getYjsValue(assistant) as Map<any>).doc!;
+              doc.transact(() => {
+                const key = agent.instanceId || agent.id;
+                if (assistant.agents?.[key]) {
+                  delete assistant.agents[key];
+                  sortBy(Object.values(assistant.agents), 'index').forEach((i, index) => (i.index = index));
+                }
+              });
+            }}>
+            <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
+          </Button>
+        )}
+
+        {target && (
+          <Button
+            sx={{ minWidth: 24, minHeight: 24, p: 0 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(joinURL('.', `${target.id}.yaml`));
+            }}>
+            <Box component={Icon} icon={ExternalLinkIcon} sx={{ fontSize: 18 }} />
+          </Button>
+        )}
+      </Stack>
+    </Stack>
+  );
+};

@@ -8,7 +8,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { AIGNE_STUDIO_COMPONENT_DID } from '@blocklet/aigne-sdk/constants';
-import { AddComponent } from '@blocklet/ui-react';
+import { AddComponent } from '@blocklet/ui-react/lib/ComponentManager';
 import { Icon } from '@iconify-icon/react';
 import DatabaseIcon from '@iconify-icons/tabler/database';
 import FileIcon from '@iconify-icons/tabler/file-text';
@@ -85,7 +85,12 @@ export default function Knowledge() {
 
   return (
     <>
-      <Stack p={2.5} height={1} overflow="auto">
+      <Stack
+        sx={{
+          p: 2.5,
+          height: 1,
+          overflow: 'auto',
+        }}>
         <ListContainer gap={2.5}>
           <CreateCard onImport={dialogState.open} onCreate={onCreate} />
 
@@ -104,7 +109,6 @@ export default function Knowledge() {
                     date={item.createdAt?.toLocaleString()}
                     knowledgeId={item.id}
                     icon={item.icon}
-                    resourceBlockletDid={item.resourceBlockletDid}
                     disabled={!item.installed}
                     onClick={() => item.installed && navigate(`./${item.id}`)}
                     action={
@@ -139,7 +143,13 @@ export default function Knowledge() {
                                 ),
                                 content: (
                                   <Box>
-                                    <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 500,
+                                        fontSize: 16,
+                                        lineHeight: '28px',
+                                        color: '#4B5563',
+                                      }}>
                                       {t('knowledge.deleteDescription')}
                                     </Typography>
                                   </Box>
@@ -172,24 +182,32 @@ export default function Knowledge() {
         </ListContainer>
 
         {(dataState.loadingMore || dataState?.data?.next) && (
-          <Box width={1} height={60} className="center" ref={loadingRef}>
-            <Box display="flex" justifyContent="center">
+          <Box
+            className="center"
+            ref={loadingRef}
+            sx={{
+              width: 1,
+              height: 60,
+            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+              }}>
               <CircularProgress size={24} />
             </Box>
           </Box>
         )}
       </Stack>
-
       <SelectKnowledgeModal
         list={list}
         open={dialogState.isOpen}
-        onClose={dialogState.close}
+        onClose={() => dialogState.close()}
         onConfirm={() => {
           dataState.reload();
           dialogState.close();
         }}
       />
-
       {dialog}
     </>
   );
@@ -200,12 +218,28 @@ const CreateCard = ({ onImport, onCreate }: { onImport: () => void; onCreate: ()
   return (
     <CreateKnowledgeContainer>
       <Box className="image">
-        <Box component="img" src={backgroundIcon} width={1} height={1} />
+        <Box
+          component="img"
+          src={backgroundIcon}
+          sx={{
+            width: 1,
+            height: 1,
+          }}
+        />
       </Box>
       <Box className="shadow" />
-
-      <Stack p={2.5} gap={1} className="button">
-        <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }}>
+      <Stack
+        className="button"
+        sx={{
+          p: 2.5,
+          gap: 1,
+        }}>
+        <LoadingButton
+          variant="contained"
+          size="large"
+          onClick={onCreate}
+          sx={{ fontSize: 16 }}
+          loadingPosition="start">
           {t('createObject', { object: t('knowledge.knowledgeBase') })}
         </LoadingButton>
         <Button variant="outlined" size="large" onClick={onImport} sx={{ fontSize: 16 }}>
@@ -226,11 +260,10 @@ const KnowledgeCard = ({
   authorAvatar,
   date,
   maxLineClamp = 10,
-  disabled,
-  icon,
-  knowledgeId,
-  resourceBlockletDid,
-  action,
+  disabled = undefined,
+  icon = undefined,
+  knowledgeId = undefined,
+  action = undefined,
   ...props
 }: {
   emoji: string;
@@ -245,7 +278,6 @@ const KnowledgeCard = ({
   maxLineClamp?: number;
   icon?: string;
   knowledgeId?: string;
-  resourceBlockletDid?: string;
   action?: ReactNode;
 } & StackProps) => {
   const { t } = useLocaleContext();
@@ -253,16 +285,25 @@ const KnowledgeCard = ({
 
   return (
     <Stack
-      p={2}
-      height={1}
-      width={1}
-      sx={{
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.8 : 1,
-        pointerEvents: disabled ? 'none' : 'auto',
-      }}
-      {...props}>
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" width={1}>
+      {...props}
+      sx={[
+        {
+          p: 2,
+          height: 1,
+          width: 1,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.8 : 1,
+          pointerEvents: disabled ? 'none' : 'auto',
+        },
+        ...(Array.isArray(props.sx) ? props.sx : [props.sx]),
+      ]}>
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          width: 1,
+        }}>
         <Box
           className="center"
           sx={{
@@ -292,26 +333,46 @@ const KnowledgeCard = ({
               }}
             />
           ) : null}
-          <Typography fontSize={24} style={{ display: icon ? 'none' : 'block' }}>
+          <Typography
+            style={{ display: icon ? 'none' : 'block' }}
+            sx={{
+              fontSize: 24,
+            }}>
             {emoji}
           </Typography>
         </Box>
 
         {action}
       </Stack>
-
-      <Box height={40} className="center" justifyContent="flex-start" />
-
-      <Stack flex={1} height={0} gap={0.5} justifyContent="flex-start">
-        <Typography fontWeight={600} lineHeight="28px" fontSize={18} sx={{ wordBreak: 'break-word' }}>
+      <Box
+        className="center"
+        sx={{
+          height: 40,
+          justifyContent: 'flex-start',
+        }}
+      />
+      <Stack
+        sx={{
+          flex: 1,
+          height: 0,
+          gap: 0.5,
+          justifyContent: 'flex-start',
+        }}>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            lineHeight: '28px',
+            fontSize: 18,
+            wordBreak: 'break-word',
+          }}>
           {title || t('unnamed')}
         </Typography>
 
         {description && (
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: 'text.secondary',
               overflow: 'hidden',
               display: '-webkit-box',
               WebkitLineClamp: maxLineClamp,
@@ -322,21 +383,49 @@ const KnowledgeCard = ({
           </Typography>
         )}
       </Stack>
-
-      <Stack direction="row" gap={1.25} alignItems="center" mt={2.5} color="#9CA3AF">
-        <Stack direction="row" gap={0.5} alignItems="center">
+      <Stack
+        direction="row"
+        sx={{
+          gap: 1.25,
+          alignItems: 'center',
+          mt: 2.5,
+          color: '#9CA3AF',
+        }}>
+        <Stack
+          direction="row"
+          sx={{
+            gap: 0.5,
+            alignItems: 'center',
+          }}>
           <Box component={Icon} icon={FileIcon} />
           <Typography variant="caption">{`${docsCount} ${t('knowledge.docs')}`}</Typography>
         </Stack>
 
-        <Stack direction="row" gap={0.5} alignItems="center">
+        <Stack
+          direction="row"
+          sx={{
+            gap: 0.5,
+            alignItems: 'center',
+          }}>
           <Box component={Icon} icon={DatabaseIcon} />
           <Typography variant="caption">{bytes.format(size)}</Typography>
         </Stack>
       </Stack>
-
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mt={1.25}>
-        <Stack direction="row" alignItems="center" gap={0.75} flex={1} width={0}>
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mt: 1.25,
+        }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            gap: 0.75,
+            flex: 1,
+            width: 0,
+          }}>
           <Box
             component="img"
             src={authorAvatar}
@@ -366,7 +455,7 @@ const SelectKnowledgeModal = (
   const { t } = useLocaleContext();
   const { getResourcesKnowledgeList, createDatasetFromResources, resources, resourceLoading } = useKnowledge();
   const isAdmin = useIsAdmin();
-  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>();
+  const addComponentRef = useRef<{ onClick?: () => void; loading?: boolean }>(undefined);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -438,14 +527,15 @@ const SelectKnowledgeModal = (
           }, 3000);
         }}
       />
-
       <Dialog
         fullWidth
         maxWidth="xl"
-        PaperProps={{ sx: { height: '100%' } }}
         fullScreen={useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'))}
         open={props.open}
-        onClose={props.onClose}>
+        onClose={props.onClose}
+        slotProps={{
+          paper: { sx: { height: '100%' } },
+        }}>
         <DialogTitle>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontSize: 16, fontWeight: 500 }}>
@@ -460,14 +550,27 @@ const SelectKnowledgeModal = (
 
         <DialogContent>
           {loading || resourceLoading ? (
-            <Box className="center" flex={1} height={1}>
+            <Box
+              className="center"
+              sx={{
+                flex: 1,
+                height: 1,
+              }}>
               <CircularProgress size={36} />
             </Box>
           ) : (
             <>
               {!resources.length && (
-                <Box className="center" flex={1} height={1}>
-                  <Stack alignItems="center">
+                <Box
+                  className="center"
+                  sx={{
+                    flex: 1,
+                    height: 1,
+                  }}>
+                  <Stack
+                    sx={{
+                      alignItems: 'center',
+                    }}>
                     <Typography variant="subtitle1">📚</Typography>
                     <Typography variant="subtitle4">{t('knowledge.noKnowledge')}</Typography>
                     <Typography variant="subtitle5">{t('knowledge.noKnowledgeTip')}</Typography>
@@ -503,16 +606,28 @@ const SelectKnowledgeModal = (
                           setSelectedKnowledge({ ...selectedKnowledge, [key]: !selectedKnowledge[key] })
                         }
                       />
-
                       {selectedKnowledge[key] && (
                         <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
-                          <Box component="img" src={checkBoxIcon} width={20} height={20} />
+                          <Box
+                            component="img"
+                            src={checkBoxIcon}
+                            sx={{
+                              width: 20,
+                              height: 20,
+                            }}
+                          />
                         </Box>
                       )}
-
                       {disabled[key] && (
                         <Box className="center" sx={{ position: 'absolute', top: 16, right: 16 }}>
-                          <Box component="img" src={checkDisabledIcon} width={20} height={20} />
+                          <Box
+                            component="img"
+                            src={checkDisabledIcon}
+                            sx={{
+                              width: 20,
+                              height: 20,
+                            }}
+                          />
                         </Box>
                       )}
                     </CardContainer>
@@ -530,7 +645,11 @@ const SelectKnowledgeModal = (
             </Button>
           )}
 
-          <Stack direction="row" gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+            }}>
             <Button variant="outlined" onClick={props.onClose}>
               {t('cancel')}
             </Button>
@@ -538,6 +657,7 @@ const SelectKnowledgeModal = (
             <LoadingButton
               variant="contained"
               onClick={() => runImport(selectedKnowledgeIds)}
+              loadingPosition="start"
               disabled={!selectedKnowledgeIds.length || importLoading}>
               {importLoading && <CircularProgress size={14} />}
               {`${t('importObject', { object: t('knowledge.knowledgeBase') })} ${

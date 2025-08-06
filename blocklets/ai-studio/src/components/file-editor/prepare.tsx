@@ -12,9 +12,9 @@ export default function Prepare({
   projectId,
   gitRef,
   value,
-  disabled,
-  compareValue,
-  isRemoteCompare,
+  disabled = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -29,22 +29,29 @@ export default function Prepare({
 
   return (
     <Stack
-      gap={1}
       sx={{
+        gap: 1,
         borderRadius: 1,
         bgcolor: '#EDE9FE',
         px: 2,
         py: 1.5,
       }}>
-      <Stack direction="row" alignItems="center" sx={{ gap: 1 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          gap: 1,
+        }}>
         <Box component={Icon} icon="tabler:bule" sx={{ color: '#7C3AED', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('prepareExecutes')}
         </Typography>
       </Stack>
-
       {value.prepareExecutes && Object.values(value.prepareExecutes).length ? (
-        <Stack gap={2}>
+        <Stack
+          sx={{
+            gap: 2,
+          }}>
           <PrepareExecuteList
             assistant={value}
             projectId={projectId}
@@ -56,9 +63,12 @@ export default function Prepare({
           />
         </Stack>
       ) : null}
-
       {!readOnly && (
-        <Stack direction="row" gap={1.5}>
+        <Stack
+          direction="row"
+          sx={{
+            gap: 1.5,
+          }}>
           <Button
             sx={{ color: '#6D28D9' }}
             startIcon={<Box component={Icon} icon={PlusIcon} />}

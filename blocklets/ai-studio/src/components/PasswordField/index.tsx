@@ -1,8 +1,13 @@
 import { Icon } from '@iconify-icon/react';
 import { IconButton, InputAdornment, TextField, TextFieldProps } from '@mui/material';
-import { forwardRef, useState } from 'react';
+import { useState } from 'react';
 
-const PasswordField = forwardRef<HTMLDivElement, TextFieldProps>(({ ...props }, ref) => {
+const PasswordField = ({
+  ref,
+  ...props
+}: TextFieldProps & {
+  ref: React.Ref<HTMLDivElement>;
+}) => {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -10,18 +15,20 @@ const PasswordField = forwardRef<HTMLDivElement, TextFieldProps>(({ ...props }, 
       ref={ref}
       {...props}
       type={visible ? 'text' : 'password'}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton size="small" onClick={() => setVisible(!visible)}>
-              <Icon icon={visible ? 'tabler:eye' : 'tabler:eye-off'} />
-            </IconButton>
-          </InputAdornment>
-        ),
-        ...props.InputProps,
+      slotProps={{
+        input: {
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton size="small" onClick={() => setVisible(!visible)}>
+                <Icon icon={visible ? 'tabler:eye' : 'tabler:eye-off'} />
+              </IconButton>
+            </InputAdornment>
+          ),
+          ...props.InputProps,
+        },
       }}
     />
   );
-});
+};
 
 export default PasswordField;

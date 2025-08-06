@@ -20,9 +20,9 @@ export interface AIGNEApiContextValue {
 const aigneApiContext = createContext<AIGNEApiContextValue | null>(null);
 
 export const AIGNEApiProvider = ({
-  working,
-  debug,
-  children,
+  working = undefined,
+  debug = undefined,
+  children = undefined,
   ...api
 }: {
   working?: boolean | ((options: { aid: string }) => boolean | undefined);

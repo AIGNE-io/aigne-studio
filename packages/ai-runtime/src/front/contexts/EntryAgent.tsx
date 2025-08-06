@@ -23,8 +23,8 @@ export function useEntryAgent({ optional }: { optional?: boolean } = {}) {
 
 export const EntryAgentProvider = ({
   aid,
-  working,
-  children,
+  working = undefined,
+  children = undefined,
 }: {
   aid: string;
   working?: boolean;
@@ -35,7 +35,7 @@ export const EntryAgentProvider = ({
   return <activeAgentContext.Provider value={state}>{children}</activeAgentContext.Provider>;
 };
 
-export function EntryAgentProviderFromUrl({ children }: { children?: ReactNode }) {
+export function EntryAgentProviderFromUrl({ children = undefined }: { children?: ReactNode }) {
   const [query] = useSearchParams();
   const aid = query.get('aid');
   if (!aid) throw new CustomError(404, 'Missing required query parameters `aid`');

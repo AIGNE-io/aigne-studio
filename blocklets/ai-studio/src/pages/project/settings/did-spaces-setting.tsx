@@ -35,9 +35,24 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
   );
 
   return (
-    <Stack gap={2.5}>
-      <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={1}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+    <Stack
+      sx={{
+        gap: 2.5,
+      }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 1,
+        }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+          }}>
           <FormControlLabel
             sx={{ m: 0 }}
             label={t('autoSync')}
@@ -51,7 +66,13 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
             }
           />
           {authSyncUpdating ? (
-            <Stack justifyContent="center" alignItems="center" width={24} height={24}>
+            <Stack
+              sx={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: 24,
+                height: 24,
+              }}>
               {authSyncUpdating === true ? (
                 <CircularProgress size={16} />
               ) : authSyncUpdating === 'success' ? (
@@ -63,8 +84,12 @@ export default function DidSpacesSetting({ projectId }: { projectId: string }) {
           ) : null}
         </Stack>
       </Stack>
-
-      <Stack direction="row" alignItems="center" gap={1}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          gap: 1,
+        }}>
         <SpaceCard
           sx={{ flex: 1 }}
           selected

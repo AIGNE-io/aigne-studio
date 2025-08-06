@@ -1,4 +1,5 @@
 import { Chip, ChipProps, Stack } from '@mui/material';
+import upperFirst from 'lodash/upperFirst';
 
 export function Tag({ label, selected, ...rest }: { selected: boolean } & ChipProps) {
   const selectedStyle = {
@@ -34,15 +35,21 @@ interface TagFilterProps {
   tags: string[];
 }
 
-export function TagFilter({ value, onChange, prepend, tags }: TagFilterProps) {
+export function TagFilter({ value, onChange, prepend = undefined, tags }: TagFilterProps) {
   const handleTagClick = (tag: string) => {
     onChange(tag);
   };
   return (
-    <Stack direction="row" useFlexGap spacing={1} flexWrap="wrap">
+    <Stack
+      direction="row"
+      useFlexGap
+      spacing={1}
+      sx={{
+        flexWrap: 'wrap',
+      }}>
       {prepend}
       {tags.map((tag) => (
-        <Tag key={tag} label={tag} selected={value === tag} onClick={() => handleTagClick(tag)} />
+        <Tag key={tag} label={upperFirst(tag)} selected={value === tag} onClick={() => handleTagClick(tag)} />
       ))}
     </Stack>
   );

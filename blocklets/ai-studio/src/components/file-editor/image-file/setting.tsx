@@ -18,9 +18,9 @@ export default function ImageFileSetting({
   projectId,
   gitRef,
   value,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -42,12 +42,22 @@ export default function ImageFileSetting({
 
   return (
     <>
-      <Box position="relative" className="between">
-        <Box flex={1}>
+      <Box
+        className="between"
+        sx={{
+          position: 'relative',
+        }}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <FormLabel>{t('model')}</FormLabel>
         </Box>
 
-        <Box flex={1}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'model']}>
             <ModelSelectField
               fullWidth
@@ -69,12 +79,18 @@ export default function ImageFileSetting({
           </WithAwareness>
         </Box>
       </Box>
-
       {modelDetail && (
         <>
           {typeof modelDetail.nMin === 'number' && typeof modelDetail.nMax === 'number' && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box
+              className="between"
+              sx={{
+                position: 'relative',
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('numberTip')}
                   placement="top"
@@ -88,7 +104,10 @@ export default function ImageFileSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness sx={{ top: -2, right: -4 }} projectId={projectId} gitRef={gitRef} path={[value.id, 'n']}>
                   <SliderNumberField
                     readOnly={readOnly}
@@ -105,8 +124,15 @@ export default function ImageFileSetting({
           )}
 
           {modelDetail.quality && modelDetail.quality.length > 0 && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box
+              className="between"
+              sx={{
+                position: 'relative',
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('qualityTip')}
                   placement="top"
@@ -120,7 +146,12 @@ export default function ImageFileSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1} display="flex" justifyContent="flex-end">
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -129,13 +160,15 @@ export default function ImageFileSetting({
                   <TextField
                     hiddenLabel
                     select
-                    SelectProps={{
-                      readOnly,
-                      autoWidth: true,
-                      sx: { backgroundColor: getDiffBackground('quality') },
-                    }}
                     value={value.quality ?? modelDetail.qualityDefault}
-                    onChange={(e) => (value.quality = e.target.value)}>
+                    onChange={(e) => (value.quality = e.target.value)}
+                    slotProps={{
+                      select: {
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('quality') },
+                      },
+                    }}>
                     {(modelDetail.quality || []).map((i) => (
                       <MenuItem key={i} value={i}>
                         {i}
@@ -148,8 +181,15 @@ export default function ImageFileSetting({
           )}
 
           {modelDetail.size && modelDetail.size.length > 0 && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box
+              className="between"
+              sx={{
+                position: 'relative',
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('sizeTip')}
                   placement="top"
@@ -163,7 +203,12 @@ export default function ImageFileSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1} display="flex" justifyContent="flex-end">
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -172,13 +217,15 @@ export default function ImageFileSetting({
                   <TextField
                     hiddenLabel
                     select
-                    SelectProps={{
-                      readOnly,
-                      autoWidth: true,
-                      sx: { backgroundColor: getDiffBackground('size') },
-                    }}
                     value={value.size ?? modelDetail.sizeDefault}
-                    onChange={(e) => (value.size = e.target.value)}>
+                    onChange={(e) => (value.size = e.target.value)}
+                    slotProps={{
+                      select: {
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('size') },
+                      },
+                    }}>
                     {modelDetail.size.map((i) => (
                       <MenuItem key={i} value={i}>
                         {i}
@@ -191,8 +238,15 @@ export default function ImageFileSetting({
           )}
 
           {modelDetail.style && modelDetail.style.length > 0 && (
-            <Box position="relative" className="between">
-              <Box flex={1}>
+            <Box
+              className="between"
+              sx={{
+                position: 'relative',
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('styleTip')}
                   placement="top"
@@ -206,7 +260,12 @@ export default function ImageFileSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1} display="flex" justifyContent="flex-end">
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -215,13 +274,15 @@ export default function ImageFileSetting({
                   <TextField
                     hiddenLabel
                     select
-                    SelectProps={{
-                      readOnly,
-                      autoWidth: true,
-                      sx: { backgroundColor: getDiffBackground('style') },
-                    }}
                     value={value.style ?? modelDetail.styleDefault}
-                    onChange={(e) => (value.style = e.target.value)}>
+                    onChange={(e) => (value.style = e.target.value)}
+                    slotProps={{
+                      select: {
+                        readOnly,
+                        autoWidth: true,
+                        sx: { backgroundColor: getDiffBackground('style') },
+                      },
+                    }}>
                     {(modelDetail.style || []).map((i) => (
                       <MenuItem key={i} value={i}>
                         {i}

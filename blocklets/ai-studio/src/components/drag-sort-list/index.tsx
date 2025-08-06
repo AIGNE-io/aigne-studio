@@ -11,7 +11,7 @@ import { ReactNode, useCallback, useEffect, useId, useRef } from 'react';
 import { ConnectDragPreview, ConnectDragSource, ConnectDropTarget, useDrag, useDrop } from 'react-dnd';
 
 export function DragSortListYjs<T>({
-  disabled,
+  disabled = undefined,
   list,
   renderItem,
   ...props
@@ -102,11 +102,11 @@ export type DragSortItemRenderParams = {
 };
 
 function ItemDND({
-  disabled,
+  disabled = undefined,
   id,
   index,
   type,
-  children,
+  children = undefined,
   itemIndex,
   move,
 }: {
@@ -118,7 +118,7 @@ function ItemDND({
   itemIndex: (id: string) => number;
   move: (src: { id: string; index: number }, dst: { id: string; index: number }) => void;
 }) {
-  const ref = useRef<HTMLElement>();
+  const ref = useRef<HTMLElement>(undefined);
 
   const [{ isDragging }, drag, preview] = useDrag<{ id: string }, undefined, { isDragging: boolean }>({
     type,
@@ -193,11 +193,11 @@ export function DragSortItemContainer({
   drop,
   preview,
   drag,
-  disabled,
-  isDragging,
-  children,
-  onDelete,
-  actions,
+  disabled = undefined,
+  isDragging = undefined,
+  children = undefined,
+  onDelete = undefined,
+  actions = undefined,
   ...props
 }: {
   drop: ConnectDropTarget;
@@ -212,9 +212,11 @@ export function DragSortItemContainer({
   const { t } = useLocaleContext();
 
   return (
+    // @ts-ignore
     <Box ref={drop} {...props} sx={{ ':hover .hover-visible': { maxHeight: 'unset' }, ...props.sx }}>
       <Box sx={{ position: 'relative' }}>
         <Box
+          // @ts-ignore
           ref={preview}
           sx={{
             flex: 1,
@@ -253,6 +255,7 @@ export function DragSortItemContainer({
                 },
               }}>
               <Tooltip title={t('dragSort')} disableInteractive placement="top">
+                {/* @ts-ignore */}
                 <Button ref={drag}>
                   <Box component={Icon} icon={GripVerticalIcon} sx={{ color: 'grey.500' }} />
                 </Button>

@@ -3,7 +3,7 @@ import { Alert, Box } from '@mui/material';
 
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 
-export default function MessageErrorView({ error, sx }: { error: any; sx?: any }) {
+export default function MessageErrorView({ error, sx = undefined }: { error: any; sx?: any }) {
   const { t } = useLocaleContext();
 
   if (!error) return null;

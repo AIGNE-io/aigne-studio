@@ -40,9 +40,9 @@ const sessionContext = createContext<UseBoundStore<StoreApi<SessionContextValue>
 const LOADING_TASKS: { [id: string]: Promise<void> } = {};
 
 export const SessionProvider = ({
-  sessionId,
-  onChange,
-  children,
+  sessionId = undefined,
+  onChange = undefined,
+  children = undefined,
 }: {
   sessionId?: string;
   onChange?: (sessionId: string) => void;
@@ -68,6 +68,7 @@ export const SessionProvider = ({
     if (error) throw error;
 
     LOADING_TASKS[sessionId] ??= state.getState().reload();
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw LOADING_TASKS[sessionId]!;
   }
 

@@ -8,7 +8,7 @@ type Props = {
   boxProps?: BoxProps;
 } & TextFieldProps;
 
-export default function RoleSelectField({ projectId, gitRef, path, boxProps, ...props }: Props) {
+export default function RoleSelectField({ projectId, gitRef, path, boxProps = undefined, ...props }: Props) {
   return (
     <IndicatorTextField
       projectId={projectId}

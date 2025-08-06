@@ -1,3 +1,17 @@
+## 0.5.0 (2025-8-2)
+
+- chore: upgrade react19, mui7, vite7
+- chore: upgrade react-markdown to v10
+- chore: upgrade react-resizable-panels to v3
+- chore: upgrade react-querybuilder to v8
+- chore: upgrade react-markdown to v10
+- chore: upgrade react-infinite-scroll-hook to v6
+- chore: upgrade @monaco-editor/react
+- chore: upgrade lexical to v0.30.1
+- chore: rm @aigne/runtime
+- chore: replace recoil with zustand
+- chore: replace react-transition-group to react-transitioning
+
 ## 0.4.279 (2025-8-4)
 
 - chore: update logo and readme

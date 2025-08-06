@@ -20,13 +20,16 @@ import SelectOptionsConfig from './select-options-config';
 
 const fixedTrustedIssuers = ['current_application'];
 
-export default function ParameterConfig({ readOnly, value }: { readOnly?: boolean; value: ParameterYjs }) {
+export default function ParameterConfig({ readOnly = undefined, value }: { readOnly?: boolean; value: ParameterYjs }) {
   const { t } = useLocaleContext();
 
   const stringValue = !value.type || value.type === 'string' ? (value as typeof value & { type: 'string' }) : undefined;
 
   return (
-    <Stack gap={2}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <Box>
         <Typography variant="subtitle2">{t('name')}</Typography>
 
@@ -37,10 +40,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           size="medium"
           value={value.label || ''}
           onChange={(e) => (value.label = e.target.value)}
-          InputProps={{ readOnly }}
+          slotProps={{
+            input: { readOnly },
+          }}
         />
       </Box>
-
       <Box>
         <Typography variant="subtitle2">{t('placeholder')}</Typography>
 
@@ -51,10 +55,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           size="medium"
           value={value.placeholder || ''}
           onChange={(e) => (value.placeholder = e.target.value)}
-          InputProps={{ readOnly }}
+          slotProps={{
+            input: { readOnly },
+          }}
         />
       </Box>
-
       {(value.type === 'select' || value.type === 'image') && (
         <Box>
           <FormControl>
@@ -62,7 +67,11 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
               labelPlacement="start"
               label={
-                <Typography variant="subtitle2" my={0}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    my: 0,
+                  }}>
                   {t('multiple')}
                 </Typography>
               }
@@ -77,7 +86,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           </FormControl>
         </Box>
       )}
-
       {value.type !== 'verify_vc' && (
         <Box>
           <Typography variant="subtitle2">{t('defaultValue')}</Typography>
@@ -120,7 +128,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           )}
         </Box>
       )}
-
       {value.type === 'verify_vc' && (
         <>
           <Box>
@@ -131,7 +138,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               placeholder="Verify VC"
               value={value.buttonTitle || ''}
               onChange={(e) => (value.buttonTitle = e.target.value)}
-              InputProps={{ readOnly }}
+              slotProps={{
+                input: { readOnly },
+              }}
             />
           </Box>
 
@@ -143,7 +152,9 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               placeholder="Verify VC Succeed"
               value={value.buttonTitleVerified || ''}
               onChange={(e) => (value.buttonTitleVerified = e.target.value)}
-              InputProps={{ readOnly }}
+              slotProps={{
+                input: { readOnly },
+              }}
             />
           </Box>
 
@@ -192,7 +203,6 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           </Box>
         </>
       )}
-
       {value.type === 'select' && (
         <>
           <Box>
@@ -213,11 +223,18 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           </Box>
         </>
       )}
-
-      <Box display="flex" alignItems="center" gap={2}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+        }}>
         {stringValue && (
           <>
-            <Box flex={1}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('minLength')}</Typography>
 
               <NumberField
@@ -234,7 +251,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
               />
             </Box>
 
-            <Box flex={1}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('maxLength')}</Typography>
 
               <NumberField
@@ -255,7 +275,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
 
         {value.type === 'number' && (
           <>
-            <Box flex={1}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('min')}</Typography>
 
               <NumberField
@@ -270,7 +293,10 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
                 }}
               />
             </Box>
-            <Box flex={1}>
+            <Box
+              sx={{
+                flex: 1,
+              }}>
               <Typography variant="subtitle2">{t('max')}</Typography>
 
               <NumberField
@@ -288,14 +314,17 @@ export default function ParameterConfig({ readOnly, value }: { readOnly?: boolea
           </>
         )}
       </Box>
-
       <Box>
         <FormControl>
           <FormControlLabel
             sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
             labelPlacement="start"
             label={
-              <Typography variant="subtitle2" my={0}>
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  my: 0,
+                }}>
                 {t('required')}
               </Typography>
             }

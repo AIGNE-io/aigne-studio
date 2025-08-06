@@ -89,7 +89,9 @@ export default function AppearanceComponentSettings({
 
   return (
     <Box>
-      <Stack gap={1}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {!ignoreIconTitleSettingsOutputs.has(output.name!) && !disableTitleAndIcon && (
           <>
             <Divider textAlign="left" sx={{ mt: 2 }}>
@@ -101,20 +103,6 @@ export default function AppearanceComponentSettings({
               <TextField
                 fullWidth
                 hiddenLabel
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Box component={Icon} icon={appearance?.icon || ''} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton size="small" href="https://icon-sets.iconify.design" target="_blank">
-                        <Box component={Icon} icon="tabler:search" />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
                 placeholder={t('appearanceIconPlaceholder')}
                 value={appearance?.icon || ''}
                 onChange={(e) =>
@@ -122,6 +110,22 @@ export default function AppearanceComponentSettings({
                     c.icon = e.target.value;
                   })
                 }
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Box component={Icon} icon={appearance?.icon || ''} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton size="small" href="https://icon-sets.iconify.design" target="_blank">
+                          <Box component={Icon} icon="tabler:search" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }
+                }}
               />
             </Box>
 
@@ -168,9 +172,11 @@ export default function AppearanceComponentSettings({
 
           <TextField
             fullWidth
-            InputProps={{ readOnly: true }}
             value={currentComponent?.name || currentComponent?.id}
             onClick={() => componentSelectState.open()}
+            slotProps={{
+              input: { readOnly: true }
+            }}
           />
 
           <ComponentSelectDialog

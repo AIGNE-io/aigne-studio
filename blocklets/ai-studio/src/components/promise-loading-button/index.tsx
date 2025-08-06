@@ -1,4 +1,4 @@
-import { LoadingButton, LoadingButtonProps } from '@mui/lab';
+import { Button as LoadingButton, ButtonProps as LoadingButtonProps } from '@mui/material';
 import { useState } from 'react';
 
 export default function PromiseLoadingButton(props: LoadingButtonProps) {
@@ -8,6 +8,7 @@ export default function PromiseLoadingButton(props: LoadingButtonProps) {
     <LoadingButton
       {...props}
       loading={props.loading || loading}
+      loadingPosition="start"
       onClick={(e) => {
         const res = props.onClick?.(e) as any;
         if (res instanceof Promise) {

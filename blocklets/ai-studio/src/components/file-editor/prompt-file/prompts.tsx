@@ -26,9 +26,9 @@ export default function PromptPrompts({
   projectId,
   gitRef,
   value,
-  compareValue,
-  disabled,
-  isRemoteCompare,
+  compareValue = undefined,
+  disabled = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -45,8 +45,8 @@ export default function PromptPrompts({
 
   return (
     <Stack
-      gap={1}
       sx={{
+        gap: 1,
         borderRadius: 1,
         bgcolor: '#EFF6FF',
       }}>
@@ -128,7 +128,11 @@ export default function PromptPrompts({
         )}
 
         {!disabled && (
-          <Stack direction="row" gap={1.5}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1.5,
+            }}>
             <Button
               startIcon={<Box component={Icon} icon={PlusIcon} />}
               onClick={() => addPrompt({ type: 'message', data: { id: nextAssistantId(), role: 'user' } })}>
@@ -144,8 +148,8 @@ export default function PromptPrompts({
 function PromptItemMessage({
   assistant,
   value,
-  promptHidden,
-  readOnly,
+  promptHidden = undefined,
+  readOnly = undefined,
   projectId,
   gitRef,
   backgroundColor = {},
@@ -156,7 +160,7 @@ function PromptItemMessage({
   gitRef: string;
   promptHidden?: boolean;
   readOnly?: boolean;
-  backgroundColor: Object;
+  backgroundColor?: Object;
 }) {
   const { t } = useLocaleContext();
 
@@ -170,7 +174,15 @@ function PromptItemMessage({
         '.variable': promptHidden ? { color: 'rgba(0, 0, 0, 0.38) !important', fontWeight: 'normal !important' } : {},
         backgroundColor: promptHidden ? 'action.hover' : backgroundColor,
       }}>
-      <Stack direction="row" alignItems="center" gap={1} p={1} px={1.5} borderBottom="1px solid #BFDBFE">
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          gap: 1,
+          p: 1,
+          px: 1.5,
+          borderBottom: '1px solid #BFDBFE',
+        }}>
         <RoleSelectField
           projectId={projectId}
           gitRef={gitRef}
@@ -200,7 +212,6 @@ function PromptItemMessage({
           }}
         />
       </Stack>
-
       <StyledPromptEditor
         readOnly={readOnly}
         data-testid="prompt-editor"
@@ -229,8 +240,8 @@ function PromptItemExecuteBlock({
   gitRef,
   value,
   assistant,
-  promptHidden,
-  readOnly,
+  promptHidden = undefined,
+  readOnly = undefined,
   backgroundColor,
 }: {
   projectId: string;

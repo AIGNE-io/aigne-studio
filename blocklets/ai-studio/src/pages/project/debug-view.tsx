@@ -86,7 +86,13 @@ export default function DebugView(props: {
   });
 
   return (
-    <Box display="flex" flexDirection="column" flex={1} key={state.currentSessionIndex}>
+    <Box
+      key={state.currentSessionIndex}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+      }}>
       <DebugViewContent {...props} />
       {!state.sessions.length && <EmptySessions projectId={props.projectId} templateId={props.assistant.id} />}
     </Box>
@@ -118,20 +124,38 @@ function DebugViewContent({
   return (
     <>
       <Box
-        px={2.5}
-        py={1.5}
-        display="flex"
-        justifyContent="space-between"
-        bgcolor="background.paper"
-        sx={{ zIndex: 2 }}>
-        <Box maxWidth={200} data-testid="session-select">
+        sx={{
+          px: 2.5,
+          py: 1.5,
+          display: 'flex',
+          justifyContent: 'space-between',
+          bgcolor: 'background.paper',
+          zIndex: 2,
+        }}>
+        <Box
+          data-testid="session-select"
+          sx={{
+            maxWidth: 200,
+          }}>
           <SessionSelect projectId={projectId} assistantId={assistant.id} />
         </Box>
 
-        <Stack direction="row" alignItems="center" gap={1} overflow="hidden">
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            gap: 1,
+            overflow: 'hidden',
+          }}>
           <Tooltip title={t('clearSession')} placement="bottom-end">
             <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
-              <Box fontSize={15} component={Icon} icon={HistoryIcon} />
+              <Box
+                component={Icon}
+                icon={HistoryIcon}
+                sx={{
+                  fontSize: 15,
+                }}
+              />
             </IconButton>
           </Tooltip>
 
@@ -144,22 +168,35 @@ function DebugViewContent({
                 e.stopPropagation();
                 deleteSession(currentSession.index);
               }}>
-              <Box fontSize={15} component={Icon} icon={TrashIcon} />
+              <Box
+                component={Icon}
+                icon={TrashIcon}
+                sx={{
+                  fontSize: 15,
+                }}
+              />
             </IconButton>
           </Tooltip>
         </Stack>
       </Box>
-
       <ScrollMessages currentSession={currentSession} key={assistant.id} projectId={projectId} gitRef={gitRef} />
-
-      <Stack gap={1.5} sx={{ bgcolor: 'background.paper', p: '12px 20px', borderTop: '1px solid #E5E7EB' }}>
+      <Stack
+        sx={{
+          gap: 1.5,
+          bgcolor: 'background.paper',
+          p: '12px 20px',
+          borderTop: '1px solid #E5E7EB',
+        }}>
         {currentSession.chatType === 'chat' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
         ) : (
           <DebugModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} setCurrentTab={setCurrentTab} />
         )}
 
-        <Box textAlign="center">
+        <Box
+          sx={{
+            textAlign: 'center',
+          }}>
           <SegmentedControl
             value={currentSession.chatType ?? 'debug'}
             options={[
@@ -241,16 +278,6 @@ function ScrollMessages({
         background: '#F9FAFB',
       }}>
       <Box
-        py={1.5}
-        position="relative"
-        display="flex"
-        flexGrow={1}
-        height={0}
-        flexDirection="column"
-        sx={{
-          overflowY: 'scroll',
-          overflowX: 'hidden',
-        }}
         ref={viewportRef}
         onScroll={(e) => handleScroll(e.currentTarget)}
         onWheel={(e) => {
@@ -258,6 +285,16 @@ function ScrollMessages({
         }}
         onTouchStart={() => {
           autoScroll.current = false;
+        }}
+        sx={{
+          py: 1.5,
+          position: 'relative',
+          display: 'flex',
+          flexGrow: 1,
+          height: 0,
+          flexDirection: 'column',
+          overflowY: 'scroll',
+          overflowX: 'hidden',
         }}>
         <Virtuoso
           customScrollParent={viewportRef.current!}
@@ -307,7 +344,6 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
     <Select
       variant="standard"
       value={state.currentSessionIndex}
-      placeholder={t('newObject', { object: t('session') })}
       fullWidth
       sx={{
         [`.${selectClasses.select}`]: {
@@ -320,7 +356,12 @@ function SessionSelect({ projectId, assistantId }: { projectId: string; assistan
           borderRadius: 100,
         },
       }}
-      renderValue={(value) => `${t('session')} ${value}`}
+      renderValue={(value) => {
+        if (typeof value !== 'number') {
+          return t('newObject', { object: t('session') });
+        }
+        return `${t('session')} ${value}`;
+      }}
       onChange={(e) => setCurrentSession(e.target.value as number)}>
       {state.sessions.map((session) => (
         <MenuItem key={session.index} value={session.index} data-testid="session-select-item">
@@ -383,14 +424,22 @@ function CurrentRoleName({ role }: { role: Role }) {
 
   if (role === 'user') {
     return (
-      <Typography variant="subtitle2" mb={0}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          mb: 0,
+        }}>
         {session?.user?.fullName}
       </Typography>
     );
   }
 
   return (
-    <Typography variant="subtitle2" mb={0}>
+    <Typography
+      variant="subtitle2"
+      sx={{
+        mb: 0,
+      }}>
       Assistant
     </Typography>
   );
@@ -413,26 +462,50 @@ export const MessageView = memo(
 
     return (
       <ErrorBoundary>
-        <Stack pt={message.role === 'user' && index !== 0 ? 1.5 : 0} pb={2.5}>
+        <Stack
+          sx={{
+            pt: message.role === 'user' && index !== 0 ? 1.5 : 0,
+            pb: 2.5,
+          }}>
           {message.role === 'user' && (
-            <Typography alignSelf="center" mb={1} component="span" color="text.secondary" whiteSpace="nowrap">
+            <Typography
+              component="span"
+              sx={{
+                alignSelf: 'center',
+                mb: 1,
+                color: 'text.secondary',
+                whiteSpace: 'nowrap',
+              }}>
               {dayjs(message.createdAt).format('YYYY-MM-DD HH:mm:ss')}
             </Typography>
           )}
-          <Stack px={2.5} gap={1} flexDirection="row" position="relative">
+          <Stack
+            sx={{
+              px: 2.5,
+              gap: 1,
+              flexDirection: 'row',
+              position: 'relative',
+            }}>
             <CustomAvatar role={message.role} projectId={projectId} gitRef={gitRef} />
 
-            <Box sx={{ overflowX: 'hidden', flexGrow: 1 }} display="flex" flexDirection="column" gap={1}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                overflowX: 'hidden',
+                flexGrow: 1,
+              }}>
               <CurrentRoleName role={message.role} />
 
               {!!message.inputMessages?.length && <BasicTree inputs={message.inputMessages} />}
 
               <Box
-                flex={1}
-                display="flex"
-                flexDirection="column"
-                gap={1}
                 sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
                   [`.${alertClasses.icon},.${alertClasses.message}`]: { py: '5px' },
                 }}>
                 {message.messages?.map((message) => (
@@ -607,8 +680,10 @@ function ChatModeForm({
         submit();
       }}
       direction="row"
-      alignItems="center"
-      gap={1}>
+      sx={{
+        alignItems: 'center',
+        gap: 1,
+      }}>
       <TextField
         hiddenLabel
         fullWidth
@@ -628,7 +703,6 @@ function ChatModeForm({
         }}
         sx={{ border: '1px solid #E5E7EB', borderRadius: 1 }}
       />
-
       <Tooltip title={lastMessage?.loading ? t('stop') : t('send')} placement="top">
         <LoadingButton
           type="submit"
@@ -643,7 +717,7 @@ function ChatModeForm({
             },
           }}
           loading={lastMessage?.loading}
-          loadingPosition="end"
+          loadingPosition="start"
           endIcon={<Icon icon={SendIcon} size={14} />}>
           {t('send')}
         </LoadingButton>
@@ -764,7 +838,12 @@ function DebugModeForm({
   return (
     <RuntimeProvider aid={aid} working ApiProps={apiProps}>
       <CurrentAgentProvider aid={aid}>
-        <Stack component="form" onSubmit={form.handleSubmit(submit)} gap={1}>
+        <Stack
+          component="form"
+          onSubmit={form.handleSubmit(submit)}
+          sx={{
+            gap: 1,
+          }}>
           {!!parameters.length && (
             <CustomAccordion
               disableGutters
@@ -796,7 +875,11 @@ function DebugModeForm({
                     justifyContent: 'space-between',
                     width: 1,
                   }}>
-                  <Typography variant="subtitle2" mb={0}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      mb: 0,
+                    }}>
                     {t('inputs')}
                   </Typography>
 
@@ -816,7 +899,10 @@ function DebugModeForm({
               </AccordionSummary>
 
               <AccordionDetails sx={{ p: 0, maxHeight: '50vh', overflow: !isExpanded ? 'hidden' : 'auto' }}>
-                <Stack gap={1}>
+                <Stack
+                  sx={{
+                    gap: 1,
+                  }}>
                   {parameters.map(({ data: parameter }) => {
                     const { required, min, max, minLength, maxLength } = (parameter as any) ?? {};
 
@@ -868,12 +954,20 @@ function DebugModeForm({
             </CustomAccordion>
           )}
 
-          <Stack gap={1} direction="row">
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+            }}>
             <Button variant="outlined" onClick={addToTest} sx={{ borderColor: '#E5E7EB', color: '#030712' }}>
               {t('addToTest')}
             </Button>
 
-            <Box flex={1} />
+            <Box
+              sx={{
+                flex: 1,
+              }}
+            />
 
             <LoadingButton
               type="submit"
@@ -887,7 +981,7 @@ function DebugModeForm({
               }}
               disabled={!form.formState.isValid}
               loading={lastMessage?.loading}
-              loadingPosition="end"
+              loadingPosition="start"
               endIcon={<Icon icon={SendIcon} size={14} />}>
               {t('execute')}
             </LoadingButton>
@@ -903,9 +997,13 @@ function EmptySessions({ projectId, templateId }: { projectId: string; templateI
   const { t } = useLocaleContext();
 
   return (
-    <Stack mt={10} gap={2} alignItems="center">
+    <Stack
+      sx={{
+        mt: 10,
+        gap: 2,
+        alignItems: 'center',
+      }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-
       <Button
         startIcon={<Box component={Icon} icon={PlusIcon} />}
         onClick={(e) => {

@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Alert, Box, DialogProps, Stack, Switch, TextField, Typography } from '@mui/material';
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { useEffect, useImperativeHandle, useRef } from 'react';
 
 import ConfirmDialog from './ConfirmDialog';
 
@@ -58,9 +58,14 @@ const FieldComponentMap = {
   [key: string]: FileItemProps;
 };
 
-const PropertiesSetting = forwardRef((props: PropertiesSettingProps, ref: any) => {
+const PropertiesSetting = ({
+  ref,
+  ...props
+}: PropertiesSettingProps & {
+  ref: React.RefObject<unknown | null>;
+}) => {
   const { t, locale } = useLocaleContext();
-  const ConfirmDialogRef = useRef<any>();
+  const ConfirmDialogRef = useRef<any>(undefined);
   const valuesRef = useRef({});
   const openParamsRef = useRef<OpenParamsRefProps>({});
 
@@ -135,6 +140,6 @@ const PropertiesSetting = forwardRef((props: PropertiesSettingProps, ref: any) =
   }, [locale]);
 
   return <ConfirmDialog ref={ConfirmDialogRef} {...props} />;
-});
+};
 
 export default PropertiesSetting;

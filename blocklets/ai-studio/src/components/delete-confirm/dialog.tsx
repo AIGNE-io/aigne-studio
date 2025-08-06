@@ -1,5 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { Button, CircularProgress, IconButton, Stack, Tooltip } from '@mui/material';
+import { Button, CircularProgress, IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
@@ -7,7 +7,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import useTheme from '@mui/material/styles/useTheme';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -29,7 +28,7 @@ export type Props = {
   onConfirm: () => any;
 };
 
-export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...rest }: Props) {
+export default function ConfirmDialog({ name, isReset = undefined, onClose, onConfirm, ...rest }: Props) {
   const [params, setParams] = useState({ __disableConfirm: true, inputVal: '' });
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -71,10 +70,14 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent style={{ minWidth }}>
         <DialogContentText component={Stack} gap={1.5}>
-          <Box fontWeight={400} fontSize={16} lineHeight="28px">
+          <Box
+            sx={{
+              fontWeight: 400,
+              fontSize: 16,
+              lineHeight: '28px',
+            }}>
             {t(isReset ? 'resetProjectAlertPrefix' : 'deleteProjectAlertPrefix')}
             <Tooltip
               title={copied ? t('copied') : t('copy')}
@@ -95,7 +98,12 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
             {t(isReset ? 'resetProjectAlertSuffix' : 'deleteProjectAlertSuffix')}
           </Box>
 
-          <Box fontWeight={400} fontSize={16} lineHeight="28px">
+          <Box
+            sx={{
+              fontWeight: 400,
+              fontSize: 16,
+              lineHeight: '28px',
+            }}>
             {t('confirmTip')}
           </Box>
 
@@ -119,7 +127,6 @@ export default function ConfirmDialog({ name, isReset, onClose, onConfirm, ...re
           </Alert>
         )}
       </DialogContent>
-
       <DialogActions sx={{ border: 0 }}>
         <Button onClick={onClose} variant="outlined">
           {t('close')}

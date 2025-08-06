@@ -19,7 +19,7 @@ import {
   LexicalEditor,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { getDOMRangeRect } from '../../utils/get-dom-range-rect';
@@ -30,7 +30,7 @@ import { $isVariableTextNode } from '../VariablePlugin/variable-text-node';
 function TextFormatFloatingToolbar({
   editor,
   anchorElem,
-  floatElement,
+  floatElement = undefined,
 }: {
   editor: LexicalEditor;
   anchorElem: HTMLElement;

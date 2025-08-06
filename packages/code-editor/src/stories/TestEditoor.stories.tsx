@@ -72,7 +72,6 @@ type Story = StoryObj<typeof CodeEditor>;
 
 export const Typescript: Story = {
   args: {
-    keyId: 'typescript',
     language: 'typescript',
     path: 'function.ts',
     value: `\
@@ -105,12 +104,15 @@ add(10).then((v) => {
 });\
     `,
     onChange: () => {},
-    locale: 'zh',
     theme: 'solarized-dark',
   },
   render: (args) => {
     return (
-      <Box width={1} height={500}>
+      <Box
+        sx={{
+          width: 1,
+          height: 500,
+        }}>
         <CodeEditor {...args} />
       </Box>
     );

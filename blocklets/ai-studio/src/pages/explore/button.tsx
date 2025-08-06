@@ -75,7 +75,7 @@ export function MakeYoursButton({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
-  const [dialog, setDialog] = useState<ReactElement | null>(null);
+  const [dialog, setDialog] = useState<ReactElement<any> | null>(null);
   const { checkProjectLimitAsync } = useProjectLimiting();
 
   const onDialogClose = () => {
@@ -131,6 +131,7 @@ export function MakeYoursButton({
           color="primary"
           variant="contained"
           startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+          loadingPosition="start"
           {...props}>
           {t('makeYours')}
         </LoadingButton>

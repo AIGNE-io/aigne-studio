@@ -108,8 +108,18 @@ export default function ProjectsPage() {
   }, [session?.user?.did, session?.user?.role]);
 
   return (
-    <Stack minHeight="100%" overflow="auto" bgcolor="#F9FAFB">
-      <Stack m={2.5} flexGrow={1} gap={2.5}>
+    <Stack
+      sx={{
+        minHeight: '100%',
+        overflow: 'auto',
+        bgcolor: '#F9FAFB',
+      }}>
+      <Stack
+        sx={{
+          m: 2.5,
+          flexGrow: 1,
+          gap: 2.5,
+        }}>
         <ProjectMenu />
 
         {endpoint && <ImportFromDidSpaces />}
@@ -122,7 +132,12 @@ export default function ProjectsPage() {
           {projects.length ? (
             <ProjectList section="projects" list={projects} />
           ) : loading ? (
-            <Stack direction="row" flexWrap="wrap" gap={2.5}>
+            <Stack
+              direction="row"
+              sx={{
+                flexWrap: 'wrap',
+                gap: 2.5,
+              }}>
               <ProjectItemSkeleton
                 width={{ sm: 'calc(50% - 16px)', md: MAX_WIDTH }}
                 maxWidth={MAX_WIDTH}
@@ -135,7 +150,12 @@ export default function ProjectsPage() {
               />
             </Stack>
           ) : (
-            <Stack alignItems="center" mt="15%" gap={4}>
+            <Stack
+              sx={{
+                alignItems: 'center',
+                mt: '15%',
+                gap: 4,
+              }}>
               <Typography variant="h4">{t('projectToGetStart')}</Typography>
               <ProjectsActionButton />
             </Stack>
@@ -153,7 +173,11 @@ function ProjectsActionButton() {
 
   return (
     <>
-      <Stack gap={1} flexDirection="row">
+      <Stack
+        sx={{
+          gap: 1,
+          flexDirection: 'row',
+        }}>
         <ButtonPopper
           onClick={checkProjectLimit}
           list={
@@ -196,7 +220,6 @@ function ProjectsActionButton() {
           {t('newObject', { object: t('project') })}
         </Button>
       </Stack>
-
       {dialog}
     </>
   );
@@ -314,7 +337,11 @@ function ProjectMenu() {
               form,
               title: `${t('alert.edit')} ${t('project')}`,
               content: (
-                <Stack overflow="auto" gap={2}>
+                <Stack
+                  sx={{
+                    overflow: 'auto',
+                    gap: 2,
+                  }}>
                   <Box>
                     <Typography variant="subtitle2">{t('projectSetting.name')}</Typography>
                     <NameField form={form} projectId={item?.id} beforeDuplicateProjectNavigate={() => closeDialog()} />
@@ -403,7 +430,15 @@ function ProjectMenu() {
         {
           dataTestId: 'projects-item-delete-button',
           visible: () => menuAnchor.section === 'projects',
-          icon: <Box component={Icon} icon={TrashIcon} color="warning.main" />,
+          icon: (
+            <Box
+              component={Icon}
+              icon={TrashIcon}
+              sx={{
+                color: 'warning.main',
+              }}
+            />
+          ),
           title: t('delete'),
           color: 'warning.main',
           onClick: () => {
@@ -414,7 +449,15 @@ function ProjectMenu() {
         {
           dataTestId: 'projects-item-reset-button',
           visible: () => menuAnchor.section === 'examples' && !item.blockletDid && !!item.duplicateFrom,
-          icon: <Box component={Icon} icon={RefreshIcon} color="warning.main" />,
+          icon: (
+            <Box
+              component={Icon}
+              icon={RefreshIcon}
+              sx={{
+                color: 'warning.main',
+              }}
+            />
+          ),
           title: t('reset'),
           color: 'warning.main',
           onClick: () => {
@@ -484,11 +527,11 @@ function ProjectMenu() {
 }
 
 function Section({
-  section,
-  enableCollapse,
+  section = undefined,
+  enableCollapse = undefined,
   title,
-  children,
-  list,
+  children = undefined,
+  list = undefined,
 }: {
   section?: string;
   enableCollapse?: boolean;
@@ -499,8 +542,16 @@ function Section({
   const [templatesVisible, setTemplatesVisible] = useState(true);
 
   return (
-    <Stack gap={1.5}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+    <Stack
+      sx={{
+        gap: 1.5,
+      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
         <Stack
           direction="row"
           sx={{
@@ -530,7 +581,6 @@ function Section({
 
         {section === 'projects' && !!list?.length && <ProjectsActionButton />}
       </Box>
-
       <Collapse in={enableCollapse ? templatesVisible : true} sx={{ position: 'relative' }}>
         {children}
       </Collapse>
@@ -598,7 +648,11 @@ function ProjectList({
                     maxWidth: 'sm',
                     title: t('newObject', { object: t('project') }),
                     content: (
-                      <Stack overflow="auto" gap={2}>
+                      <Stack
+                        sx={{
+                          overflow: 'auto',
+                          gap: 2,
+                        }}>
                         <TextField
                           autoFocus
                           label={t('projectSetting.name')}
@@ -708,7 +762,13 @@ function ProjectList({
                       e.stopPropagation();
                       setMenuAnchor({ section, anchor: e.currentTarget, id: item.id!, blockletDid: item.blockletDid });
                     }}>
-                    <Box component={Icon} icon={DotsVerticalIcon} fontSize={20} />
+                    <Box
+                      component={Icon}
+                      icon={DotsVerticalIcon}
+                      sx={{
+                        fontSize: 20,
+                      }}
+                    />
                   </IconButton>
                 )
               }
@@ -721,7 +781,6 @@ function ProjectList({
           );
         })}
       </ProjectListContainer>
-
       {dialog}
     </>
   );
@@ -730,14 +789,28 @@ function ProjectList({
 function ProjectItemSkeleton({ ...props }: StackProps) {
   return (
     <ProjectItemRoot {...props}>
-      <Stack direction="row" gap={1} alignItems="center" justifyContent="space-between" mb={2}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 2,
+        }}>
         <Skeleton width="100%" variant="text" height={28} />
       </Stack>
-
-      <Stack direction="row" gap={2}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: 2,
+        }}>
         <Skeleton variant="rectangular" width={64} height={64} />
 
-        <Stack width={0} flex={1}>
+        <Stack
+          sx={{
+            width: 0,
+            flex: 1,
+          }}>
           <Skeleton width="100%" variant="text" height={28} />
           <Skeleton width="100%" variant="text" height={28} />
         </Stack>
@@ -747,19 +820,19 @@ function ProjectItemSkeleton({ ...props }: StackProps) {
 }
 
 function ProjectItem({
-  pinned,
-  name,
-  description,
-  createdAt,
-  actions,
+  pinned = undefined,
+  name = undefined,
+  description = undefined,
+  createdAt = undefined,
+  actions = undefined,
   section,
-  gitUrl,
-  users,
+  gitUrl = undefined,
+  users = undefined,
   loading = false,
   didSpaceAutoSync,
   id,
   updatedAt,
-  blockletDid,
+  blockletDid = undefined,
   ...props
 }: {
   section: string;
@@ -771,7 +844,7 @@ function ProjectItem({
   gitUrl?: string;
   users?: User[];
   actions?: ReactNode;
-  loading: boolean;
+  loading?: boolean;
   didSpaceAutoSync: true | false;
   id: string;
   blockletDid?: string;
@@ -803,14 +876,36 @@ function ProjectItem({
 
   return (
     <ProjectItemRoot {...props} className={cx(props.className)} gap={2} data-testid="projects-item" data-id={id}>
-      <Stack direction="row" gap={1.5} alignItems="center">
+      <Stack
+        direction="row"
+        sx={{
+          gap: 1.5,
+          alignItems: 'center',
+        }}>
         <Box className="logo" sx={{ width: '72px', height: '72px' }}>
           <Box component="img" alt="" src={getProjectIconUrl(id, { blockletDid, updatedAt, working: true })} />
         </Box>
 
-        <Box flex={1} width={0} alignSelf="flex-start">
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box display="flex" alignItems="center" gap={0.5} flex={1} width={0}>
+        <Box
+          sx={{
+            flex: 1,
+            width: 0,
+            alignSelf: 'flex-start',
+          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                flex: 1,
+                width: 0,
+              }}>
               <Box className="name" sx={{ fontWeight: 600, fontSize: 18, lineHeight: '28px' }}>
                 {name || t('unnamed')}
               </Box>
@@ -824,7 +919,12 @@ function ProjectItem({
               )}
             </Box>
 
-            <Box ml={1} width={24} className="center">
+            <Box
+              className="center"
+              sx={{
+                ml: 1,
+                width: 24,
+              }}>
               <Box className="action">{actions}</Box>
             </Box>
           </Box>
@@ -840,26 +940,53 @@ function ProjectItem({
           </Box>
         </Box>
       </Stack>
-
-      <Stack direction="row" gap={2} height={20} alignItems="center" justifyContent="space-between">
-        <Box display="flex" justifyContent="space-between" alignItems="center" width={1}>
-          <Stack direction="row" gap={2} sx={{ fontSize: '12px', color: 'text.disabled' }} alignItems="center">
+      <Stack
+        direction="row"
+        sx={{
+          gap: 2,
+          height: 20,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: 1,
+          }}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 2,
+              alignItems: 'center',
+              fontSize: '12px',
+              color: 'text.disabled',
+            }}>
             {/* @ts-ignore */}
             {createdAt && <RelativeTime value={createdAt} locale={locale} />}
 
             {!!formatGitUrl && (
               <Tooltip title={formatGitUrl} placement="top">
                 <Box
-                  display="inline-flex"
-                  alignItems="center"
                   component="a"
                   href={formatGitUrl}
                   target="_blank"
                   style={{ color: 'inherit', textDecoration: 'none' }}
                   onClick={(e) => {
                     e.stopPropagation();
+                  }}
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
                   }}>
-                  <Box component={Icon} icon={BrandGithubFilledIcon} fontSize={16} />
+                  <Box
+                    component={Icon}
+                    icon={BrandGithubFilledIcon}
+                    sx={{
+                      fontSize: 16,
+                    }}
+                  />
                 </Box>
               </Tooltip>
             )}
@@ -867,15 +994,17 @@ function ProjectItem({
             {didSpaceAutoSync && projectDataUrlInSpace && (
               <Tooltip title="" placement="top">
                 <Box
-                  display="inline-flex"
-                  alignItems="center"
-                  ml={projectDataUrlInSpace ? -1.5 : 'inherit'}
                   component="a"
                   href={projectDataUrlInSpace}
                   target="_blank"
                   style={{ color: 'inherit', textDecoration: 'none' }}
                   onClick={(e) => {
                     e.stopPropagation();
+                  }}
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    ml: projectDataUrlInSpace ? -1.5 : 'inherit',
                   }}>
                   <DidSpacesLogo sx={{ fontSize: 16 }} />
                 </Box>
@@ -904,18 +1033,19 @@ function ProjectItem({
           )}
         </Box>
       </Stack>
-
       {loading && (
         <Box
-          position="absolute"
-          top={0}
-          bottom={0}
-          left={0}
-          right={0}
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          zIndex={(theme) => theme.zIndex.tooltip}>
+          sx={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: (theme) => theme.zIndex.tooltip,
+          }}>
           <CircularProgress size={16} />
         </Box>
       )}
@@ -927,7 +1057,7 @@ const ProjectItemRoot = styled(Stack)`
   width: 100%;
   cursor: pointer;
   overflow: hidden;
-  padding: ${({ theme }) => theme.shape.borderRadius * 2}px;
+  padding: ${({ theme }) => (theme.shape.borderRadius as number) * 2}px;
   position: relative;
   border-width: 1px;
   border-style: solid;
@@ -997,8 +1127,14 @@ function LoadingMenuItem({ ...props }: MenuItemProps) {
   return (
     <MenuItem {...props} onClick={onClick}>
       {props.children}
-
-      <Box flex={1} width={16} height={16} textAlign="right" ml={1}>
+      <Box
+        sx={{
+          flex: 1,
+          width: 16,
+          height: 16,
+          textAlign: 'right',
+          ml: 1,
+        }}>
         {loading && <CircularProgress size={16} />}
       </Box>
     </MenuItem>
@@ -1010,7 +1146,15 @@ const ProjectListContainer = styled(Box)`
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 `;
 
-function ButtonPopper({ children, list, onClick }: { children: any; list?: any; onClick?: any }) {
+function ButtonPopper({
+  children,
+  list = undefined,
+  onClick = undefined,
+}: {
+  children: any;
+  list?: any;
+  onClick?: any;
+}) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
 

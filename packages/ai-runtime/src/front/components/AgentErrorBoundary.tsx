@@ -11,15 +11,15 @@ import { useEntryAgent } from '../contexts/EntryAgent';
 import { useIsAgentAdmin } from '../hooks/use-agent-admin';
 import { settingsDialogState } from './AgentSettings/AgentSettingsDialog';
 
-export function AgentErrorBoundary({ children }: { children?: ReactNode }) {
+export function AgentErrorBoundary({ children = undefined }: { children?: ReactNode }) {
   return <ErrorBoundary FallbackComponent={AgentErrorView}>{children}</ErrorBoundary>;
 }
 
 export function AgentErrorView({
   error,
-  fallbackErrorMessage,
-  fallbackErrorClosable: closable,
-  fallbackErrorOnClose: onClose,
+  fallbackErrorMessage = undefined,
+  fallbackErrorClosable: closable = undefined,
+  fallbackErrorOnClose: onClose = undefined,
 }: {
   error: any;
   fallbackErrorMessage?: string;
@@ -65,13 +65,19 @@ function MissingSecretErrorView() {
 
   return (
     <Alert severity={allSecretsHasValue ? 'info' : 'error'} sx={{ [`.${alertClasses.message}`]: { flex: 1 } }}>
-      <Stack width="100%">
+      <Stack
+        sx={{
+          width: '100%',
+        }}>
         {allSecretsHasValue
           ? 'Configuration successful, you can continue to use it now!'
           : 'The required configuration is missing. Please complete the setup before proceeding!'}
 
         {isAdmin && (
-          <Stack alignItems="flex-end">
+          <Stack
+            sx={{
+              alignItems: 'flex-end',
+            }}>
             <Button size="small" variant="outlined" onClick={() => settingsDialogState.getState().open()}>
               {t('setup')}
             </Button>

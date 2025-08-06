@@ -15,10 +15,12 @@ export default function FunctionTypeSelect({ ...props }: TextFieldProps) {
       select
       variant="standard"
       {...props}
-      SelectProps={{
-        MenuProps: {
-          anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
-          transformOrigin: { horizontal: 'right', vertical: 'top' },
+      slotProps={{
+        select: {
+          MenuProps: {
+            anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
+            transformOrigin: { horizontal: 'right', vertical: 'top' },
+          },
         },
       }}>
       {FunctionTypes.map((i) => (

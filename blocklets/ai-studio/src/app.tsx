@@ -14,7 +14,6 @@ import {
   createRoutesFromElements,
   useRouteError,
 } from 'react-router-dom';
-import { RecoilRoot } from 'recoil';
 
 import AigneLogo from './components/aigne-logo';
 import ErrorBoundary from './components/error/error-boundary';
@@ -85,25 +84,23 @@ export default function App() {
           }}
         />
 
-        <RecoilRoot>
-          <ToastProvider>
-            <LocaleProvider
-              translations={translations}
-              fallbackLocale="en"
-              locale={undefined}
-              onLoadingTranslation={undefined}
-              languages={undefined}>
-              <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
-                <Suspense fallback={<Loading fixed />}>
-                  <ErrorBoundary>
-                    <PlanUpgrade />
-                    <AppRoutes />
-                  </ErrorBoundary>
-                </Suspense>
-              </SessionProvider>
-            </LocaleProvider>
-          </ToastProvider>
-        </RecoilRoot>
+        <ToastProvider>
+          <LocaleProvider
+            translations={translations}
+            fallbackLocale="en"
+            locale={undefined}
+            onLoadingTranslation={undefined}
+            languages={undefined}>
+            <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
+              <Suspense fallback={<Loading fixed />}>
+                <ErrorBoundary>
+                  <PlanUpgrade />
+                  <AppRoutes />
+                </ErrorBoundary>
+              </Suspense>
+            </SessionProvider>
+          </LocaleProvider>
+        </ToastProvider>
       </CssBaseline>
     </ThemeProvider>
   );
@@ -180,10 +177,13 @@ function Layout({ children }: { children: ReactNode }) {
 function NotFound() {
   return (
     <Layout>
-      <Box flexGrow={1} textAlign="center">
+      <Box
+        sx={{
+          flexGrow: 1,
+          textAlign: 'center',
+        }}>
         <Box data-testid="not-found">Not Found.</Box>
       </Box>
-
       <Footer
         // FIXME: remove following undefined props after issue https://github.com/ArcBlock/ux/issues/1136 solved
         meta={undefined}

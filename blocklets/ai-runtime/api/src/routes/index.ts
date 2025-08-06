@@ -11,6 +11,7 @@ import knowledgeSegments from './knowledge/segments';
 import mcpRoutes from './mcp';
 import memory from './memory';
 import { messageRoutes } from './message';
+import models from './models';
 import { projectRoutes } from './project';
 import secret from './secret';
 import { sessionRoutes } from './session';
@@ -32,5 +33,6 @@ router.use('/', cacheRouter);
 router.use('/cron-histories', cronHistoryRoutes);
 router.use('/images', image);
 router.use('/mcp', mcpRoutes);
+router.use('/models', models);
 
 export default router;

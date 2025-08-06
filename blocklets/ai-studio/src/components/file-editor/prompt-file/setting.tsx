@@ -25,9 +25,9 @@ export default function PromptSetting({
   projectId,
   gitRef,
   value,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -44,14 +44,22 @@ export default function PromptSetting({
     <>
       <Box
         data-testid="prompt-setting"
-        position="relative"
         className="between"
-        sx={{ backgroundColor: getDiffBackground('executor') }}>
-        <Box flex={1}>
+        sx={{
+          position: 'relative',
+          backgroundColor: getDiffBackground('executor'),
+        }}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <FormLabel>{t('provider')}</FormLabel>
         </Box>
 
-        <Box flex={1}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <WithAwareness
             sx={{ top: -2, right: -4 }}
             projectId={projectId}
@@ -89,7 +97,6 @@ export default function PromptSetting({
           </WithAwareness>
         </Box>
       </Box>
-
       {value.executor?.agent?.id ? (
         <Stack>
           <AgentParametersForm assistant={value} />
@@ -121,13 +128,18 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
   if (!agent) return null;
 
   return (
-    <Stack gap={2}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       <AuthorizeButton agent={agent} />
-
       <Box>
         <Typography variant="subtitle2">{t('inputs')}</Typography>
 
-        <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {agent.parameters?.map((data) => {
             if (data.hidden) return null;
 
@@ -164,9 +176,9 @@ function AgentParametersForm({ assistant }: { assistant: AssistantYjs }) {
 
 function DefaultPromptSetting({
   agent,
-  readOnly,
-  compareValue,
-  isRemoteCompare,
+  readOnly = undefined,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   agent: PromptAssistantYjs | RouterAssistantYjs;
   readOnly?: boolean;
@@ -187,12 +199,23 @@ function DefaultPromptSetting({
 
   return (
     <>
-      <Box position="relative" className="between" sx={{ backgroundColor: getDiffBackground('model') }}>
-        <Box flex={1}>
+      <Box
+        className="between"
+        sx={{
+          position: 'relative',
+          backgroundColor: getDiffBackground('model'),
+        }}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <FormLabel>{t('model')}</FormLabel>
         </Box>
 
-        <Box flex={1}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <WithAwareness
             sx={{ top: -2, right: -4 }}
             projectId={projectId}
@@ -208,16 +231,20 @@ function DefaultPromptSetting({
           </WithAwareness>
         </Box>
       </Box>
-
       {model && (
         <>
           {!isNil(model.temperatureMin) && (
             <Box
-              position="relative"
               data-testid="prompt-setting-temperature"
               className="between"
-              sx={{ backgroundColor: getDiffBackground('temperature') }}>
-              <Box flex={1}>
+              sx={{
+                position: 'relative',
+                backgroundColor: getDiffBackground('temperature'),
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('temperatureTip')}
                   placement="top"
@@ -231,7 +258,10 @@ function DefaultPromptSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -253,11 +283,16 @@ function DefaultPromptSetting({
 
           {!isNil(model.topPMin) && (
             <Box
-              position="relative"
               className="between"
               data-testid="prompt-setting-topP"
-              sx={{ backgroundColor: getDiffBackground('topP') }}>
-              <Box flex={1}>
+              sx={{
+                position: 'relative',
+                backgroundColor: getDiffBackground('topP'),
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('topPTip')}
                   placement="top"
@@ -271,7 +306,10 @@ function DefaultPromptSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -293,11 +331,16 @@ function DefaultPromptSetting({
 
           {!isNil(model.presencePenaltyMin) && (
             <Box
-              position="relative"
               className="between"
               data-testid="prompt-setting-presencePenalty"
-              sx={{ backgroundColor: getDiffBackground('presencePenalty') }}>
-              <Box flex={1}>
+              sx={{
+                position: 'relative',
+                backgroundColor: getDiffBackground('presencePenalty'),
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('presencePenaltyTip')}
                   placement="top"
@@ -311,7 +354,10 @@ function DefaultPromptSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -333,11 +379,16 @@ function DefaultPromptSetting({
 
           {!isNil(model.frequencyPenaltyMin) && (
             <Box
-              position="relative"
               className="between"
               data-testid="prompt-setting-frequencyPenalty"
-              sx={{ backgroundColor: getDiffBackground('frequencyPenalty') }}>
-              <Box flex={1}>
+              sx={{
+                position: 'relative',
+                backgroundColor: getDiffBackground('frequencyPenalty'),
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('frequencyPenaltyTip')}
                   placement="top"
@@ -351,7 +402,10 @@ function DefaultPromptSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}
@@ -373,11 +427,16 @@ function DefaultPromptSetting({
 
           {!isNil(model.maxTokensMin) && (
             <Box
-              position="relative"
               data-testid="prompt-setting-maxTokens"
               className="between"
-              sx={{ backgroundColor: getDiffBackground('maxTokens') }}>
-              <Box flex={1}>
+              sx={{
+                position: 'relative',
+                backgroundColor: getDiffBackground('maxTokens'),
+              }}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <Tooltip
                   title={t('maxTokensTip')}
                   placement="top"
@@ -391,7 +450,10 @@ function DefaultPromptSetting({
                 </Tooltip>
               </Box>
 
-              <Box flex={1}>
+              <Box
+                sx={{
+                  flex: 1,
+                }}>
                 <WithAwareness
                   sx={{ top: -2, right: -4 }}
                   projectId={projectId}

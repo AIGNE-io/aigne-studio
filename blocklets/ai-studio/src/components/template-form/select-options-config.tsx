@@ -12,7 +12,7 @@ import Trash from '../../pages/project/icons/trash';
 import { DragSortListYjs } from '../drag-sort-list';
 
 export default function SelectOptionsConfig({
-  readOnly,
+  readOnly = undefined,
   select,
 }: {
   readOnly?: boolean;
@@ -21,38 +21,57 @@ export default function SelectOptionsConfig({
   const { t } = useLocaleContext();
 
   return (
-    <Box width={1}>
+    <Box
+      sx={{
+        width: 1,
+      }}>
       {select.options && (
         <DragSortListYjs
           disabled={readOnly}
           list={select.options}
           renderItem={(option, _, params) => (
-            <Stack direction="row" alignItems="center" gap={1} ref={params.drop}>
+            <Stack
+              direction="row"
+              ref={(v) => {
+                params.drop(v);
+              }}
+              sx={{
+                alignItems: 'center',
+                gap: 1,
+              }}>
               <Stack
-                flex={1}
                 direction="row"
-                gap={1}
-                bgcolor="background.paper"
-                borderRadius={1}
-                overflow="hidden"
-                position="relative"
-                p={0.5}
-                ref={params.preview}>
+                ref={(v) => {
+                  params.preview(v);
+                }}
+                sx={{
+                  flex: 1,
+                  gap: 1,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1,
+                  overflow: 'hidden',
+                  position: 'relative',
+                  p: 0.5,
+                }}>
                 <TextField
                   hiddenLabel
-                  InputProps={{ readOnly, inputProps: { id: `option-label-${option.id}` } }}
                   placeholder={t('label')}
                   value={option.label}
                   onChange={(e) => (option.label = e.target.value)}
                   sx={{ flex: 1 }}
+                  slotProps={{
+                    input: { readOnly, inputProps: { id: `option-label-${option.id}` } },
+                  }}
                 />
                 <TextField
                   hiddenLabel
-                  InputProps={{ readOnly }}
                   placeholder={option.label || t('value')}
                   value={option.value}
                   onChange={(e) => (option.value = e.target.value)}
                   sx={{ flex: 1 }}
+                  slotProps={{
+                    input: { readOnly },
+                  }}
                 />
               </Stack>
 
@@ -74,7 +93,11 @@ export default function SelectOptionsConfig({
                     <Trash sx={{ fontSize: 18, color: 'grey.500' }} />
                   </Button>
 
-                  <Button ref={params.drag} sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
+                  <Button
+                    ref={(v) => {
+                      params.drag(v);
+                    }}
+                    sx={{ minWidth: 24, width: 24, height: 24, p: 0 }}>
                     <DragVertical sx={{ fontSize: 22, color: 'grey.500' }} />
                   </Button>
                 </Stack>
@@ -83,7 +106,6 @@ export default function SelectOptionsConfig({
           )}
         />
       )}
-
       {!readOnly && (
         <Button
           fullWidth

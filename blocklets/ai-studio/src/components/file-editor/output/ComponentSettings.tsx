@@ -50,8 +50,12 @@ function RemoteReactComponentSettings({
   const properties = remote.parameter;
 
   return (
-    <Stack gap={2}>
-      <Stack gap={1}>
+    <Stack sx={{
+      gap: 2
+    }}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {Object.keys(properties || {})?.map((key) => {
           const item = properties?.[key];
           if (!item) return null;
@@ -113,8 +117,12 @@ function CustomComponentSettings({
   const properties = componentState?.component?.properties || [];
 
   return (
-    <Stack gap={2}>
-      <Stack gap={1}>
+    <Stack sx={{
+      gap: 2
+    }}>
+      <Stack sx={{
+        gap: 1
+      }}>
         {properties?.map((item) => (
           <Stack key={item.id}>
             <Typography variant="subtitle2">
@@ -174,8 +182,8 @@ function PropertyValueField({
       onChange={(e) =>
         props.onChange?.(property.type === 'url' ? { ...(props.value as any), url: e.target.value } : e.target.value)
       }
-      InputProps={
-        property.type === 'url'
+      slotProps={{
+        input: property.type === 'url'
           ? {
               sx: { pr: 0 },
               endAdornment: (
@@ -185,12 +193,12 @@ function PropertyValueField({
               ),
             }
           : undefined
-      }
+      }}
     />
   );
 }
 
-function Uploader({ onChange }: { onChange?: (v: { url: string; width?: number; height?: number }) => void }) {
+function Uploader({ onChange = undefined }: { onChange?: (v: { url: string; width?: number; height?: number }) => void }) {
   const { projectId, projectRef } = useCurrentProject();
 
   return (
@@ -229,16 +237,18 @@ function PropsValueField({
     return (
       <TextField
         {...props}
-        InputProps={{
-          ...props.InputProps,
-          inputProps: {
-            type: 'number',
-            inputMode: 'numeric',
-            pattern: '[0-9]*',
-            ...props.inputProps,
-          },
-        }}
         onChange={(e) => props.onChange?.(Number(e.target.value))}
+        slotProps={{
+          input: {
+            ...props.InputProps,
+            inputProps: {
+              type: 'number',
+              inputMode: 'numeric',
+              pattern: '[0-9]*',
+              ...props.inputProps,
+            },
+          }
+        }}
       />
     );
   }

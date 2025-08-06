@@ -4,8 +4,8 @@ import { AssistantYjs } from '@blocklet/ai-runtime/types';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { cloneDeep, sortBy } from 'lodash';
 import { useCallback, useMemo } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
 
+import { useCallAgentOutputDialogStore } from '../../store/call-agent-output-dialog-store';
 import { getOutputName, runtimeOutputVariables } from './output/type';
 
 const useCallAgentOutput = ({
@@ -88,29 +88,24 @@ interface CallAgentCustomOutputDialogState {
   name?: string;
 }
 
-const customOutputDialogStates: { [key: string]: RecoilState<CallAgentCustomOutputDialogState> } = {};
-
-const customOutputDialogState = (projectId: string, gitRef: string, agentId: string) => {
-  const key = `${projectId}-${gitRef}-${agentId}`;
-
-  customOutputDialogStates[key] ??= atom<CallAgentCustomOutputDialogState>({
-    key: `projectState-${key}`,
-    default: {},
-  });
-
-  return customOutputDialogStates[key]!;
-};
-
 export const useCallAgentCustomOutputDialogState = (projectId: string, gitRef: string, agentId: string) => {
-  const [state, setState] = useRecoilState(customOutputDialogState(projectId, gitRef, agentId));
+  const key = `${projectId}-${gitRef}-${agentId}`;
+  const { states, updateState, resetState } = useCallAgentOutputDialogStore();
+  const state = states[key] || {};
 
-  const onOpen = useCallback((open: boolean) => {
-    setState((v) => ({ ...v, open }));
-  }, []);
+  const onOpen = useCallback(
+    (open: boolean) => {
+      updateState(key, (v) => ({ ...v, open }));
+    },
+    [key, updateState]
+  );
 
-  const onSetOutput = useCallback((output: CallAgentCustomOutputDialogState['output']) => {
-    setState((v) => ({ ...v, output }));
-  }, []);
+  const onSetOutput = useCallback(
+    (output: CallAgentCustomOutputDialogState['output']) => {
+      updateState(key, (v) => ({ ...v, output }));
+    },
+    [key, updateState]
+  );
 
   const onEdit = useCallback(
     (
@@ -118,14 +113,14 @@ export const useCallAgentCustomOutputDialogState = (projectId: string, gitRef: s
       output: CallAgentCustomOutputDialogState['output'],
       name?: string
     ) => {
-      setState({ open, output, name });
+      updateState(key, () => ({ open, output, name }));
     },
-    []
+    [key, updateState]
   );
 
   const onReset = useCallback(() => {
-    setState({});
-  }, []);
+    resetState(key);
+  }, [key, resetState]);
 
   return {
     state,

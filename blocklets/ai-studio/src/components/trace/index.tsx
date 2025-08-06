@@ -58,11 +58,24 @@ const LabelValue = memo(({ label, value }: Trace) => {
         <Label variant="body1">{t(label)}:</Label>
         <JsonDisplay>
           {value.map((item, index) => (
-            <Box my={0.5} key={index}>
-              <Typography component="span" color="text.secondary">
+            <Box
+              key={index}
+              sx={{
+                my: 0.5,
+              }}>
+              <Typography
+                component="span"
+                sx={{
+                  color: 'text.secondary',
+                }}>
                 {`${dayjs(item.timestamp).format('HH:mm:ss:SSS')}: `}
               </Typography>
-              <Typography ml={0.25} color="text.secondary" component="span">{`${item.log}  `}</Typography>
+              <Typography
+                component="span"
+                sx={{
+                  ml: 0.25,
+                  color: 'text.secondary',
+                }}>{`${item.log}  `}</Typography>
             </Box>
           ))}
         </JsonDisplay>
@@ -181,7 +194,7 @@ const Container = styled(Accordion)<ContainerProps>(({ theme, deep = 0 }) => ({
   boxShadow: 'none',
 }));
 
-function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
+function BaseTrace({ deep = undefined, input }: { deep?: number; input: MessageInput }) {
   const pickInput = pick(
     input,
     'startTime',
@@ -210,7 +223,12 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
           },
         }}
         expandIcon={<GridExpandMoreIcon />}>
-        <Typography fontWeight="bold">{input.assistantName}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 'bold',
+          }}>
+          {input.assistantName}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ pt: 0 }}>
         <TraceCard>
@@ -223,10 +241,13 @@ function BaseTrace({ deep, input }: { deep?: number; input: MessageInput }) {
   );
 }
 
-function BasicTree({ inputs }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
+function BasicTree({ inputs = undefined }: { inputs?: SessionItem['messages'][number]['inputMessages'] }) {
   if (!Array.isArray(inputs)) return null;
   return (
-    <Stack gap={1}>
+    <Stack
+      sx={{
+        gap: 1,
+      }}>
       {inputs.map((item) => {
         return <BaseTrace key={item.taskId} input={item} deep={item.deep} />;
       })}

@@ -36,8 +36,8 @@ import { useAppearances } from '../../hooks/use-appearances';
 
 export default function RuntimeDebug({
   aid,
-  ApiProps,
-  hideSessionsBar,
+  ApiProps = undefined,
+  hideSessionsBar = false,
 }: {
   aid: string;
   ApiProps?: Partial<AIGNEApiContextValue>;
@@ -64,7 +64,11 @@ function DebugView() {
   return (
     <Suspense
       fallback={
-        <Box textAlign="center" my={4}>
+        <Box
+          sx={{
+            textAlign: 'center',
+            my: 4,
+          }}>
           <CircularProgress size={24} />
         </Box>
       }>
@@ -128,7 +132,13 @@ function SessionsBar() {
   };
 
   return (
-    <Stack p={2} direction="row" alignItems="center" gap={2}>
+    <Stack
+      direction="row"
+      sx={{
+        p: 2,
+        alignItems: 'center',
+        gap: 2,
+      }}>
       {loaded && !sessions?.length ? (
         <LoadingButton onClick={newSession}>New Session</LoadingButton>
       ) : (
@@ -138,7 +148,32 @@ function SessionsBar() {
             disableUnderline
             size="small"
             autoWidth
-            placeholder="Select a session"
+            renderValue={(selected) => {
+              if (!selected) {
+                return <em>Select a session</em>;
+              }
+
+              const session = sessions?.find((s) => s.id === selected);
+
+              if (!session) {
+                return <em>Select a session</em>;
+              }
+
+              return (
+                session?.name || (
+                  <RelativeTime
+                    value={session?.updatedAt}
+                    type="absolute"
+                    locale={locale}
+                    withoutSuffix={undefined}
+                    from={undefined}
+                    to={undefined}
+                    tz={undefined}
+                    relativeRange={undefined}
+                  />
+                )
+              );
+            }}
             displayEmpty
             value={currentSessionId || ''}
             onChange={(e) => setCurrentSessionId(e.target.value)}
@@ -152,9 +187,7 @@ function SessionsBar() {
               },
             }}>
             <MenuItem disabled value="">
-              <Typography fontStyle="italic" color="text.secondary">
-                Select session
-              </Typography>
+              <Typography sx={{ fontStyle: 'italic', color: 'text.secondary' }}>Select session</Typography>
             </MenuItem>
 
             {sessions?.map((session) => (
@@ -182,13 +215,14 @@ function SessionsBar() {
           </Tooltip>
         </>
       )}
-
-      <Box flex={1} />
-
+      <Box
+        sx={{
+          flex: 1,
+        }}
+      />
       <LoadingButton onClick={() => setOpen?.(true)} sx={{ minWidth: 32, minHeight: 32, p: 0 }}>
         <Icon icon={WandIcon} fontSize={18} />
       </LoadingButton>
-
       {currentSessionId && (
         <Suspense>
           <SessionProvider sessionId={currentSessionId}>
