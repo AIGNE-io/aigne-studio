@@ -148,14 +148,14 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.46",
-    "@arcblock/did-connect": "^3.0.39",
-    "@blocklet/aigne-hub": "^0.3.3",
+    "@arcblock/did-connect": "^3.0.41",
+    "@blocklet/aigne-hub": "^0.3.4",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.46",
     "@blocklet/dataset-sdk": "workspace:^",
     "@blocklet/js-sdk": "^1.16.46",
     "@blocklet/logger": "^1.16.46",
-    "@blocklet/pages-kit": "^0.6.36",
+    "@blocklet/pages-kit": "^0.6.38",
     "@blocklet/quickjs": "workspace:^",
     "@blocklet/sdk": "^1.16.46",
     "@blocklet/uploader": "^0.2.5",
@@ -222,7 +222,7 @@
     "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.0.39",
+    "@arcblock/ux": "^3.0.41",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",
