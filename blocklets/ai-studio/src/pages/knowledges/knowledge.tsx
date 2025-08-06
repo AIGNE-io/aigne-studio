@@ -234,7 +234,12 @@ const CreateCard = ({ onImport, onCreate }: { onImport: () => void; onCreate: ()
           p: 2.5,
           gap: 1,
         }}>
-        <LoadingButton variant="contained" size="large" onClick={onCreate} sx={{ fontSize: 16 }} loadingPosition="start">
+        <LoadingButton
+          variant="contained"
+          size="large"
+          onClick={onCreate}
+          sx={{ fontSize: 16 }}
+          loadingPosition="start">
           {t('createObject', { object: t('knowledge.knowledgeBase') })}
         </LoadingButton>
         <Button variant="outlined" size="large" onClick={onImport} sx={{ fontSize: 16 }}>
