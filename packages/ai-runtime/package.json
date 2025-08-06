@@ -149,7 +149,7 @@
   "dependencies": {
     "@abtnode/client": "^1.16.46",
     "@arcblock/did-connect": "^3.0.41",
-    "@blocklet/aigne-hub": "^0.3.4",
+    "@blocklet/aigne-hub": "^0.3.6",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.16.46",
     "@blocklet/dataset-sdk": "workspace:^",
