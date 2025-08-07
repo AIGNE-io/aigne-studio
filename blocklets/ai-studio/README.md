@@ -11,8 +11,11 @@ Whether you're a developer accelerating your workflow or a non-technical creator
 
 AIGNE Studio  is part of the [AIGNE](https://www.aigne.io) ecosystem, a comprehensive AI application development platform. Here's the architecture overview:
 
-![AIGNE Ecosystem Architecture](https://www.aigne.io/image-bin/uploads/1a609bad1b46e8bc9bbaaa2d5f587938.png)
-
+<picture>
+  <source srcset="https://www.aigne.io/image-bin/uploads/87fa9f628010bb012615c476ae8ed28f.png" media="(prefers-color-scheme: dark)">
+  <source srcset="https://www.aigne.io/image-bin/uploads/7c46ebd2f6fdf857485f0bf5da9312b3.png" media="(prefers-color-scheme: light)">
+  <img src="https://www.aigne.io/image-bin/uploads/7c46ebd2f6fdf857485f0bf5da9312b3.png" alt="AIGNE Studio" />
+</picture>
 
 ---
 
