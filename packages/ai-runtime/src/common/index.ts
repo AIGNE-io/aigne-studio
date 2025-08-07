@@ -7,7 +7,7 @@ export const defaultTextModel = 'gpt-4o-mini';
 
 const AIGNE_RUNTIME_DID = 'z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2';
 
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 1 * 60 * 1000;
 
 function setCache(key: string, data: any) {
   const payload = {

@@ -5,7 +5,9 @@ import { formatSupportedImagesModels, formatSupportedModels } from '../../common
 import { AIGNE_RUNTIME_COMPONENT_DID } from '../../constants';
 import { ImageModelInfo, TextModelInfo } from '../../types/common';
 
-const cache = new LRUCache<string, any>({ max: 100, ttl: 1000 * 60 * 5 });
+const CACHE_DURATION = 1 * 60 * 1000;
+
+const cache = new LRUCache<string, any>({ max: 100, ttl: CACHE_DURATION });
 
 const fetchAigneHubModelsFromNode = async (type: 'chatCompletion' | 'image') => {
   if (cache.get(type)) {
