@@ -45,7 +45,7 @@ const fetchAigneHubModelsFromWindow = async (type: 'chatCompletion' | 'image') =
   if (data?.length) {
     setCache(url, data);
   }
-  
+
   return data;
 };
 
@@ -74,10 +74,10 @@ export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceMo
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
     },
     multiple: {
-      ensureViewAllProjectsRoles: [],
+      ensureVi ewAllProjectsRoles: [],
       // no need to check, everyone can do it, will check author permission in the backend
       ensurePromptsEditorRoles: undefined,
-      ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
+      ensurePromptsAdminRoles: ['owner', 'admin', 'pr omptsEditor'],
     },
   };
 
