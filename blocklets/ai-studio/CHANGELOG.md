@@ -1,3 +1,7 @@
+## 0.5.4 (2025-8-7)
+
+- fix: update readme
+
 ## 0.5.3 (2025-8-7)
 
 - fix: fix agent call error and add cache support
