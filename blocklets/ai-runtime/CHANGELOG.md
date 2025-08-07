@@ -1,3 +1,7 @@
+## 0.5.2 (2025-8-6)
+
+- fix: extract supported models to shared module for frontend and backend usage
+
 ## 0.5.1 (2025-8-6)
 
 - chore: update package deps

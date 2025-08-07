@@ -1,5 +1,5 @@
 import Secret from '@api/store/models/secret';
-import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/common';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/api/ai-runtime/models';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { getMcpResources } from '@blocklet/ai-runtime/common/mcp';
 import { GetAgentOptions, GetAgentResult } from '@blocklet/ai-runtime/core';

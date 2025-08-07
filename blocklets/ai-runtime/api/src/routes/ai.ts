@@ -9,12 +9,8 @@ import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
-import {
-  defaultImageModel,
-  defaultTextModel,
-  getSupportedImagesModels,
-  getSupportedModels,
-} from '@blocklet/ai-runtime/common';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/api/ai-runtime/models';
+import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import {
@@ -111,6 +107,7 @@ const validateDebugModeAccess = (
 const getModelWithBrand = async (model: string) => {
   const models = await getSupportedModels().catch(() => []);
   const modelInfo = models.find((i) => i.model.toLowerCase() === model.toLowerCase());
+
   if (!modelInfo) {
     return model;
   }

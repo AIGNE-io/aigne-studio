@@ -7,6 +7,11 @@ const router = Router();
 router.get('/', async (req, res) => {
   const { type } = req.query;
   const apiURL = process.env.BLOCKLET_AIGNE_API_URL || '';
+
+  if (!apiURL) {
+    throw new Error('Please connect aigne hub first');
+  }
+
   const BLOCKLET_JSON_PATH = '__blocklet__.js?type=json';
   const blockletURL = joinURL(apiURL, BLOCKLET_JSON_PATH);
 
