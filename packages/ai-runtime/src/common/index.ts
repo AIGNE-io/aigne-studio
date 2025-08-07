@@ -41,7 +41,11 @@ const fetchAigneHubModelsFromWindow = async (type: 'chatCompletion' | 'image') =
 
   const response = await fetch(url);
   const data = await response.json();
-  setCache(url, data);
+
+  if (data?.length) {
+    setCache(url, data);
+  }
+  
   return data;
 };
 
