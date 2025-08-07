@@ -74,10 +74,10 @@ export function getServiceModePermissionMap(serviceMode: ServiceMode): ServiceMo
       ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
     },
     multiple: {
-      ensureVi ewAllProjectsRoles: [],
+      ensureViewAllProjectsRoles: [],
       // no need to check, everyone can do it, will check author permission in the backend
       ensurePromptsEditorRoles: undefined,
-      ensurePromptsAdminRoles: ['owner', 'admin', 'pr omptsEditor'],
+      ensurePromptsAdminRoles: ['owner', 'admin', 'promptsEditor'],
     },
   };
 
