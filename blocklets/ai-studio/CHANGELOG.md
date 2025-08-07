@@ -1,3 +1,7 @@
+## 0.5.3 (2025-8-7)
+
+- fix: fix agent call error and add cache support
+
 ## 0.5.2 (2025-8-6)
 
 - fix: extract supported models to shared module for frontend and backend usage

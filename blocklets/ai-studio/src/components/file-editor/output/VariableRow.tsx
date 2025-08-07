@@ -103,7 +103,7 @@ function VariableRow({
         const variableYjs = getVariables();
         const found = variableYjs?.variables?.find((x) => x.key === variable.key && x.scope === variable.scope);
 
-        return found?.type?.type === output.type;
+        return found?.type?.type === (output.type ?? 'string');
       }
     }
 

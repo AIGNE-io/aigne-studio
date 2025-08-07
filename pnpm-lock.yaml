@@ -1327,9 +1327,6 @@ importers:
       joi:
         specifier: ^17.13.3
         version: 17.13.3
-      lru-cache:
-        specifier: ^10.4.3
-        version: 10.4.3
       nanoid:
         specifier: ^3.3.7
         version: 3.3.11
