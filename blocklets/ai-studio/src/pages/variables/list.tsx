@@ -201,7 +201,11 @@ function VariableList() {
         headerName: t('variables.useAssistant'),
         renderCell: (params: any) => {
           return (
-            <Box>
+            <Box
+              sx={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
               {(params.assistants || [])
                 .map((id: string) => getFileById(id)?.name)
                 .filter((x: any) => x)
@@ -212,14 +216,7 @@ function VariableList() {
       },
       {
         field: 'action',
-        headerName: (
-          <Box
-            sx={{
-              mr: 2.5,
-            }}>
-            {t('actions')}
-          </Box>
-        ),
+        headerName: <Box sx={{ mr: 2.5 }}>{t('actions')}</Box>,
         align: 'right',
         renderCell: (params: any) => {
           return (
@@ -376,7 +373,7 @@ function VariableList() {
                   <TableCell
                     key={column.field}
                     align={column?.align}
-                    sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
+                    sx={{ px: 0.5, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                     {column.headerName}
                   </TableCell>
                 ))}
@@ -389,7 +386,7 @@ function VariableList() {
                   <TableRow key={`${x.scope}_${x.key}`}>
                     {columns.map((column: any) => {
                       return (
-                        <TableCell key={column.field} align={column?.align} sx={{ px: 0, height: 36 }}>
+                        <TableCell key={column.field} align={column?.align} sx={{ px: 0.5, height: 36 }}>
                           {column.renderCell(x)}
                         </TableCell>
                       );

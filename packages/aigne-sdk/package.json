@@ -107,7 +107,6 @@
     "dayjs": "^1.11.13",
     "eventsource-parser": "^2.0.1",
     "joi": "^17.13.3",
-    "lru-cache": "^10.4.3",
     "nanoid": "^3.3.7",
     "react-hook-form": "^7.53.0",
     "ufo": "^1.5.4"
