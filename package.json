@@ -81,29 +81,26 @@
     "zx": "^8.1.4"
   },
   "resolutions": {
-    "@abtnode/client": "^1.16.46",
-    "@abtnode/constant": "^1.16.46",
-    "@abtnode/cron": "^1.16.46",
+    "@abtnode/client": "^1.16.47",
+    "@abtnode/constant": "^1.16.47",
+    "@abtnode/cron": "^1.16.47",
     "@abtnode/file-stream-rotator": "^0.6.3",
     "@arcblock/did": "^1.21.2",
-    "@arcblock/did-auth": "^1.21.1",
-    "@arcblock/did-connect": "^3.0.41",
     "@arcblock/did-ext": "^1.21.2",
-    "@arcblock/did-util": "^1.21.2",
     "@arcblock/jwt": "^1.21.2",
-    "@arcblock/ux": "^3.0.41",
+    "@arcblock/ux": "^3.1.4",
     "@arcblock/ws": "^1.21.2",
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/constant": "^1.16.46",
+    "@blocklet/constant": "^1.16.47",
     "@blocklet/discuss-kit": "2.4.24",
     "@blocklet/discuss-kit-ux": "2.4.24",
     "@blocklet/editor": "2.4.24",
-    "@blocklet/js-sdk": "^1.16.46",
-    "@blocklet/logger": "^1.16.46",
-    "@blocklet/meta": "^1.16.46",
-    "@blocklet/sdk": "^1.16.46",
-    "@blocklet/ui-react": "^3.0.41",
-    "@blocklet/uploader": "^0.2.5",
+    "@blocklet/js-sdk": "^1.16.47",
+    "@blocklet/logger": "^1.16.47",
+    "@blocklet/meta": "^1.16.47",
+    "@blocklet/sdk": "^1.16.47",
+    "@blocklet/ui-react": "^3.1.4",
+    "@blocklet/uploader": "^0.2.6",
     "@emotion/cache": "^11.14.0",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
@@ -132,5 +129,10 @@
     "umzug": "^3.8.1",
     "vite-tsconfig-paths": "5.1.4",
     "ws": "^8.18.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "@arcblock/did-connect": "@arcblock/did-connect-react@3.1.3"
+    }
   }
 }

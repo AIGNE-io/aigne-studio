@@ -4,7 +4,7 @@ import { getProjectDataUrlInSpace } from '@app/libs/did-spaces';
 import { checkErrorType } from '@app/libs/util';
 import { useProjectStore } from '@app/pages/project/yjs-state';
 import currentGitStore, { getDefaultBranch } from '@app/store/current-git-store';
-import { EVENTS } from '@arcblock/did-connect/lib/Session/libs/constants';
+import { EVENTS } from '@arcblock/did-connect-react/lib/Session/libs/constants';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import RelativeTime from '@arcblock/ux/lib/RelativeTime';
 import Toast from '@arcblock/ux/lib/Toast';
