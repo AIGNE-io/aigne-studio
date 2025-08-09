@@ -13,6 +13,7 @@ const exclude: string[] = [];
 const alias: Record<string, string> = {
   'js-tiktoken': join(__dirname, '../../node_modules/js-tiktoken/dist/index.js'),
   typescript: join(__dirname, '../../node_modules/typescript/lib/typescript.js'),
+  '@arcblock/did-connect': '@arcblock/did-connect-react',
 };
 const excludeLibs: string[] = [
   // 排除 ux repo 中其他的包
@@ -34,7 +35,7 @@ const excludeLibs: string[] = [
 ];
 if (arcblockUxBasePath) {
   alias['@arcblock/ux/lib'] = `${arcblockUxBasePath}/packages/ux/src`;
-  alias['@arcblock/did-connect/lib'] = `${arcblockUxBasePath}/packages/did-connect/src`;
+  alias['@arcblock/did-connect-react/lib'] = `${arcblockUxBasePath}/packages/did-connect/src`;
   alias['@blocklet/ui-react/lib'] = `${arcblockUxBasePath}/packages/blocklet-ui-react/src`;
   alias['@blocklet/ui-react'] = `${arcblockUxBasePath}/packages/blocklet-ui-react`;
 
@@ -70,7 +71,7 @@ export default defineConfig(() => {
           'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
         },
         embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
-        embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
+        embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
         // 并发打包 embed 的数量
         embedBuildConcurrency: 3,
       }),

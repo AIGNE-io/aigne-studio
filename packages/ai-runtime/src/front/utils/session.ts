@@ -1,6 +1,6 @@
 /// <reference path="../../env.d.ts" />
 
-import { SessionContext } from '@arcblock/did-connect/lib/Session';
+import { SessionContext } from '@arcblock/did-connect-react/lib/Session';
 import { useContext } from 'react';
 
 export function useSessionContext(): {
