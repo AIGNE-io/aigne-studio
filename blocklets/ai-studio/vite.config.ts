@@ -14,6 +14,7 @@ const alias: Record<string, string> = {
   'js-tiktoken': join(__dirname, '../../node_modules/js-tiktoken/dist/index.js'),
   typescript: join(__dirname, '../../node_modules/typescript/lib/typescript.js'),
   '@arcblock/did-connect': '@arcblock/did-connect-react',
+  '@blocklet/code-editor': join(__dirname, '../../packages/code-editor/src/index.tsx'),
 };
 const excludeLibs: string[] = [
   // 排除 ux repo 中其他的包
@@ -61,9 +62,7 @@ export default defineConfig(() => {
         ...exclude,
       ],
     },
-    resolve: {
-      alias,
-    },
+    resolve: { alias },
     plugins: [
       tsconfigPaths(),
       react(),
@@ -73,22 +72,14 @@ export default defineConfig(() => {
           'open-embed/agent-call': 'src/open-embed/agent-call.ts',
           'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
         },
-        embedPlugins: [
-          replace({
-            'typeof window': JSON.stringify('object'),
-          }),
-        ],
+        embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
         embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
         // 并发打包 embed 的数量
         embedBuildConcurrency: 3,
       }),
       svgr(),
     ],
-    server: {
-      fs: {
-        allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
-      },
-    },
+    server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
     build: {
       rollupOptions: {
         output: {
