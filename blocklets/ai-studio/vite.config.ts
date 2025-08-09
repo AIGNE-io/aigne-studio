@@ -59,9 +59,7 @@ export default defineConfig(() => {
         ...exclude,
       ],
     },
-    resolve: {
-      alias,
-    },
+    resolve: { alias },
     plugins: [
       tsconfigPaths(),
       react(),
@@ -71,22 +69,14 @@ export default defineConfig(() => {
           'open-embed/agent-call': 'src/open-embed/agent-call.ts',
           'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
         },
-        embedPlugins: [
-          replace({
-            'typeof window': JSON.stringify('object'),
-          }),
-        ],
+        embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
         embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
         // 并发打包 embed 的数量
         embedBuildConcurrency: 3,
       }),
       svgr(),
     ],
-    server: {
-      fs: {
-        allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
-      },
-    },
+    server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
     build: {
       rollupOptions: {
         output: {
