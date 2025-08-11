@@ -40,6 +40,7 @@ export default function DiscussView({
         }>
         <Comments
           data-testid="debug-view-comments"
+          // @ts-ignore
           target={{ id: `${projectId}-${gitRef}-${assistant.id}`, owner: user.did }}
           displayReaction={false}
           flatView
