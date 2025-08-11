@@ -1,11 +1,11 @@
 import { AssistantYjs } from '@blocklet/ai-runtime/types';
-import { Comments } from '@blocklet/discuss-kit';
 import styled from '@emotion/styled';
 import { Alert, Box, CircularProgress, Stack } from '@mui/material';
-import { Suspense, useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 
 import { useSessionContext } from '../../contexts/session';
 
+const Comments = lazy(() => import('@blocklet/discuss-kit').then((m) => ({ default: m.Comments })));
 export default function DiscussView({
   projectId,
   gitRef,
@@ -21,11 +21,7 @@ export default function DiscussView({
   const [hiddenInstaller, setHiddenInstaller] = useState(false);
 
   const fallback = (
-    <Stack
-      sx={{
-        alignItems: 'center',
-        my: 10,
-      }}>
+    <Stack sx={{ alignItems: 'center', my: 10 }}>
       <Alert severity="warning">Add discuss-kit to continue</Alert>
     </Stack>
   );
@@ -38,16 +34,13 @@ export default function DiscussView({
     <Views sx={{ overflow: 'auto' }}>
       <Suspense
         fallback={
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 4,
-            }}>
+          <Box sx={{ textAlign: 'center', py: 4 }}>
             <CircularProgress size={24} />
           </Box>
         }>
         <Comments
           data-testid="debug-view-comments"
+          // @ts-ignore
           target={{ id: `${projectId}-${gitRef}-${assistant.id}`, owner: user.did }}
           displayReaction={false}
           flatView

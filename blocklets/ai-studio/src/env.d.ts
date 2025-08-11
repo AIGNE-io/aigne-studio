@@ -10,7 +10,7 @@ interface ImportMeta {
 }
 
 declare module '@arcblock/ux/*';
-declare module '@arcblock/did-connect/*';
+declare module '@arcblock/did-connect-react/*';
 declare module '@blocklet/ui-react/*';
 declare module '@blocklet/discuss-kit';
 declare module '@arcblock/ws';

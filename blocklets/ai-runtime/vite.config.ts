@@ -13,16 +13,14 @@ export default defineConfig(() => {
     optimizeDeps: {
       // force: true,
     },
+    resolve: {
+      alias: {
+        //
+        '@arcblock/did-connect': '@arcblock/did-connect-react',
+      },
+    },
     plugins: [tsconfigPaths(), react(), createBlockletPlugin()],
-    build: {
-      commonjsOptions: {
-        transformMixedEsModules: true,
-      },
-    },
-    server: {
-      fs: {
-        allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
-      },
-    },
+    build: { commonjsOptions: { transformMixedEsModules: true } },
+    server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
   };
 });

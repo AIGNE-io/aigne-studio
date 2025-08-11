@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/studio-ui",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "UI components for studio",
   "publishConfig": {
     "access": "public"
@@ -48,10 +48,10 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@arcblock/did-connect": "^3.0.33",
-    "@arcblock/react-hooks": "^3.0.33",
-    "@arcblock/ux": "^3.0.33",
-    "@blocklet/ui-react": "^3.0.33",
+    "@arcblock/did-connect-react": "^3.1.5",
+    "@arcblock/react-hooks": "^3.1.5",
+    "@arcblock/ux": "^3.1.5",
+    "@blocklet/ui-react": "^3.1.5",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^7.2.0",
@@ -62,9 +62,9 @@
     "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
-    "@arcblock/did-connect": "^3.0.41",
-    "@arcblock/ux": "^3.0.41",
-    "@blocklet/ui-react": "^3.0.41",
+    "@arcblock/did-connect-react": "^3.1.5",
+    "@arcblock/ux": "^3.1.5",
+    "@blocklet/ui-react": "^3.1.5",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^7.2.0",
