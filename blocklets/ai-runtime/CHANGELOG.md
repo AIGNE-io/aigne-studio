@@ -1,3 +1,7 @@
+## 0.5.5 (2025-8-11)
+
+- chore: update deps
+
 ## 0.5.4 (2025-8-7)
 
 - fix: update readme
