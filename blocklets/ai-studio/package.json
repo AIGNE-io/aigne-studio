@@ -41,7 +41,7 @@
     "@arcblock/ws": "^1.21.3",
     "@beskar-labs/gpt-encoder": "^1.0.7",
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/aigne-hub": "^0.3.11",
+    "@blocklet/aigne-hub": "^0.3.12",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/code-editor": "workspace:^",

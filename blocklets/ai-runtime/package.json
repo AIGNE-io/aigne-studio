@@ -36,7 +36,7 @@
     "@arcblock/ux": "^3.1.15",
     "@arcblock/vc": "^1.21.3",
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/aigne-hub": "^0.3.11",
+    "@blocklet/aigne-hub": "^0.3.12",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/constant": "^1.16.48",
     "@blocklet/dataset-sdk": "workspace:^",
