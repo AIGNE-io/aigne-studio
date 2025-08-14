@@ -20,7 +20,7 @@ import { setupUsers } from '../tests/utils/auth';
 dotenv.config();
 
 // debug233
-const skipInstall = argv['skip-install'] !== true;
+const skipInstall = argv['skip-install'] === true;
 const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 if (!rootSeed) {
   throw new Error('rootSeed is not set');
@@ -47,7 +47,9 @@ const initBlocklet = async ({ appName, skipInstall }: { appName: string; skipIns
   }
 
   // debug233
-  // await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
+  await removeTestApp({ blockletCli, appSk: appWallet.secretKey }).catch((error) => {
+    console.warn('failed to remove test app', error);
+  });
   const serverWallet = ensureWallet({ name: 'server' });
   const ownerWallet = ensureWallet({ name: 'owner' });
 
@@ -69,7 +71,7 @@ const initBlocklet = async ({ appName, skipInstall }: { appName: string; skipIns
 
   // FIXME: remove next sleep after issue https://github.com/ArcBlock/blocklet-server/issues/9353 fixed
   await new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), 1000 * 20);
+    setTimeout(() => resolve(), 1000 * 30);
   });
 
   await addBlocklet({
@@ -95,7 +97,7 @@ export default async function globalSetup() {
     await initBlocklet({ appName: playwrightConfigAppNames.single, skipInstall });
     await initBlocklet({ appName: playwrightConfigAppNames.multiple, skipInstall });
 
-    const info = await getBlockletServerStatus();
+    const info = await getBlockletServerStatus({ blockletCli });
     if (!info) throw new Error('Blocklet server is not running');
     console.info('info', info);
 
