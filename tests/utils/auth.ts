@@ -49,7 +49,6 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
 
     // login as owner and bind did space
     await page.goto(appUrl);
-    await page.waitForLoadState('domcontentloaded');
     const remindButton = page.getByRole('button', { name: 'Remind Me Later' });
     await remindButton.waitFor({ state: 'visible' });
     await remindButton.click({ force: true });
