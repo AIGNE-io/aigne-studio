@@ -1,5 +1,5 @@
-import { Page, expect, test } from '@playwright/test';
-
+import { Page, expect } from '@playwright/test';
+import test from '../../utils/base';
 import { createProject, deleteProject } from '../../utils/project';
 
 const deleteAllFoldersAndAgents = async ({ page }: { page: Page }) => {

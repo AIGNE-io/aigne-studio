@@ -13,7 +13,7 @@ customSetup('guest authenticate', async ({ page, storageStatePath, appName }) =>
   await login({
     page,
     wallet: ensureWallet({ name: 'guest' }),
-    appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
+    appWallet: ensureWallet({ name: appName, onlyFromCache: false }),
     passport: { name: 'guest', title: 'guest' },
   });
 

@@ -10,7 +10,7 @@ import { cacheResult } from './cache';
 import { SPACE_APP_ID, TestConstants } from './constants';
 
 export async function setupUsers({ appName, appUrl, rootSeed }: { appName: string; appUrl: string; rootSeed: string }) {
-  const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
+  const appWallet = ensureWallet({ name: appName, onlyFromCache: false });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
   const guestWallet = ensureWallet({ name: 'guest' });
@@ -44,37 +44,37 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
     })
   );
 
-  await Promise.all(
-    vcs.map(async ({ wallet, name, vc }) => {
-      const page = await browser.newPage();
+  for (const { wallet, name, vc } of vcs) {
+    const page = await browser.newPage();
 
-      // login as owner and bind did space
-      await page.goto(appUrl);
+    // login as owner and bind did space
+    await page.goto(appUrl);
+    const remindBtn = page.getByRole('button', { name: 'Remind Me Later' });
+    if ((await remindBtn.count()) > 0) {
+      await remindBtn.click();
+    }
+    await login({ page, wallet, appWallet, passport: { name, title: name } });
 
-      await login({ page, wallet, appWallet, passport: { name, title: name } });
+    const [popupPage] = await Promise.all([
+      page.waitForEvent('popup'),
+      page.getByRole('button', { name: 'Connect Now' }).click(),
+    ]);
+    await popupPage.waitForLoadState('networkidle');
+    // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
+    const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
+    await popupPage.evaluate((redirectUrl) => {
+      window.location.href = redirectUrl;
+    }, url);
+    await popupPage.waitForLoadState('networkidle');
+    // wait 3 s
+    await popupPage.waitForTimeout(3 * 1000);
 
-      const [popupPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        page.getByRole('button', { name: 'Connect Now' }).click(),
-      ]);
-      await popupPage.waitForLoadState('networkidle');
-      // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
-      const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
-      await popupPage.evaluate((redirectUrl) => {
-        window.location.href = redirectUrl;
-      }, url);
-      await popupPage.waitForLoadState('networkidle');
+    const authUrl = await getAuthUrl({ page: popupPage });
+    await showAssetOrVC({ authUrl, wallet: spaceWallet, vc, meta: { purpose: 'DidSpace' } });
 
-      const authUrl = await getAuthUrl({ page: popupPage }).catch((error) => {
-        console.error('failed to get auth url to connect to did space, skip it', error);
-        return null;
-      });
-
-      if (authUrl) await showAssetOrVC({ authUrl, wallet, vc, meta: { purpose: 'DidSpace' } });
-
-      await page.waitForTimeout(5 * 1000);
-    })
-  );
+    await popupPage.getByRole('button', { name: 'Authorize' }).click();
+    await page.waitForTimeout(5 * 1000);
+  }
 
   await browser.close();
 }

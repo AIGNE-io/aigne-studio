@@ -1,7 +1,13 @@
 #!/usr/bin/env -S node -r dotenv/config -r ts-node/register
 
 /* eslint-disable import/no-extraneous-dependencies,no-console */
-import { addBlocklet, getBlockletServerStatus, initTestApp, startTestApp } from '@blocklet/testlab/utils/server';
+import {
+  addBlocklet,
+  getBlockletServerStatus,
+  initTestApp,
+  removeTestApp,
+  startTestApp,
+} from '@blocklet/testlab/utils/server';
 import { didToDomain, ensureWallet, types } from '@blocklet/testlab/utils/wallet';
 import { chromium } from '@playwright/test';
 import dotenv from 'dotenv';
@@ -11,12 +17,10 @@ import { $, argv } from 'zx';
 import { playwrightConfigAppNames } from '../tests/utils';
 import { setupUsers } from '../tests/utils/auth';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-if (isDevelopment) {
-  dotenv.config();
-}
+dotenv.config();
 
-const skipInstall = argv['skip-install'] === true;
+// debug233
+const skipInstall = argv['skip-install'] !== true;
 const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 if (!rootSeed) {
   throw new Error('rootSeed is not set');
@@ -32,10 +36,20 @@ const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).val
 const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
 
-const initBlocklet = async ({ appName }: { appName: string }) => {
+const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: false });
+const multipleAppWallet = ensureWallet({ name: playwrightConfigAppNames.multiple, onlyFromCache: false });
+
+const initBlocklet = async ({ appName, skipInstall }: { appName: string; skipInstall: boolean }) => {
+  const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
+  if (skipInstall) {
+    await startTestApp({ blockletCli, appWallet });
+    return;
+  }
+
+  // debug233
+  // await removeTestApp({ blockletCli, appSk: appWallet.secretKey });
   const serverWallet = ensureWallet({ name: 'server' });
   const ownerWallet = ensureWallet({ name: 'owner' });
-  const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });
 
   await initTestApp({
     blockletCli,
@@ -55,7 +69,7 @@ const initBlocklet = async ({ appName }: { appName: string }) => {
 
   // FIXME: remove next sleep after issue https://github.com/ArcBlock/blocklet-server/issues/9353 fixed
   await new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), 2000);
+    setTimeout(() => resolve(), 1000 * 20);
   });
 
   await addBlocklet({
@@ -78,15 +92,8 @@ export default async function globalSetup() {
     await context.tracing.start({ screenshots: true, snapshots: true });
     await $`export DID_SPACES_BASE_URL=https://spaces.staging.arcblock.io/app`;
 
-    if (!skipInstall) {
-      for (const appName of Object.values(playwrightConfigAppNames)) {
-        await initBlocklet({ appName });
-      }
-      console.info('All Blocklet applications initialized successfully');
-    }
-
-    const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: true });
-    const multipleAppWallet = ensureWallet({ name: playwrightConfigAppNames.multiple, onlyFromCache: true });
+    await initBlocklet({ appName: playwrightConfigAppNames.single, skipInstall });
+    await initBlocklet({ appName: playwrightConfigAppNames.multiple, skipInstall });
 
     const info = await getBlockletServerStatus();
     if (!info) throw new Error('Blocklet server is not running');
@@ -94,6 +101,8 @@ export default async function globalSetup() {
 
     const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
     const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
+    console.info('singleAppUrl', singleAppUrl);
+    console.info('multipleAppUrl', multipleAppUrl);
 
     await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
     await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
