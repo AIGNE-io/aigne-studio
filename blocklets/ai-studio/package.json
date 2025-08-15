@@ -17,7 +17,7 @@
     "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json,prettier --monorepo --create-release",
     "deploy": "npm run bundle && blocklet deploy .blocklet/bundle",
     "upload": "npm run bundle && blocklet upload .blocklet/release/blocklet.json",
-    "bundle:analyze": "pnpx vite-bundle-visualizer -o stats.html --open"
+    "analyze": "pnpx vite-bundle-visualizer -o stats.html --open"
   },
   "browserslist": {
     "production": [
