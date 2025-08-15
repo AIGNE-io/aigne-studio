@@ -1,7 +1,7 @@
 name: Playwright Tests
 
 env:
-  NODE_OPTIONS: '--max_old_space_size=10240'
+  NODE_OPTIONS: '--max_old_space_size=16384'
   ABT_NODE_HOST: '172.17.0.1'
   ABT_NODE_MAX_CLUSTER_SIZE: 1
   COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
@@ -17,7 +17,7 @@ jobs:
   bundle:
     name: Bundle Blocklets
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -61,7 +61,7 @@ jobs:
     needs:
       - bundle
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
 
     steps:
       - name: Checkout repo
