@@ -25,6 +25,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -68,6 +72,10 @@ jobs:
         with:
           name: blocklet-bundles
           path: blocklets
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
 
       - name: Setup node
         uses: actions/setup-node@v4
