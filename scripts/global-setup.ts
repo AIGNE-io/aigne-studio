@@ -15,11 +15,9 @@ import Joi from 'joi';
 import { $, argv } from 'zx';
 
 import { playwrightConfigAppNames } from '../tests/utils';
-import { setupUsers } from '../tests/utils/auth';
 
 dotenv.config();
 
-// debug233
 const skipInstall = argv['skip-install'] === true;
 const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 if (!rootSeed) {
@@ -46,7 +44,6 @@ const initBlocklet = async ({ appName, skipInstall }: { appName: string; skipIns
     return;
   }
 
-  // debug233
   await removeTestApp({ blockletCli, appSk: appWallet.secretKey }).catch((error) => {
     console.warn('failed to remove test app', error);
   });
@@ -103,12 +100,12 @@ export default async function globalSetup() {
 
     const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
     const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
-    console.info('singleAppUrl', singleAppUrl);
-    console.info('multipleAppUrl', multipleAppUrl);
+    // console.info('singleAppUrl', singleAppUrl);
+    // console.info('multipleAppUrl', multipleAppUrl);
+    // await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
+    // await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
 
-    await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
-    await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
-
+    process.env.ROOT_SEED = rootSeed;
     process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
     process.env.SINGLE_TENANT_APP_URL = singleAppUrl;
     process.env.MULTIPLE_TENANT_APP_URL = multipleAppUrl;

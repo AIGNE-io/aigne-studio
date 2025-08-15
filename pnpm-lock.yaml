@@ -78,8 +78,8 @@ importers:
         specifier: workspace:^
         version: link:packages/ai-runtime
       '@blocklet/testlab':
-        specifier: ^0.0.21
-        version: 0.0.21
+        specifier: ^0.0.22
+        version: 0.0.22
       '@ocap/util':
         specifier: ^1.21.2
         version: 1.21.2
@@ -3218,8 +3218,8 @@ packages:
       react: ^18.2.0
       react-router-dom: ^6.16.0
 
-  '@blocklet/testlab@0.0.21':
-    resolution: {integrity: sha512-0piAyIMxytlBm8KDIvtEjIHwctt1ULTLELd8OpgHvj3dgg/JDxDejDlcdVsG+zJHxnAKatWl7bAiIl0s2agj+A==}
+  '@blocklet/testlab@0.0.22':
+    resolution: {integrity: sha512-mIWjBUu+WKlb6Y50p96ve0cQ/f84Rbc4GLR6pS1yydfUzMwBK1rAAfbEYp+0kYJFZ5YkYp/cKTNixb3edU1m2g==}
 
   '@blocklet/theme@3.1.6':
     resolution: {integrity: sha512-ntWJtrv9EVDZcX3tuWpohxE1sQuxHpGmuYecnHYR95wo5uT3UE6oIG6vaeYTya0iWTRVLHmCpJgTa63tlT3tLA==}
@@ -16778,6 +16778,7 @@ packages:
     resolution: {integrity: sha512-5RJYU5zWFXTQ5iRXAo75vlhK5ybZOyqEyg/szw2VtHc6ZOPcC7ruX4nnXk1OqqlY56Z7XT+WCFhV+/XPj4QwtQ==}
     engines: {node: '>=20.18.0'}
     hasBin: true
+    bundledDependencies: []
 
   pdfjs-dist@4.8.69:
     resolution: {integrity: sha512-IHZsA4T7YElCKNNXtiLgqScw4zPd3pG9do8UrznC757gMd7UPeHSL2qwNNMJo4r79fl8oj1Xx+1nh2YkzdMpLQ==}
@@ -26236,7 +26237,7 @@ snapshots:
       react: 19.1.1
       react-router-dom: 6.30.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
 
-  '@blocklet/testlab@0.0.21':
+  '@blocklet/testlab@0.0.22':
     dependencies:
       '@abtnode/constant': 1.16.48
       '@arcblock/jwt': 1.21.2
