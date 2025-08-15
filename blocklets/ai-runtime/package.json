@@ -9,7 +9,7 @@
     "start": "vite-node -c vite-server.config.ts -w api/dev.ts",
     "clean": "node scripts/build-clean.js",
     "build": "run-s clean bundle:client bundle:api",
-    "bundle": "run-s clean bundle:*",
+    "bundle": "NODE_OPTIONS=--max-old-space-size=10240 run-s clean bundle:*",
     "bundle:client": "vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",
     "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json,quickjs-emscripten --monorepo --create-release",
