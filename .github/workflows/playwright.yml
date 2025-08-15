@@ -17,7 +17,7 @@ jobs:
   bundle:
     name: Bundle Blocklets
     timeout-minutes: 60
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -61,7 +61,7 @@ jobs:
     needs:
       - bundle
     timeout-minutes: 60
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
