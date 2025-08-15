@@ -1,3 +1,11 @@
+## 0.5.7 (2025-8-15)
+
+- fix: e2e test is broken
+
+## 0.5.6 (2025-8-13)
+
+- chore: update deps
+
 ## 0.5.5 (2025-8-11)
 
 - chore: update deps
