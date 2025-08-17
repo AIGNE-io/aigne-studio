@@ -97,9 +97,9 @@
   },
   "dependencies": {
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/aigne-hub": "^0.3.12",
+    "@blocklet/aigne-hub": "^0.3.13",
     "@blocklet/js-sdk": "^1.16.48",
-    "@blocklet/pages-kit": "^0.6.48",
+    "@blocklet/pages-kit": "^0.6.51",
     "@blocklet/sdk": "^1.16.48",
     "@microsoft/fetch-event-source": "^2.0.1",
     "ahooks": "^3.8.1",
@@ -122,7 +122,7 @@
     "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.1.15",
+    "@arcblock/ux": "^3.1.20",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",
