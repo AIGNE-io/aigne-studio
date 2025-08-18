@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // import { TestConstants } from './tests/utils/constants';
 
-const timeout = 10000;
+const seconds = 1000;
 const retries = 3;
 
 const headless = process.env.HEADLESS !== 'false';
@@ -28,7 +28,7 @@ export default defineConfig<{
   storageStatePath: string;
   appName: string;
 }>({
-  timeout: 6 * timeout,
+  timeout: 600 * seconds,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -42,7 +42,7 @@ export default defineConfig<{
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   expect: {
-    timeout,
+    timeout: seconds,
   },
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */

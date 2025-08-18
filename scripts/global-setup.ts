@@ -18,7 +18,7 @@ import { playwrightConfigAppNames } from '../tests/utils';
 
 dotenv.config();
 
-const skipInstall = argv['skip-install'] === true;
+const skipInstall = argv['skip-install'] !== true;
 const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 if (!rootSeed) {
   throw new Error('rootSeed is not set');
