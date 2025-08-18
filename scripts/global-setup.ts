@@ -100,10 +100,6 @@ export default async function globalSetup() {
 
     const singleAppUrl = didToDomain({ did: singleAppWallet.address, port: info.httpsPort });
     const multipleAppUrl = didToDomain({ did: multipleAppWallet.address, port: info.httpsPort });
-    // console.info('singleAppUrl', singleAppUrl);
-    // console.info('multipleAppUrl', multipleAppUrl);
-    // await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
-    // await setupUsers({ appName: playwrightConfigAppNames.multiple, appUrl: multipleAppUrl, rootSeed });
 
     process.env.ROOT_SEED = rootSeed;
     process.env.PW_TEST_HTML_REPORT_OPEN = 'never';
