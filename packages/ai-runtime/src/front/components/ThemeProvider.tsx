@@ -75,7 +75,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
               style: ({ theme }) =>
                 theme.unstable_sx({
                   '.MuiInputBase-root': {
-                    fieldset: { borderColor: 'grey.400' },
+                    fieldset: { borderColor: theme.palette.divider },
                     [`&.Mui-focused, :not(.${inputBaseClasses.disabled}):hover`]: {
                       fieldset: {
                         border: 'none',
@@ -124,11 +124,10 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
           variants: [
             {
               props: {},
-              style: ({ theme }) =>
-                theme.unstable_sx({
-                  fontSize: 13,
-                  color: '#010714',
-                }),
+              style: ({ theme }) => ({
+                fontSize: 13,
+                color: theme.palette.text.primary,
+              }),
             },
           ],
         },
@@ -146,10 +145,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
             },
           ])
         ),
-        button: {
-          textTransform: 'none',
-        },
-      } as any,
+      },
       palette: {
         primary,
         secondary,
@@ -162,19 +158,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
         primary: tempTheme.palette.primary,
         secondary: tempTheme.palette.secondary,
         text: tempTheme.palette.text,
-        background: {
-          default: '#ffffff',
-        },
       },
-      shape: {
-        borderRadius: 8,
-      },
-      shadows: [
-        'none',
-        '0px 0px 0px 1px rgba(2, 7, 19, 0.08), 0px 1px 2px -1px rgba(2, 7, 19, 0.08), 0px 2px 4px 0px rgba(2, 7, 19, 0.04)',
-        '0px 0px 0px 1px rgba(2, 7, 19, 0.08), 0px 1px 2px -1px rgba(2, 7, 19, 0.08), 0px 2px 8px 0px rgba(2, 7, 19, 0.10)',
-        ...tempTheme.shadows.slice(3),
-      ],
     });
   }, [theme]);
 

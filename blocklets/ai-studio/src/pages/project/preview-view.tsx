@@ -4,6 +4,7 @@ import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ThemeProvider } from '@arcblock/ux/lib/Theme';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   DebugDialogProvider,
@@ -27,7 +28,6 @@ import {
   TabProps,
   Tabs,
   TabsProps,
-  ThemeProvider,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';

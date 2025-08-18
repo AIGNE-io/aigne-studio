@@ -3,7 +3,6 @@ import { useMultiTenantRestriction } from '@app/components/multi-tenant-restrict
 import { PlanAlert } from '@app/components/multi-tenant-restriction/plan-alert';
 import { useCurrentProject } from '@app/contexts/project';
 import { useIsAdmin } from '@app/contexts/session';
-import { theme } from '@app/theme/theme';
 import useDialog from '@app/utils/use-dialog';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
@@ -44,6 +43,7 @@ import {
   Theme,
   Typography,
   useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { compact } from 'lodash';
@@ -327,6 +327,7 @@ function DeployApp({
 }
 
 function UpdateApp({ id, data, run, sx = undefined }: { id: string; data: Deployment; run: () => void; sx?: SxProps }) {
+  const theme = useTheme();
   const { t } = useLocaleContext();
   const isAdmin = useIsAdmin();
 

@@ -54,10 +54,7 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
     }
 
     return createTheme(inheritedTheme, {
-      palette: { primary, textColor, background: { block: '#f6f6f6' } },
-      shape: {
-        borderRadius: 8,
-      },
+      palette: { primary, textColor, background: { block: inheritedTheme.palette.grey[50] } },
     });
   }, [inheritedTheme, primaryColor, textColor]);
 
