@@ -34,8 +34,16 @@ const httpPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTP_PORT).val
 const httpsPort = (portSchema.validate(process.env.BLOCKLET_SERVER_HTTPS_PORT).value as number) || 443;
 const blockletCli = process.env.BLOCKLET_CLI || 'blocklet';
 
-const singleAppWallet = ensureWallet({ name: playwrightConfigAppNames.single, onlyFromCache: false });
-const multipleAppWallet = ensureWallet({ name: playwrightConfigAppNames.multiple, onlyFromCache: false });
+const singleAppWallet = ensureWallet({
+  name: playwrightConfigAppNames.single,
+  role: types.RoleType.ROLE_APPLICATION,
+  onlyFromCache: false,
+});
+const multipleAppWallet = ensureWallet({
+  name: playwrightConfigAppNames.multiple,
+  role: types.RoleType.ROLE_APPLICATION,
+  onlyFromCache: false,
+});
 
 const initBlocklet = async ({ appName, skipInstall }: { appName: string; skipInstall: boolean }) => {
   const appWallet = ensureWallet({ name: appName, role: types.RoleType.ROLE_APPLICATION });

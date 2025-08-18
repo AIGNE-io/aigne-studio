@@ -1,4 +1,4 @@
-import { DID_TYPE_ARCBLOCK } from '@arcblock/did';
+import { DID_TYPE_ARCBLOCK, types } from '@arcblock/did';
 import { fromAppDid } from '@arcblock/did-ext';
 import { showAssetOrVC } from '@blocklet/testlab/utils/auth';
 import { claimDIDSpace, getAuthUrl, login } from '@blocklet/testlab/utils/playwright';
@@ -10,7 +10,7 @@ import { cacheResult } from './cache';
 import { SPACE_APP_ID, TestConstants } from './constants';
 
 export async function setupUsers({ appName, appUrl, rootSeed }: { appName: string; appUrl: string; rootSeed: string }) {
-  const appWallet = ensureWallet({ name: appName, onlyFromCache: false });
+  const appWallet = ensureWallet({ name: appName, onlyFromCache: false, role: types.RoleType.ROLE_APPLICATION });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
   const guestWallet = ensureWallet({ name: 'guest' });
