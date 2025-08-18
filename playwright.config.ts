@@ -59,8 +59,8 @@ export default defineConfig<{
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'init',
-      testMatch: 'init.spec.ts',
+      name: 'initialize',
+      testMatch: 'initialize.spec.ts',
       use: {
         ...devices['Desktop Chrome'],
         appName: singleTenantAppName,
