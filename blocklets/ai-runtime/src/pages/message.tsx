@@ -92,9 +92,9 @@ export default function MessagePage() {
                   href={chatUrl}
                   target="_blank"
                   sx={{
-                    background: agent?.project?.appearance?.primaryColor || 'text.primary',
+                    background: agent?.project?.appearance?.primaryColor || 'primary.main',
                     '&:hover': {
-                      background: agent?.project?.appearance?.primaryColor || 'text.primary',
+                      background: agent?.project?.appearance?.primaryColor || 'primary.main',
                     },
                   }}>
                   {`${t('openTheBot')} ${agent?.project.name}`}
