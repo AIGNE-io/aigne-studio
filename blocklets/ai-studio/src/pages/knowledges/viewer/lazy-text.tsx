@@ -1,8 +1,9 @@
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, useTheme } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { useRequest } from 'ahooks';
 
 function ObjectLazyTextViewer({ url }: { url: string }) {
+  const theme = useTheme();
   const { loading, data } = useRequest(() => {
     return fetch(url).then((res) => res.text());
   });
@@ -28,7 +29,7 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
         height: 1,
         overflow: 'auto',
       }}>
-      <CodeMirror value={String(data)} editable={false} height="100%" />
+      <CodeMirror theme={theme.palette.mode} value={String(data)} editable={false} height="100%" />
     </Box>
   );
 }
