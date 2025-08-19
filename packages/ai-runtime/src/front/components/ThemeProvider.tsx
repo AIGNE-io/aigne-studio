@@ -139,6 +139,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
     };
 
     const tempTheme = createTheme({
+      // @ts-ignore
       typography: {
         fontFamily: bodyFontFamily,
         ...Object.fromEntries(

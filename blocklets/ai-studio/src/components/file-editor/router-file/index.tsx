@@ -348,7 +348,6 @@ export function AgentItemView({
   const file = f && isAssistant(f) ? f : undefined;
   const target = file ?? formattedOpenApis.find((x) => x.id === agent.id);
 
-  const red = '#e0193e';
   return (
     <Box
       sx={{
@@ -379,7 +378,7 @@ export function AgentItemView({
             alignItems: 'center',
             cursor: 'pointer',
             borderRadius: 1,
-            border: `1px solid`,
+            border: '1px solid',
             borderColor: !target ? 'error.main' : 'info.light',
 
             ':hover': {

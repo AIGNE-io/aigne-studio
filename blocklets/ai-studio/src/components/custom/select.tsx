@@ -23,13 +23,13 @@ const BaseSelect = muiStyled(Select)(({ theme }) => ({
 
   '.MuiOutlinedInput-notchedOutline': {
     border: '1px solid !important',
-    borderColor: theme.palette.grey[200] + ' !important',
+    borderColor: `${theme.palette.grey[200]} !important`,
     outline: 'none',
   },
 
   '&:hover .MuiOutlinedInput-notchedOutline': {
     border: '1px solid !important',
-    borderColor: theme.palette.grey[200] + ' !important',
+    borderColor: `${theme.palette.grey[200]} !important`,
     outline: 'none',
   },
 }));

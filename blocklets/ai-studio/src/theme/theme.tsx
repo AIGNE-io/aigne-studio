@@ -18,8 +18,6 @@ import {
   switchClasses,
 } from '@mui/material';
 
-console.log('filledInputClasses.root: ', filledInputClasses.root);
-
 function SelectIcon(props: BoxProps) {
   return <Box {...props} component={Icon} icon={ChevronDownIcon} />;
 }

@@ -17,7 +17,6 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { SubscriptionError } from '@blocklet/aigne-hub/api';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
-import { Theme } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useMemoizedFn, useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
