@@ -60,7 +60,7 @@ function PanelToggleButton({
           icon={placement === 'left' ? SidebarLeft : SidebarRight}
           sx={{
             fontSize: 20,
-            color: '#3B82F6',
+            color: 'info.main',
           }}
         />
       </Button>
@@ -160,7 +160,8 @@ export default function KnowledgeDetail() {
             <Box
               sx={{
                 bgcolor: 'background.paper',
-                borderBottom: '1px solid #E5E7EB',
+                borderBottom: '1px solid',
+                borderColor: 'divider',
                 zIndex: 10,
               }}>
               <Box
@@ -174,13 +175,13 @@ export default function KnowledgeDetail() {
                     fontSize: 14,
 
                     '&.Mui-selected': {
-                      color: '#3B82F6',
+                      color: 'primary.main',
                     },
                   },
 
                   '.MuiTabs-indicator': {
                     span: {
-                      background: '#3B82F6 !important',
+                      background: (theme) => `${theme.palette.primary.main} !important`,
                     },
                   },
                 }}>
@@ -425,7 +426,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
           m: 2.5,
           display: 'flex',
           alignItems: 'center',
-          bgcolor: '#F1F3F5',
+          bgcolor: 'grey.100',
           borderRadius: 1,
           gap: '8px',
           p: 1,
@@ -447,12 +448,12 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
         <IconButton
           disabled={!search}
           sx={{
-            bgcolor: '#000',
+            bgcolor: 'primary.main',
             borderRadius: 1,
             padding: '8px 16px',
-            color: '#fff',
+            color: 'primary.contrastText',
             '&:hover': {
-              bgcolor: '#000',
+              bgcolor: 'primary.main',
             },
             fontSize: 14,
             display: 'flex',
@@ -511,11 +512,13 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                   }}
                   sx={{
                     py: 2.5,
-                    borderBottom: '1px solid #EFF1F5',
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
                     cursor: result?.metadata?.document?.id ? 'pointer' : 'default',
 
                     pre: {
-                      border: '1px solid #eff1f5',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       borderTop: 0,
                       whiteSpace: 'pre-wrap',
                     },
@@ -545,7 +548,8 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         py: 1,
                         px: 1.5,
                         borderRadius: 1,
-                        border: '1px solid #EFF1F5',
+                        border: '1px solid',
+                        borderColor: 'divider',
                       }}>
                       <Stack
                         direction="row"
@@ -558,7 +562,7 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                         <Box
                           sx={{
                             flexGrow: 1,
-                            color: '#030712',
+                            color: 'text.primary',
                           }}>
                           {title}
                         </Box>
@@ -577,11 +581,11 @@ const PlaygroundView = ({ knowledgeId }: { knowledgeId: string }) => {
                             <Typography
                               sx={{
                                 fontSize: 13,
-                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? '#059669' : '#BE123C',
+                                color: result?.metadata?.metadata?.relevanceScore > 0.5 ? 'success.main' : 'error.main',
                               }}>
                               {Number((result?.metadata?.metadata?.relevanceScore || 0) * 100).toFixed(2)}%
                             </Typography>
-                            <Typography sx={{ fontSize: 13, color: '#9CA3AF' }}>{t('similarity')}</Typography>
+                            <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{t('similarity')}</Typography>
                           </Stack>
                         </>
                       )}
@@ -658,7 +662,7 @@ const Header = ({
           sx={{
             gap: 0.5,
             alignItems: 'center',
-            color: '#3B82F6',
+            color: 'primary.main',
             cursor: 'pointer',
           }}>
           <Box
@@ -714,7 +718,7 @@ const Header = ({
 
                     input: {
                       p: '0 !important',
-                      color: '#030712',
+                      color: 'text.primary',
                       lineHeight: '28px',
                       fontSize: 18,
                     },
@@ -751,7 +755,7 @@ const Header = ({
 
                     input: {
                       p: '0 !important',
-                      color: '#4B5563',
+                      color: 'text.secondary',
                       fontSize: 13,
                       lineHeight: '20px',
                     },
@@ -767,7 +771,7 @@ const Header = ({
               gap: 1.25,
               alignItems: 'center',
               mt: 2.5,
-              color: '#9CA3AF',
+              color: 'text.secondary',
             }}>
             <Stack
               direction="row"
@@ -798,8 +802,8 @@ const Header = ({
                   alignItems: 'center',
                   cursor: 'pointer',
                 }}>
-                <Box component={Icon} icon={PlusIcon} sx={{ color: '#3B82F6', fontSize: 15 }} />
-                <Typography variant="subtitle3" sx={{ color: '#3B82F6' }}>
+                <Box component={Icon} icon={PlusIcon} sx={{ color: 'primary.main', fontSize: 15 }} />
+                <Typography variant="subtitle3" sx={{ color: 'primary.main' }}>
                   {t('addObject', { object: t('knowledge.knowledge') })}
                 </Typography>
               </Stack>
@@ -807,7 +811,7 @@ const Header = ({
           </Stack>
         </Stack>
 
-        <Divider sx={{ borderColor: '#EFF1F5' }} />
+        <Divider />
       </Stack>
     </UploaderProvider>
   );
@@ -842,7 +846,7 @@ const KnowledgeIcon = ({
         sx={{
           width: 50,
           height: 50,
-          background: '#F1F3F5',
+          bgcolor: 'grey.50',
           borderRadius: 1,
 
           img: {
@@ -901,7 +905,7 @@ const KnowledgeIcon = ({
           icon={PencilIcon}
           sx={{
             fontSize: 15,
-            color: '#fff',
+            color: 'text.contrast',
           }}
         />
       </Box>

@@ -1,6 +1,6 @@
 import ImagePreview from '@blocklet/aigne-hub/components/image-preview';
 import { Icon } from '@iconify/react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 
 function ImagePreviewItem({
   url,
@@ -11,6 +11,8 @@ function ImagePreviewItem({
   index: number;
   onRemove: (url: string, index: number) => void;
 }) {
+  const theme = useTheme();
+
   return (
     <Box
       sx={{
@@ -36,8 +38,9 @@ function ImagePreviewItem({
           width: 17,
           height: 17,
           borderRadius: '50%',
-          border: '1px solid #e0e0e0',
-          background: '#fff',
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -48,15 +51,15 @@ function ImagePreviewItem({
             width: 14,
             height: 14,
             borderRadius: '50%',
-            background: '#A0A0A0',
+            bgcolor: 'grey.300',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             '& svg > path': { strokeWidth: 3 },
-            '&:hover': { background: '#BDBDBD' },
+            '&:hover': { bgcolor: 'grey.400' },
             transition: 'background 0.3s ease',
           }}>
-          <Icon icon="tabler:x" color="#fff" width={12} height={12} />
+          <Icon icon="tabler:x" color={theme.palette.text.primary} width={12} height={12} />
         </Box>
       </Box>
     </Box>

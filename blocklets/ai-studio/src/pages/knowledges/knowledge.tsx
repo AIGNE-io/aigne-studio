@@ -97,7 +97,9 @@ export default function Knowledge() {
           {list.map((item) => {
             return (
               <Tooltip key={item.id} title={item.installed ? undefined : 'This knowledge is not installed'}>
-                <CardContainer height={400} sx={{ border: item.installed ? undefined : '1px solid #BE123C' }}>
+                <CardContainer
+                  height={400}
+                  sx={{ border: item.installed ? undefined : '1px solid', borderColor: 'error.main' }}>
                   <KnowledgeCard
                     emoji="📖"
                     title={item.name || t('unnamed')}
@@ -118,7 +120,7 @@ export default function Knowledge() {
                         menus={
                           <MenuItem
                             color="error"
-                            sx={{ color: '#E11D48' }}
+                            sx={{ color: 'error.main' }}
                             onClick={(e) => {
                               e.stopPropagation();
 
@@ -131,7 +133,7 @@ export default function Knowledge() {
                                     border: 0,
                                   },
                                   '.save': {
-                                    background: '#d32f2f',
+                                    bgcolor: 'error.main',
                                   },
                                 },
                                 maxWidth: 'sm',
@@ -148,7 +150,7 @@ export default function Knowledge() {
                                         fontWeight: 500,
                                         fontSize: 16,
                                         lineHeight: '28px',
-                                        color: '#4B5563',
+                                        color: 'text.secondary',
                                       }}>
                                       {t('knowledge.deleteDescription')}
                                     </Typography>
@@ -170,7 +172,7 @@ export default function Knowledge() {
                             {t('delete')}
                           </MenuItem>
                         }
-                        sx={{ fontSize: 20, color: '#9CA3AF', cursor: 'pointer', p: '4px' }}>
+                        sx={{ fontSize: 20, color: 'grey.400', cursor: 'pointer', p: '4px' }}>
                         <Icon icon="tabler:dots" />
                       </PopperMenuButton>
                     }
@@ -309,7 +311,7 @@ const KnowledgeCard = ({
           sx={{
             width: 48,
             height: 48,
-            background: '#F1F3F5',
+            bgcolor: 'grey.50',
             borderRadius: 1,
 
             img: {
@@ -389,7 +391,7 @@ const KnowledgeCard = ({
           gap: 1.25,
           alignItems: 'center',
           mt: 2.5,
-          color: '#9CA3AF',
+          color: 'text.secondary',
         }}>
         <Stack
           direction="row"
@@ -587,7 +589,7 @@ const SelectKnowledgeModal = (
                       height={327}
                       sx={{
                         border: '1px solid transparent',
-                        borderColor: selectedKnowledge[key] ? '#3B82F6' : 'transparent',
+                        borderColor: selectedKnowledge[key] ? 'info.main' : 'transparent',
                       }}>
                       <KnowledgeCard
                         disabled={disabled[key]}
@@ -677,12 +679,11 @@ const CardContainer = styled(Box)`
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 1px solid;
+  border-color: ${({ theme }) => theme.palette.divider};
   border-radius: 8px;
   overflow: hidden;
-  box-shadow:
-    0px 0px 0px 1px rgba(3, 7, 18, 0.08),
-    0px 1px 2px -1px rgba(3, 7, 18, 0.08),
-    0px 2px 4px 0px rgba(3, 7, 18, 0.04);
+  box-shadow: ${({ theme }) => theme.shadows[1]};
 `;
 
 const CreateKnowledgeContainer = styled(CardContainer)`
@@ -713,7 +714,7 @@ const CreateKnowledgeContainer = styled(CardContainer)`
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, ${({ theme }) => theme.palette.background.default} 50%);
     z-index: 2;
   }
 

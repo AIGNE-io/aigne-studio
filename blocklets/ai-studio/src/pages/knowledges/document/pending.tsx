@@ -18,7 +18,7 @@ const Container = styled(Box)`
     width: 2px;
     height: 2px;
     margin: 0 1px;
-    background-color: #030712;
+    background-color: ${({ theme }) => theme.palette.text.primary};
     border-radius: 50%;
     opacity: 0;
     animation: fade 1.2s infinite;

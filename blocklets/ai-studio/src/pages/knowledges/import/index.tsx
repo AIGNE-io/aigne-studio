@@ -359,9 +359,10 @@ const SourceTypeSelect = ({ value, onChange, options }: SourceTypeSelectProps) =
           disabled={option.disabled}
           startIcon={option.icon ?? null}
           sx={{
-            border: value === option.id ? '1px solid #3B82F6' : undefined,
-            color: value === option.id ? '#3B82F6' : undefined,
-            bgcolor: value === option.id ? '#EFF6FF' : undefined,
+            border: value === option.id ? '1px solid' : undefined,
+            borderColor: value === option.id ? 'primary.main' : 'divider',
+            color: value === option.id ? 'primary.main' : 'text.primary',
+            bgcolor: value === option.id ? 'grey.50' : undefined,
 
             '.MuiButton-startIcon': {
               mr: 0.5,
@@ -398,8 +399,9 @@ export const FileView = ({
       <Box
         ref={ref}
         sx={{
-          bgcolor: '#F9FAFB',
-          border: isDraggingOver ? '1px dashed #007bff' : '1px dashed #EFF1F5',
+          bgcolor: 'grey.50',
+          border: isDraggingOver ? '1px dashed' : '1px dashed',
+          borderColor: isDraggingOver ? 'info.main' : 'divider',
           borderRadius: 1,
           height: 400,
           display: 'flex',
@@ -421,7 +423,7 @@ export const FileView = ({
             display: 'flex',
             alignItems: 'center',
             gap: 1,
-            color: '#4B5563',
+            color: 'text.secondary',
           }}>
           <Box component={Icon} icon={ArrowBarToUpIcon} />
           <Typography sx={{ fontWeight: 500 }}>{t('knowledge.importKnowledge.fileImport')}</Typography>
@@ -438,10 +440,11 @@ export const FileView = ({
             gap: 1,
             justifyContent: 'space-between',
             alignItems: 'center',
-            border: '1px solid rgba(6,7,9, 0.10)',
+            border: '1px solid',
+            borderColor: 'divider',
             p: '8px 10px',
             overflow: 'hidden',
-            background: '#fff',
+            bgcolor: 'background.default',
             borderRadius: '8px',
             mt: 2,
           }}>
@@ -453,13 +456,13 @@ export const FileView = ({
             }}>
             <DocumentIcon document={{ name: fileName, type: 'file' } as DatasetDocument} />
             <Box>
-              <Box sx={{ color: 'rgba(6, 7, 9, 0.8)', fontSize: 14 }}>{fileName}</Box>
-              <Box sx={{ color: 'rgba(6, 7, 9, 0.5)', fontSize: 12 }}>{bytes(size ?? 0)}</Box>
+              <Box sx={{ color: 'text.primary', fontSize: 14 }}>{fileName}</Box>
+              <Box sx={{ color: 'text.secondary', fontSize: 12 }}>{bytes(size ?? 0)}</Box>
             </Box>
           </Stack>
 
           <IconButton size="small" onClick={() => onChange(undefined)}>
-            <Box component={Icon} icon={TrashIcon} sx={{ color: 'rgba(6, 7, 9, 0.5)', fontSize: 14 }} />
+            <Box component={Icon} icon={TrashIcon} sx={{ color: 'text.secondary', fontSize: 14 }} />
           </IconButton>
         </Stack>
       )}
@@ -490,7 +493,7 @@ const CustomView = ({
         <Box
           component="label"
           sx={{
-            color: '#111827',
+            color: 'text.primary',
             fontSize: '14px',
             fontWeight: 500,
           }}>
@@ -508,7 +511,7 @@ const CustomView = ({
         <Box
           component="label"
           sx={{
-            color: '#111827',
+            color: 'text.primary',
             fontSize: '14px',
             fontWeight: 500,
           }}>
@@ -563,7 +566,7 @@ const CrawlView = ({
         <Typography
           component="label"
           sx={{
-            color: '#111827',
+            color: 'text.primary',
             fontSize: '14px',
             fontWeight: 500,
             display: 'block',
@@ -577,9 +580,10 @@ const CrawlView = ({
               variant="outlined"
               onClick={() => onProviderChange(item.id as 'jina' | 'firecrawl')}
               sx={{
-                border: provider === item.id ? '1px solid #3B82F6' : undefined,
-                color: provider === item.id ? '#3B82F6' : undefined,
-                bgcolor: provider === item.id ? '#EFF6FF' : undefined,
+                border: provider === item.id ? '1px solid' : undefined,
+                borderColor: 'divider',
+                color: provider === item.id ? 'primary.main' : 'text.primary',
+                bgcolor: provider === item.id ? 'grey.50' : undefined,
               }}>
               {item.label}
             </Button>
@@ -590,7 +594,7 @@ const CrawlView = ({
         <Typography
           component="label"
           sx={{
-            color: '#111827',
+            color: 'text.primary',
             fontSize: '14px',
             fontWeight: 500,
             display: 'block',
@@ -617,7 +621,8 @@ const CrawlView = ({
             }}
             sx={{
               '.MuiOutlinedInput-root': {
-                border: loading || data?.[provider as 'jina' | 'firecrawl'] ? undefined : '1px solid #E11D48',
+                border: loading || data?.[provider as 'jina' | 'firecrawl'] ? undefined : '1px solid',
+                borderColor: 'error.main',
               },
             }}
           />
@@ -627,9 +632,9 @@ const CrawlView = ({
   );
 };
 
-const StyledTextField = styled(TextField)({
+const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.palette.grey[50],
     borderRadius: '8px',
     gap: '6px',
     width: '100%',
@@ -637,14 +642,14 @@ const StyledTextField = styled(TextField)({
     paddingLeft: '6px',
 
     '& fieldset': {
-      borderColor: '#EFF1F5',
+      borderColor: theme.palette.divider,
       borderWidth: '1px',
     },
     '&:hover fieldset': {
-      borderColor: '#EFF1F5',
+      borderColor: theme.palette.divider,
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#EFF1F5',
+      borderColor: theme.palette.divider,
     },
   },
   '& .MuiInputBase-input': {
@@ -654,7 +659,7 @@ const StyledTextField = styled(TextField)({
   '& .MuiInputBase-multiline': {
     padding: '9px 6px !important',
   },
-});
+}));
 
 const UploaderDialogContent = styled(DialogContent)`
   .uploader-container {
@@ -663,14 +668,14 @@ const UploaderDialogContent = styled(DialogContent)`
 
   .uppy-Dashboard-inner {
     width: 100% !important;
-    background: #f9fafb;
-    border-color: #eff1f5;
+    background: ${({ theme }) => theme.palette.grey[50]};
+    border-color: ${({ theme }) => theme.palette.divider};
 
     .uppy-Dashboard-AddFiles {
       border: 0;
 
       .uppy-Dashboard-AddFiles-title {
-        color: #4b5563;
+        color: ${({ theme }) => theme.palette.text.secondary};
         font-size: 16px;
       }
 
@@ -686,7 +691,7 @@ const UploaderDialogContent = styled(DialogContent)`
   }
 
   .uppy-Dashboard-note {
-    color: #9ca3af;
+    color: ${({ theme }) => theme.palette.text.secondary};
     font-size: 13px;
   }
 `;

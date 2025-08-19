@@ -188,7 +188,7 @@ function PricingTablePlan({ plan, billingCycle = undefined }: { plan: Plan; bill
               sx={{
                 width: 1,
                 py: 0.75,
-                ...(!plan.isFeatured && { bgcolor: '#fff' }),
+                ...(!plan.isFeatured && { bgcolor: 'background.default' }),
               }}
               onClick={() => {
                 window.open(link, '_blank');

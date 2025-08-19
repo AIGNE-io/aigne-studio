@@ -69,7 +69,7 @@ export default function DebugView({
         <Typography
           variant="subtitle3"
           sx={{
-            color: '#9CA3AF',
+            color: 'text.secondary',
           }}>
           {t('testCaseCount', { count: tests.length })}{' '}
         </Typography>
@@ -264,8 +264,9 @@ const TestCaseView = ({
       <Box
         data-testid="test-case-view-body"
         sx={{
-          border: '1px solid #E5E7EB',
-          background: '#F9FAFB',
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'grey.50',
           borderRadius: 1,
           whiteSpace: 'pre-wrap',
           p: 1.5,
@@ -274,11 +275,12 @@ const TestCaseView = ({
           <Box
             key={key}
             sx={{
-              background: '#fff',
+              bgcolor: 'background.default',
               p: '6px 12px',
               borderRadius: 1,
               mb: 1,
-              border: '1px solid #E5E7EB',
+              border: '1px solid',
+              borderColor: 'divider',
             }}>
             <Typography variant="subtitle3">{`${key}: ${value}`}</Typography>
           </Box>

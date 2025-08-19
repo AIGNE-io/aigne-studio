@@ -132,7 +132,10 @@ function MoreItemView({ list, onMore }: { list: GoogleSearchSourcesViewPropValue
           })}
         </Box>
 
-        <Typography variant="caption" noWrap sx={{ width: 1, color: '#546C70', fontSize: 12, lineHeight: '18px' }}>
+        <Typography
+          variant="caption"
+          noWrap
+          sx={{ width: 1, color: 'text.secondary', fontSize: 12, lineHeight: '18px' }}>
           {`View ${current.length} more`}
         </Typography>
       </Stack>

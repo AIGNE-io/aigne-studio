@@ -81,8 +81,9 @@ export default function SaveButton({
               minHeight: 0,
               width: 32,
               height: 32,
-              border: '1px solid #E5E7EB',
-              color: '#030712',
+              border: '1px solid',
+              borderColor: 'divider',
+              color: 'text.primary',
             }}>
             <Box
               component={Icon}
@@ -289,7 +290,7 @@ export function SaveButtonDialog({
                   target="_blank"
                   rel="noopener noreferrer"
                   size="small"
-                  sx={{ color: 'white' }}>
+                  sx={{ color: 'common.white', borderColor: 'common.white' }}>
                   {/* @ts-ignore */}
                   {t('viewData')}
                 </Button>
@@ -393,7 +394,9 @@ export function SaveButtonDialog({
                 disabled={readOnly}
                 type="submit"
                 variant="contained"
-                startIcon={<Box component={Icon} icon={FloppyIcon} sx={{ fontSize: 20, color: '#fff' }} />}
+                startIcon={
+                  <Box component={Icon} icon={FloppyIcon} sx={{ fontSize: 20, color: 'primary.contrastText' }} />
+                }
                 loadingPosition="start"
                 loading={form.formState.isSubmitting}>
                 {t('save')}

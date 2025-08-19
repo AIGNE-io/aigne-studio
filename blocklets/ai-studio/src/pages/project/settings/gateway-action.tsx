@@ -64,7 +64,7 @@ function GatewayAction({
                         target="_blank"
                         rel="noopener noreferrer"
                         size="small"
-                        sx={{ color: 'white' }}>
+                        sx={{ color: 'common.white', borderColor: 'common.white' }}>
                         {/* @ts-ignore */}
                         {t('viewData')}
                       </Button>
@@ -87,7 +87,7 @@ function GatewayAction({
             <Typography
               variant="caption"
               sx={{
-                color: '#9CA3AF',
+                color: 'text.secondary',
               }}>
               {/* @ts-ignore */}
               <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />

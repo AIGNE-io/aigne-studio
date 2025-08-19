@@ -1,5 +1,4 @@
-import styled from '@emotion/styled';
-import { Box } from '@mui/material';
+import { Box, alpha, styled } from '@mui/material';
 
 function Pin() {
   return <Container>📌</Container>;
@@ -17,8 +16,8 @@ const Container = styled(Box)`
   height: 20px;
   border-radius: 6px;
   font-size: 8px;
-  color: rgb(158, 158, 158);
+  color: ${({ theme }) => theme.palette.text.secondary};
   cursor: pointer;
-  background-color: rgb(251, 220, 220);
-  border: 1px solid rgb(247, 185, 185);
+  background-color: ${({ theme }) => alpha(theme.palette.error.light, 0.8)};
+  border: 1px solid ${({ theme }) => theme.palette.error.light};
 `;

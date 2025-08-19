@@ -28,6 +28,7 @@ import {
   TabProps,
   Tabs,
   TabsProps,
+  createTheme,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
@@ -61,7 +62,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
 
   return (
     <DebugDialogProvider>
-      <ThemeProvider theme={agentViewTheme}>
+      <ThemeProvider theme={(parentTheme) => createTheme(parentTheme, agentViewTheme)}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
           <DebugProvider>
             <RuntimeDebug aid={aid} ApiProps={apiProps} />

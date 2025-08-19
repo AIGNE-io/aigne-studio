@@ -18,6 +18,8 @@ import {
   switchClasses,
 } from '@mui/material';
 
+console.log('filledInputClasses.root: ', filledInputClasses.root);
+
 function SelectIcon(props: BoxProps) {
   return <Box {...props} component={Icon} icon={ChevronDownIcon} />;
 }
@@ -214,8 +216,9 @@ export const theme: ThemeOptions = {
               },
               // filled
               [`.${filledInputClasses.root}`]: {
-                ':before,:after': { display: 'none' },
-
+                '&::before, &::after': {
+                  display: 'none',
+                },
                 [`.${inputBaseClasses.input}`]: {
                   pb: 0.5,
                   pt: ownerState?.label ? 2 : 0.5,
@@ -283,6 +286,16 @@ export const theme: ThemeOptions = {
         },
       ],
     },
+    MuiTableCell: {
+      styleOverrides: {
+        head: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+        body: ({ theme }) => ({
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
     MuiInput: {
       defaultProps: { disableUnderline: true },
       variants: [
@@ -310,16 +323,16 @@ export const theme: ThemeOptions = {
     },
     MuiFilledInput: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           fontSize: '0.875rem',
-          backgroundColor: 'rgba(0, 0, 0, 0.03)',
+          backgroundColor: theme.palette.grey[100],
           '&:hover': {
-            backgroundColor: 'rgb(0, 0, 0, 0.06)',
+            backgroundColor: theme.palette.grey[200],
             '@media (hover: none)': {
-              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+              backgroundColor: theme.palette.grey[100],
             },
           },
-        },
+        }),
       },
     },
     MuiSelect: {
@@ -464,18 +477,18 @@ export const theme: ThemeOptions = {
     },
     MuiDialogTitle: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           padding: '16px 24px',
-          borderBottom: '1px solid #E5E7EB',
-        },
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }),
       },
     },
     MuiDialogActions: {
       styleOverrides: {
-        root: {
-          borderTop: '1px solid #E5E7EB',
+        root: ({ theme }) => ({
+          borderTop: `1px solid ${theme.palette.divider}`,
           padding: '16px 24px',
-        },
+        }),
       },
     },
     MuiDialogContent: {
@@ -490,30 +503,23 @@ export const theme: ThemeOptions = {
         size: 'small',
       },
       styleOverrides: {
-        contained: {
-          backgroundColor: '#030712',
-          color: 'white',
+        contained: ({ theme }) => ({
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
 
           '&:hover': {
-            backgroundColor: '#030712',
+            backgroundColor: theme.palette.primary.main,
           },
 
           [`&.${buttonClasses.loading}`]: {
-            color: 'grey',
+            color: theme.palette.text.disabled,
           },
-        },
-        outlined: {
-          bgcolor: '#fff',
-          color: '#000',
-          border: '1px solid #E5E7EB',
+        }),
+        outlined: () => ({
           fontSize: '13px',
           fontWeight: 500,
           padding: '5px 12px',
-
-          '&:hover': {
-            border: '1px solid #E5E7EB',
-          },
-        },
+        }),
       },
     },
   },

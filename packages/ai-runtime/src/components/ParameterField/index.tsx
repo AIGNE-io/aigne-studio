@@ -1,4 +1,4 @@
-import { TextFieldProps } from '@mui/material';
+import { TextFieldProps, useTheme } from '@mui/material';
 
 import UploaderProvider from '../../context/uploader';
 import VerifyVC from '../../front/components/AgentInputField/VerifyVC';
@@ -18,6 +18,10 @@ export default function ParameterField({
   parameter: Parameter;
   onChange: (value: string | number | undefined) => void;
 } & Omit<TextFieldProps, 'onChange'>) {
+  const theme = useTheme();
+
+  console.log('theme: ', theme);
+
   if (parameter.type === 'source') {
     if (parameter.source?.variableFrom === 'secret') {
       return (

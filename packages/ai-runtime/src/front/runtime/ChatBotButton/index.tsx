@@ -155,6 +155,8 @@ function ChatBotPopper({
   children: ReactNode;
   onClose: () => void;
 }) {
+  const theme = useTheme();
+
   return (
     <Popper
       anchorEl={anchorEl}
@@ -182,7 +184,7 @@ function ChatBotPopper({
                 height: '100%',
                 boxShadow: 1,
                 position: 'relative',
-                background: 'white',
+                background: theme.palette.background.default,
                 borderRadius: 1,
               }}>
               <Stack
@@ -201,7 +203,7 @@ function ChatBotPopper({
                 <ChatMenuButton />
 
                 <Button sx={{ minWidth: 28, minHeight: 28, p: 0 }} onClick={onClose}>
-                  <Icon icon="tabler:x" fontSize={24} color="rgba(75, 85, 99, 1)" />
+                  <Icon icon="tabler:x" fontSize={24} color={theme.palette.text.secondary} />
                 </Button>
               </Stack>
 

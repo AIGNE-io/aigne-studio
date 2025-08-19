@@ -1,5 +1,5 @@
 import { cx } from '@emotion/css';
-import { Box, BoxProps, Stack } from '@mui/material';
+import { Box, BoxProps, Stack, alpha } from '@mui/material';
 import { Suspense, memo } from 'react';
 
 import { getAssetUrl } from '../../api/asset';
@@ -120,7 +120,7 @@ export function MessageBodyContainer({
               py: 1,
               marginTop: 0.5,
               maxWidth: hideUserMessage ? 'unset' : 'calc(100% - 40px)',
-              bgcolor: 'rgba(255, 255, 255, 0.8)',
+              bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
               backdropFilter: 'blur(16px)',
               '@supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)))': {
                 bgcolor: (theme) => theme.palette.background.paper,

@@ -127,13 +127,13 @@ export function PlanUpgrade() {
                   width: 80,
                   border: 0,
                   fontWeight: 'bold',
-                  bgcolor: '#fff',
+                  bgcolor: 'background.default',
                 },
                 '.MuiToggleButtonGroup-grouped.Mui-selected': {
-                  bgcolor: '#000',
-                  color: '#fff',
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
                   '&:hover': {
-                    bgcolor: '#000',
+                    bgcolor: 'primary.main',
                   },
                 },
               }}>

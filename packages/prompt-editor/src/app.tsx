@@ -9,6 +9,7 @@ import Editor from './editor';
 import PromptEditorNodes from './nodes/prompt-editor-nodes';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import VariablePickerPlugin from './plugins/VariablePickerPlugin';
+import PromptEditorStyles from './themes/prompt-editor-styles';
 import PromptEditorEditorTheme from './themes/prompt-editor-theme';
 import { LexicalContentEditableProps } from './ui/content-editable';
 
@@ -71,6 +72,7 @@ export default function PromptEditor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
+      <PromptEditorStyles />
       <EditorShell
         useVariableNode={useVariableNode}
         autoFocus={autoFocus}

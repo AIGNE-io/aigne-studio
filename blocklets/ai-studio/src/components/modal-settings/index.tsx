@@ -116,7 +116,7 @@ export function ModelSetting({
             value.executeModel!.model = e.target.value;
           }}
           InputProps={{ readOnly }}
-          sx={{ border: '1px solid #E5E7EB' }}
+          sx={{ border: '1px solid', borderColor: 'divider' }}
         />
       </WithAwareness>
       {model && (

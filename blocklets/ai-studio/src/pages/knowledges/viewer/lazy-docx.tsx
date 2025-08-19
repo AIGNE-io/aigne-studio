@@ -52,7 +52,7 @@ function ObjectLazyDocxViewer({ url }: { url: string }) {
       ref={containerRef}
       sx={{
         '.docx-wrapper': {
-          background: 'rgb(251, 251, 251)',
+          bgcolor: 'grey.50',
         },
       }}>
       <Suspense fallback={null}>

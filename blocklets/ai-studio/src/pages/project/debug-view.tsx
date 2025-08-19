@@ -148,7 +148,7 @@ function DebugViewContent({
             overflow: 'hidden',
           }}>
           <Tooltip title={t('clearSession')} placement="bottom-end">
-            <IconButton size="small" sx={{ color: '#000000' }} onClick={clearCurrentSession}>
+            <IconButton size="small" sx={{ color: 'text.primary' }} onClick={clearCurrentSession}>
               <Box
                 component={Icon}
                 icon={HistoryIcon}
@@ -163,7 +163,7 @@ function DebugViewContent({
             <IconButton
               data-testid="session-delete-button"
               size="small"
-              sx={{ color: '#E11D48' }}
+              sx={{ color: 'error.main' }}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteSession(currentSession.index);
@@ -185,7 +185,8 @@ function DebugViewContent({
           gap: 1.5,
           bgcolor: 'background.paper',
           p: '12px 20px',
-          borderTop: '1px solid #E5E7EB',
+          borderTop: '1px solid',
+          borderColor: 'divider',
         }}>
         {currentSession.chatType === 'chat' ? (
           <ChatModeForm projectId={projectId} gitRef={gitRef} assistant={assistant} />
@@ -270,12 +271,12 @@ function ScrollMessages({
 
   return (
     <Box
-      style={{
+      sx={{
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
-        background: '#F9FAFB',
+        bgcolor: 'grey.50',
       }}>
       <Box
         ref={viewportRef}
@@ -316,7 +317,7 @@ function ScrollMessages({
           }}
           className="center"
           sx={{
-            bgcolor: 'rgba(0, 0, 0, 0.2)',
+            bgcolor: 'grey.50',
             borderRadius: '24px',
             borderWidth: 0,
             bottom: 5,
@@ -326,7 +327,7 @@ function ScrollMessages({
             position: 'absolute',
             right: 20,
           }}>
-          <Box component={Icon} icon={ChevronDownIcon} sx={{ fontSize: 15, color: '#9CA3AF' }} />
+          <Box component={Icon} icon={ChevronDownIcon} sx={{ fontSize: 15, color: 'text.secondary' }} />
         </Box>
       )}
     </Box>
@@ -590,14 +591,14 @@ const MessageViewContent = styled(Box)`
       padding: 0;
       height: 24px;
       width: 22px;
-      color: rgba(0, 0, 0, 0.4);
+      color: ${({ theme }) => theme.palette.text.secondary};
     }
   }
 
   &:hover {
     > .actions {
       opacity: 1;
-      background-color: rgba(240, 240, 240, 0.9);
+      background-color: ${({ theme }) => theme.palette.grey[50]};
     }
   }
 `;
@@ -701,7 +702,7 @@ function ChatModeForm({
             submit();
           }
         }}
-        sx={{ border: '1px solid #E5E7EB', borderRadius: 1 }}
+        sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
       />
       <Tooltip title={lastMessage?.loading ? t('stop') : t('send')} placement="top">
         <LoadingButton
@@ -710,10 +711,10 @@ function ChatModeForm({
           sx={{
             px: 2,
             whiteSpace: 'nowrap',
-            background: '#030712',
-            color: '#fff',
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
             '&:hover': {
-              background: '#030712',
+              bgcolor: 'primary.main',
             },
           }}
           loading={lastMessage?.loading}
@@ -959,24 +960,22 @@ function DebugModeForm({
             sx={{
               gap: 1,
             }}>
-            <Button variant="outlined" onClick={addToTest} sx={{ borderColor: '#E5E7EB', color: '#030712' }}>
-              {t('addToTest')}
+            <Button variant="outlined" onClick={addToTest} sx={{ borderColor: 'divider', color: 'text.primary' }}>
+              {t('addToTest')} 123
             </Button>
-
             <Box
               sx={{
                 flex: 1,
               }}
             />
-
             <LoadingButton
               type="submit"
               variant="contained"
               sx={{
-                background: '#030712',
-                color: '#fff',
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
                 '&:hover': {
-                  background: '#030712',
+                  bgcolor: 'primary.main',
                 },
               }}
               disabled={!form.formState.isValid}
@@ -1043,6 +1042,7 @@ export const WritingIndicator = styled('span')`
 `;
 
 const CustomAccordion = styled(Accordion)(() => ({
+  boxShadow: 'none',
   '& .MuiAccordionSummary-root': {
     padding: 0,
   },

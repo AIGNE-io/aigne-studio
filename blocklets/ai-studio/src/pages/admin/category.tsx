@@ -37,12 +37,12 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
 import { joinURL } from 'ufo';
 
-const StyledListItem = styled(ListItem)(() => ({
+const StyledListItem = styled(ListItem)(({ theme }) => ({
   borderRadius: '8px',
   marginBottom: '8px',
-  backgroundColor: '#f5f5f5',
+  backgroundColor: theme.palette.grey[50],
   '&:hover': {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.palette.grey[100],
   },
 }));
 
@@ -104,7 +104,9 @@ function CategoryList() {
           mt: 2.5,
           mb: 1.5,
         }}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('category.title')}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: 'text.primary' }}>
+          {t('category.title')}
+        </Box>
         <Button
           data-testid="add-category-button"
           variant="contained"
@@ -196,7 +198,7 @@ function CategoryList() {
                                   fontWeight: 500,
                                   fontSize: 16,
                                   lineHeight: '28px',
-                                  color: '#4B5563',
+                                  color: 'text.secondary',
                                 }}>
                                 {t('category.deleteDescription')}
                               </Typography>

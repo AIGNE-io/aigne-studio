@@ -1,5 +1,5 @@
 import { ChatCompletionInput } from '@blocklet/aigne-hub/api/types/chat';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Typography, styled } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Typography, alpha, styled } from '@mui/material';
 import { GridExpandMoreIcon } from '@mui/x-data-grid';
 import { ReactNode } from 'react';
 
@@ -51,8 +51,7 @@ export function PromptMessagesComponent({ value }: { value: ChatCompletionInput[
       key={index}>
       <AccordionSummary
         sx={{
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, .05)' : 'rgba(0, 0, 0, .03)',
+          backgroundColor: (theme) => alpha(theme.palette.background.default, 0.05),
           minHeight: 28,
           '& .MuiAccordionSummary-content': {
             my: 0,

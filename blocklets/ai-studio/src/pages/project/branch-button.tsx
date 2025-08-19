@@ -103,7 +103,7 @@ export default function BranchButton({
                     border: 0,
                   },
                   '.save': {
-                    background: '#d32f2f',
+                    bgcolor: 'error.main',
                   },
                 },
                 maxWidth: 'sm',
@@ -120,7 +120,7 @@ export default function BranchButton({
                         fontWeight: 500,
                         fontSize: 16,
                         lineHeight: '28px',
-                        color: '#4B5563',
+                        color: 'text.secondary',
                       }}>
                       This will permanently delete this branch
                     </Typography>
@@ -200,13 +200,13 @@ export default function BranchButton({
             icon={ArrowRightIcon}
             sx={{
               width: 15,
-              color: '#9CA3AF',
+              color: 'text.secondary',
             }}
           />
           <Typography
             variant="subtitle3"
             sx={{
-              color: '#9CA3AF',
+              color: 'text.secondary',
               lineHeight: 1,
             }}>
             {gitRef}
@@ -216,7 +216,7 @@ export default function BranchButton({
             icon={ArrowDownIcon}
             sx={{
               width: 15,
-              color: '#030712',
+              color: 'text.primary',
             }}
           />
         </Stack>
@@ -289,14 +289,14 @@ function BranchList({
         </MenuItem>
       ))}
       <Divider sx={{ m: '0 !important' }} />
-      <MenuItem onClick={onCreate} sx={{ color: '#3B82F6' }}>
+      <MenuItem onClick={onCreate} sx={{ color: 'info.main' }}>
         <Box
           component={Icon}
           icon={ArrowLeftIcon}
           sx={{
             mr: 1,
             width: 15,
-            color: "'#3B82F6'",
+            color: 'info.main',
           }}
         />
         {t('newObject', { object: t('branch') })}
@@ -312,20 +312,20 @@ function BranchList({
               sx={{
                 mr: 1,
                 width: 15,
-                color: '#030712',
+                color: 'text.primary',
               }}
             />
             {t('rename')}
           </MenuItem>
 
-          <MenuItem onClick={onDelete} sx={{ color: '#E11D48' }}>
+          <MenuItem onClick={onDelete} sx={{ color: 'error.main' }}>
             <Box
               component={Icon}
               icon={TrashIcon}
               sx={{
                 mr: 1,
                 width: 15,
-                color: '#E11D48',
+                color: 'error.main',
               }}
             />
             {t('delete')}

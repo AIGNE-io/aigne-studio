@@ -169,7 +169,7 @@ function ToolItemView({
                 component={Icon}
                 icon={PlusIcon}
                 sx={{
-                  color: '#3B82F6',
+                  color: 'info.main',
                   fontSize: 16,
                 }}
               />
@@ -177,7 +177,15 @@ function ToolItemView({
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
                 <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                  <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                  <Paper
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      maxWidth: 450,
+                      maxHeight: '80vh',
+                      overflow: 'auto',
+                      mt: 1,
+                    }}>
                     <ClickAwayListener
                       onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
                       <Box>
@@ -656,7 +664,7 @@ function ToolItemView({
           </Box>
         )}
       </Stack>
-      <Divider sx={{ borderColor: '#DDD6FE' }} />
+      <Divider />
       <Stack
         sx={{
           m: 1.5,

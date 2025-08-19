@@ -137,7 +137,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               })}
               error={Boolean(form.formState.errors.url)}
               helperText={form.formState.errors.url?.message}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
               slotProps={{
                 input: {
                   readOnly: true,
@@ -157,7 +157,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               {...form.register('username')}
               error={Boolean(form.formState.errors.username)}
               helperText={form.formState.errors.username?.message}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
               slotProps={{
                 inputLabel: { shrink: form.watch('username') ? true : undefined },
               }}
@@ -189,7 +189,9 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
                 )
               }
               type={showPassword ? 'text' : 'password'}
-              sx={{ '.MuiInputBase-root': { width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' } }}
+              sx={{
+                '.MuiInputBase-root': { width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' },
+              }}
               slotProps={{
                 input: {
                   readOnly: true,
@@ -222,7 +224,7 @@ export default function ImportFromGit({ onClose }: { onClose: () => void }) {
               maxRows={3}
               placeholder={t('newProjectDescriptionPlaceholder')}
               {...form.register('description')}
-              sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+              sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
               slotProps={{
                 input: {
                   readOnly: true,

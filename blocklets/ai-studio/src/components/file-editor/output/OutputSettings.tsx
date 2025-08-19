@@ -77,7 +77,7 @@ export default function OutputSettings({
   }, [value]);
 
   return (
-    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
+    <Box sx={{ bgcolor: 'grey.50', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
       <Stack
         direction="row"
         sx={{
@@ -106,7 +106,15 @@ export default function OutputSettings({
           </Typography>
         </Box>
       </Stack>
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRadius: 1,
+          py: 1,
+          overflow: 'auto',
+        }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -122,7 +130,7 @@ export default function OutputSettings({
                 borderTop: 1,
                 borderColor: 'divider',
               },
-              'tr:not(.group-header):hover td': { bgcolor: 'rgba(0, 0, 0, 0.02)' },
+              'tr:not(.group-header):hover td': { bgcolor: 'action.hover' },
               'th,td': {
                 borderBottom: 0,
                 py: 0,
@@ -191,7 +199,7 @@ export default function OutputSettings({
                             top: '50%',
                             transform: 'translateY(-50%)',
                           }}>
-                          <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                          <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.400', fontSize: 14 }} />
                         </Stack>
                       }
                       sx={{

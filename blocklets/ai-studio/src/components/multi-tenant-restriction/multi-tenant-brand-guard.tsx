@@ -32,7 +32,7 @@ export function MultiTenantBrandGuard({
       position: 'relative',
       height: '100%',
       pb: `${bottomHeight}px`,
-      bgcolor: '#f0eee6',
+      bgcolor: 'grey.50',
 
       ...(!aigneBannerVisible && {
         p: 0,
@@ -58,7 +58,7 @@ export function MultiTenantBrandGuard({
           sx={{
             height: '100%',
             overflow: 'hidden',
-            bgcolor: '#fff',
+            bgcolor: 'background.default',
           }}>
           <Box
             sx={{
@@ -81,7 +81,7 @@ export function MultiTenantBrandGuard({
             right: 0,
             height: bottomHeight,
             p: 2,
-            bgcolor: '#f0eee6',
+            bgcolor: 'grey.50',
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

@@ -53,7 +53,7 @@ export default function OutputFormatCell({
                   border: 0,
                 },
                 '.save': {
-                  background: '#d32f2f',
+                  bgcolor: 'error.main',
                 },
               },
               maxWidth: 'sm',
@@ -66,7 +66,7 @@ export default function OutputFormatCell({
                       fontWeight: 500,
                       fontSize: 16,
                       lineHeight: "28px",
-                      color: "#4B5563"
+                      color: "text.secondary"
                     }}>
                     {t('outputVariableParameter.change')}
                   </Typography>

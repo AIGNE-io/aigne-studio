@@ -43,7 +43,8 @@ function InternalModelSelectLite({
           <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
             <Paper
               sx={{
-                border: '1px solid #ddd',
+                border: '1px solid',
+                borderColor: 'divider',
                 height: '100%',
                 overflow: 'auto',
                 mt: 1,
@@ -73,7 +74,7 @@ function InternalModelSelectLite({
                             cursor: 'pointer',
                             borderRadius: 0.5,
                             ...(isSelected && { bgcolor: 'action.selected' }),
-                            ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
+                            ...(!isSelected && { '&:hover': { bgcolor: 'grey.100' } }),
                           }}>
                           <Stack
                             direction="row"

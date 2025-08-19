@@ -121,7 +121,7 @@ function MarkdownPre({ children = undefined, ...props }: { children?: ReactNode 
       sx={{
         fontSize: 14,
         borderRadius: 1,
-        bgcolor: 'rgb(245, 242, 240)',
+        bgcolor: 'background.default',
         '> pre': { mt: '0 !important' },
       }}>
       <Stack
@@ -131,7 +131,7 @@ function MarkdownPre({ children = undefined, ...props }: { children?: ReactNode 
           p: 0.5,
           pl: 1.5,
           borderBottom: 1,
-          borderColor: 'grey.200',
+          borderColor: 'divider',
         }}>
         <Box>{language}</Box>
 
@@ -158,7 +158,7 @@ function MarkdownPre({ children = undefined, ...props }: { children?: ReactNode 
           component={ReactSyntaxHighlighter}
           language={match?.[1]}
           {...props}
-          sx={{ borderRadius: 1, bgcolor: 'red' }}>
+          sx={{ borderRadius: 1, bgcolor: 'error.main' }}>
           {String(childrenProps.children).replace(/\n$/, '')}
         </Box>
       </Suspense>

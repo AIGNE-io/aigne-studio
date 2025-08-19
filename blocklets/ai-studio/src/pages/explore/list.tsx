@@ -75,7 +75,7 @@ function CategoryCard({
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              color: '#030712',
+              color: 'text.primary',
               fontWeight: 500,
               fontSize: 16,
               lineHeight: '24px',

@@ -10,7 +10,7 @@ import { ThemeProvider } from '@arcblock/ux/lib/Theme';
 import { getAgentByDeploymentId } from '@blocklet/aigne-sdk/api/agent';
 import AgentView from '@blocklet/aigne-sdk/components/AgentView';
 import { ScrollView } from '@blocklet/aigne-sdk/components/ai-runtime';
-import { Box, CircularProgress, Container, Stack } from '@mui/material';
+import { Box, CircularProgress, Container, Stack, createTheme } from '@mui/material';
 import { useRequest } from 'ahooks';
 import { Suspense, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
@@ -47,7 +47,7 @@ export default function AppPage() {
   };
 
   return (
-    <ThemeProvider theme={agentViewTheme}>
+    <ThemeProvider theme={(parentTheme) => createTheme(parentTheme, agentViewTheme)}>
       <MultiTenantBrandGuard deployment={data?.deployment} project={data?.project}>
         <ScrollView component={Stack} scroll="element" initialScrollBehavior="auto">
           <Suspense fallback={<Loading />}>

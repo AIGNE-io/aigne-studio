@@ -291,7 +291,7 @@ const PopperButton = ({
             sx: { minWidth: 0, p: 0.5, ml: -0.5 },
             ...bindTrigger(parameterSettingPopperState),
             disabled,
-            children: <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />,
+            children: <Box component={Icon} icon={DotsIcon} sx={{ color: 'info.main' }} />,
           }}
           PopperProps={{ placement: 'bottom-end' }}>
           <MenuItem disabled={Boolean(output.from?.type === 'output')} onClick={() => (output.hidden = !output.hidden)}>

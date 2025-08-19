@@ -3,6 +3,7 @@ import { join } from 'path';
 /* eslint-disable import/no-extraneous-dependencies */
 import replace from '@rollup/plugin-replace';
 import react from '@vitejs/plugin-react';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
 import { defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
@@ -50,7 +51,32 @@ if (arcblockUxBasePath) {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const plugins = [
+    tsconfigPaths(),
+    react(),
+    createBlockletPlugin({
+      // disableEmbed: true,
+      embeds: {
+        'open-embed/agent-call': 'src/open-embed/agent-call.ts',
+        'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
+      },
+      embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
+      embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
+      // 并发打包 embed 的数量
+      embedBuildConcurrency: 3,
+    }),
+    svgr(),
+  ];
+
+  if (mode === 'development') {
+    plugins.push(
+      codeInspectorPlugin({
+        bundler: 'vite',
+      })
+    );
+  }
+
   return {
     optimizeDeps: {
       // force: true,
@@ -61,22 +87,7 @@ export default defineConfig(() => {
       ],
     },
     resolve: { alias },
-    plugins: [
-      tsconfigPaths(),
-      react(),
-      createBlockletPlugin({
-        // disableEmbed: true,
-        embeds: {
-          'open-embed/agent-call': 'src/open-embed/agent-call.ts',
-          'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
-        },
-        embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
-        embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
-        // 并发打包 embed 的数量
-        embedBuildConcurrency: 3,
-      }),
-      svgr(),
-    ],
+    plugins,
     server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
     build: {
       rollupOptions: {

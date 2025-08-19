@@ -60,12 +60,13 @@ return {
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF',
+        bgcolor: 'grey.50',
       }}>
       <Box
         key={`${projectId}-${gitRef}-${value.id}`}
         sx={{
-          border: '1px solid #3B82F6',
+          border: '1px solid',
+          borderColor: 'info.main',
           borderRadius: 1,
           bgcolor: 'background.paper',
           minHeight: '300px',

@@ -15,6 +15,7 @@ import {
   ThemeProvider,
   Tooltip,
   Typography,
+  alpha,
   createTheme,
   useTheme,
 } from '@mui/material';
@@ -97,7 +98,7 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
               sx={{
                 position: 'sticky',
                 bottom: 0,
-                backgroundColor: 'white',
+                backgroundColor: 'background.default',
                 py: 2,
                 pt: currentSessionId ? 0 : 2,
                 zIndex: 1100,
@@ -379,10 +380,10 @@ function V0DetailRender() {
                 right: 0,
                 bottom: 0,
                 margin: 'auto',
-                background: 'rgba(255, 255, 255, 0.8)',
+                background: (theme) => alpha(theme.palette.background.default, 0.8),
                 opacity: 0.8,
                 borderRadius: 1,
-                boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+                boxShadow: 5,
                 ...(isMobile
                   ? {
                       width: '40px',
