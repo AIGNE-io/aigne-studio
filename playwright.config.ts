@@ -28,7 +28,7 @@ export default defineConfig<{
   storageStatePath: string;
   appName: string;
 }>({
-  timeout: 600 * seconds,
+  timeout: 90 * seconds,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,

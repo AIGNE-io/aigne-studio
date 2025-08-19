@@ -11,8 +11,12 @@ const test = setup.extend<CustomTestFixtures>({
   page: async ({ page }, use) => {
     // 初始设置
     await page.addInitScript(() => {
-      localStorage.setItem('domain-warning-skip', 'true');
-      localStorage.setItem('has-set', 'true');
+      try {
+        localStorage.setItem('domain-warning-skip', 'true');
+        localStorage.setItem('has-set', 'true');
+      } catch (error) {
+        console.warn('Failed to set localStorage:', error);
+      }
     });
 
     // 定义点击 Remind Me Later 按钮的函数
@@ -20,28 +24,13 @@ const test = setup.extend<CustomTestFixtures>({
       try {
         const remindButton = page.getByRole('button', { name: 'Remind Me Later' });
         if ((await remindButton.count()) > 0) {
-          await remindButton.click();
+          await remindButton.click({ timeout: 3000 });
         }
       } catch (error) {
-        console.log('Failed to click remind button:', error);
+        console.warn('Failed to click remind button:', error);
       }
     };
 
-    // 页面加载完成后执行
-    page.on('load', async () => {
-      await clickRemindButton();
-    });
-
-    // 对于 SPA 应用，还需要监听导航事件
-    page.on('framenavigated', async (frame) => {
-      if (frame === page.mainFrame()) {
-        // 等待一小段时间确保页面元素渲染完成
-        await page.waitForTimeout(1000);
-        await clickRemindButton();
-      }
-    });
-
-    // 初始页面也执行一次
     await clickRemindButton();
     await use(page);
   },

@@ -9,16 +9,16 @@ import {
   startTestApp,
 } from '@blocklet/testlab/utils/server';
 import { didToDomain, ensureWallet, types } from '@blocklet/testlab/utils/wallet';
-import { chromium } from '@playwright/test';
 import dotenv from 'dotenv';
 import Joi from 'joi';
+import { chromium } from 'playwright';
 import { $, argv } from 'zx';
 
 import { playwrightConfigAppNames } from '../tests/utils';
 
 dotenv.config();
 
-const skipInstall = argv['skip-install'] === true;
+const skipInstall = ['1', 'true'].includes(process.env.SKIP_INSTALL || '') || argv['skip-install'] === true;
 const rootSeed = argv.rootSeed || process.env.ROOT_SEED;
 if (!rootSeed) {
   throw new Error('rootSeed is not set');
