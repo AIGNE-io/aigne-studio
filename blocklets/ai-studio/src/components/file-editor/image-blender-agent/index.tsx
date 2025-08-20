@@ -2,7 +2,7 @@ import AigneLogo from '@app/icons/aigne-logo';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ImageBlenderAssistantYjs } from '@blocklet/ai-runtime/types';
 import { Map, getYjsValue } from '@blocklet/co-git/yjs';
-import { Box, TextField } from '@mui/material';
+import { Box, TextField, alpha } from '@mui/material';
 import { SelectTemplates } from '@nft-studio/react';
 import { cloneDeep, uniqBy } from 'lodash';
 import { nanoid } from 'nanoid';
@@ -34,7 +34,7 @@ function ConfigWrapper(props: any) {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(255, 255, 255, 0.4)',
+          backgroundColor: (theme) => alpha(theme.palette.background.default, 0.4),
           backdropFilter: 'blur(1.8px)',
           '@supports not ((backdrop-filter: blur(1.8px)) or (-webkit-backdrop-filter: blur(1.8px)))': {
             bgcolor: (theme) => theme.palette.background.paper,
@@ -86,7 +86,7 @@ export default function ImageBlenderAssistantEditor({ value }: { value: ImageBle
   return (
     <Box
       sx={{
-        backgroundColor: 'white',
+        backgroundColor: 'background.default',
         pt: 2,
         borderRadius: 1,
       }}>

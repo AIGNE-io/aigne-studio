@@ -406,7 +406,15 @@ export default function InputTable({
   }, [t, knowledge, openApis, readOnly, doc, deleteParameter]);
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.default',
+        borderRadius: 1,
+        py: 1,
+        overflow: 'auto',
+      }}>
       <Box
         sx={{
           whiteSpace: 'nowrap',
@@ -546,7 +554,7 @@ export default function InputTable({
                                   top: '50%',
                                   transform: 'translateY(-50%)',
                                 }}>
-                                <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                                <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.400', fontSize: 14 }} />
                               </Stack>
                             )}
 
@@ -1180,7 +1188,7 @@ function KnowledgeParameter({
                       py: 1,
                       pl: 1,
                       lineHeight: '20px',
-                      color: '#9CA3AF',
+                      color: 'text.secondary',
                     }}>
                     {params.group}
                   </Typography>
@@ -1697,7 +1705,7 @@ function PopperButton({
   return (
     <>
       <Button sx={{ minWidth: 0, p: 0.5, ml: -0.5, cursor: 'pointer' }} {...bindTrigger(parameterSettingPopperState)}>
-        <Box component={Icon} icon={DotsIcon} sx={{ color: '#3B82F6' }} />
+        <Box component={Icon} icon={DotsIcon} sx={{ color: 'info.main' }} />
       </Button>
       <Popper
         {...bindPopper(parameterSettingPopperState)}
@@ -1726,7 +1734,7 @@ function PopperButton({
                   </MenuItem>
                 )}
                 {!(parameter.from === FROM_IMAGE_BLENDER && value.type === 'imageBlender') && (
-                  <MenuItem sx={{ color: '#E11D48', fontSize: 13 }} onClick={onDelete}>
+                  <MenuItem sx={{ color: 'error.main', fontSize: 13 }} onClick={onDelete}>
                     {t('delete')}
                   </MenuItem>
                 )}

@@ -42,12 +42,10 @@ export default function V0Output() {
   const disabled = isMessageLoading || !objects?.length || message.error;
 
   const responsiveSx = {
-    backgroundColor: 'white',
-    borderColor: 'rgba(0, 0, 0, 0.1) !important',
     // rewrite disabled style
     '&.frame-button.Mui-disabled': {
       backgroundColor: 'primary.main',
-      color: 'white',
+      color: 'primary.contrastText',
     },
   };
 
@@ -230,9 +228,9 @@ export default function V0Output() {
           gap: 1.5,
           flexDirection: 'row',
           '.question': {
-            backgroundColor: 'white',
+            backgroundColor: 'background.default',
             border: 1,
-            borderColor: 'rgba(0, 0, 0, 0.1) !important',
+            borderColor: (theme) => `${theme.palette.divider} !important`,
           },
         }}>
         {/* question */}
@@ -253,8 +251,8 @@ export default function V0Output() {
                 color="inherit"
                 size="small"
                 sx={{
-                  borderColor: 'rgba(0, 0, 0, 0.1) !important',
                   border: 1,
+                  borderColor: (theme) => `${theme.palette.divider} !important`,
                 }}>
                 {options.map((option: { icon: string; key: string; props?: any; buttonText?: string }) => {
                   const { icon, key, props, buttonText } = option;
@@ -276,7 +274,7 @@ export default function V0Output() {
           display: 'flex',
           justifyContent: 'center',
           overflow: 'hidden',
-          backgroundColor: 'white',
+          backgroundColor: 'background.default',
           borderRadius: 1,
           ...codePreviewExtraProps?.sx,
         }}>
@@ -316,7 +314,7 @@ export default function V0Output() {
                 position: 'sticky',
                 top: 0,
                 left: 0,
-                backgroundColor: 'white',
+                backgroundColor: 'background.default',
                 zIndex: 9999,
                 display: 'flex',
                 justifyContent: 'space-between',

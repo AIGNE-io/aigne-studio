@@ -56,7 +56,10 @@ const NameField = ({
             placeholder={t('newProjectNamePlaceholder')}
             hiddenLabel
             autoFocus
-            sx={{ width: 1, '.MuiInputBase-root': { border: '1px solid #E5E7EB', borderRadius: '8px' } }}
+            sx={{
+              width: 1,
+              '.MuiInputBase-root': { border: '1px solid', borderColor: 'divider', borderRadius: '8px' },
+            }}
             {...field}
             error={!!fieldState.error}
             helperText={

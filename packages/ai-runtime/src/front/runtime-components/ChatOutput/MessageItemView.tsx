@@ -60,7 +60,7 @@ const MessageItemContainer = styled(Stack)`
     margin-top: ${({ theme }) => theme.spacing(0.5)};
     // without logo width
     max-width: calc(100% - 40px);
-    background-color: rgba(239, 246, 255, 1);
+    background-color: ${({ theme }) => theme.palette.grey[50]};
   }
 
   .message-response {
@@ -72,7 +72,7 @@ const MessageItemContainer = styled(Stack)`
     // without logo width
     max-width: calc(100% - 40px);
     display: inline-flex;
-    background-color: rgba(229, 231, 235, 1);
+    background-color: ${({ theme }) => theme.palette.grey[50]};
   }
 `;
 
@@ -184,7 +184,7 @@ function AgentMessage({ message, hideAvatar = false }: { message: MessageItem; h
                   ],
                 },
                 tooltip: {
-                  sx: { p: 0, bgcolor: 'white' },
+                  sx: { p: 0 },
                 },
               }}
               title={
@@ -193,8 +193,9 @@ function AgentMessage({ message, hideAvatar = false }: { message: MessageItem; h
                   <ShareActions
                     sx={{
                       fontSize: '1rem',
-                      boxShadow: '0px 4px 8px 0px rgba(3, 7, 18, 0.08)',
-                      border: '1px solid rgba(229, 231, 235, 1)',
+                      boxShadow: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
                       borderRadius: 1,
                       p: 0.25,
                     }}

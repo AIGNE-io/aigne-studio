@@ -1,7 +1,6 @@
 import { ArrowDropDownRounded } from '@mui/icons-material';
 import {
   CircularProgress,
-  CssBaseline,
   GlobalStyles,
   ThemeProvider as MuiThemeProvider,
   Stack,
@@ -75,7 +74,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
               style: ({ theme }) =>
                 theme.unstable_sx({
                   '.MuiInputBase-root': {
-                    fieldset: { borderColor: 'grey.400' },
+                    fieldset: { borderColor: theme.palette.divider },
                     [`&.Mui-focused, :not(.${inputBaseClasses.disabled}):hover`]: {
                       fieldset: {
                         border: 'none',
@@ -95,6 +94,11 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
                       py: 0.2,
                       mt: -0.1,
                       borderRadius: 4,
+                    },
+                  },
+                  '.MuiFilledInput-root': {
+                    '&::before': {
+                      borderColor: theme.palette.grey[100],
                     },
                   },
                 }),
@@ -124,11 +128,10 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
           variants: [
             {
               props: {},
-              style: ({ theme }) =>
-                theme.unstable_sx({
-                  fontSize: 13,
-                  color: '#010714',
-                }),
+              style: ({ theme }) => ({
+                fontSize: 13,
+                color: theme.palette.text.primary,
+              }),
             },
           ],
         },
@@ -136,6 +139,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
     };
 
     const tempTheme = createTheme({
+      // @ts-ignore
       typography: {
         fontFamily: bodyFontFamily,
         ...Object.fromEntries(
@@ -146,10 +150,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
             },
           ])
         ),
-        button: {
-          textTransform: 'none',
-        },
-      } as any,
+      },
       palette: {
         primary,
         secondary,
@@ -161,20 +162,7 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
       palette: {
         primary: tempTheme.palette.primary,
         secondary: tempTheme.palette.secondary,
-        text: tempTheme.palette.text,
-        background: {
-          default: '#ffffff',
-        },
       },
-      shape: {
-        borderRadius: 8,
-      },
-      shadows: [
-        'none',
-        '0px 0px 0px 1px rgba(2, 7, 19, 0.08), 0px 1px 2px -1px rgba(2, 7, 19, 0.08), 0px 2px 4px 0px rgba(2, 7, 19, 0.04)',
-        '0px 0px 0px 1px rgba(2, 7, 19, 0.08), 0px 1px 2px -1px rgba(2, 7, 19, 0.08), 0px 2px 8px 0px rgba(2, 7, 19, 0.10)',
-        ...tempTheme.shadows.slice(3),
-      ],
     });
   }, [theme]);
 
@@ -196,45 +184,44 @@ export default function ThemeProvider({ children = undefined }: { children?: Rea
           <link key={url} rel="stylesheet" href={url} />
         ))}
       </Helmet>
-      <CssBaseline>
-        <GlobalStyles
-          styles={(theme) =>
-            theme.unstable_sx({
-              'h1,h2,h3,h4,h5': {
-                fontFamily: `${theme.typography.h1.fontFamily} !important`,
-              },
-              body: {
-                fontFamily: `${theme.typography.fontFamily} !important`,
-              },
-              '.page-header': {
-                borderBottom: '1px solid rgba(229, 231, 235, 1)',
-              },
+      <GlobalStyles
+        styles={(theme) =>
+          theme.unstable_sx({
+            'h1,h2,h3,h4,h5': {
+              fontFamily: `${theme.typography.h1.fontFamily} !important`,
+            },
+            body: {
+              fontFamily: `${theme.typography.fontFamily} !important`,
+            },
+            '.page-header': {
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            },
 
-              '.white-tooltip .MuiTooltip-tooltip': {
-                background: 'white !important',
-                boxShadow: '0px 4px 8px 0px rgba(3, 7, 18, 0.08)',
-                border: '1px solid rgba(229, 231, 235, 1)',
-                padding: 4,
-              },
-            })
-          }
-        />
-        <GlobalLoading sx={{ position: 'fixed', left: 0, top: 0, width: '100%', zIndex: 'snackbar' }} />
-
-        <Suspense
-          fallback={
-            <Stack
-              sx={{
-                flexGrow: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <CircularProgress size={24} />
-            </Stack>
-          }>
-          {children}
-        </Suspense>
-      </CssBaseline>
+            '.white-tooltip .MuiTooltip-tooltip': {
+              background: 'white !important',
+              boxShadow: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              padding: 4,
+            },
+          })
+        }
+      />
+      <GlobalLoading sx={{ position: 'fixed', left: 0, top: 0, width: '100%', zIndex: 'snackbar' }} />
+      <Suspense
+        fallback={
+          <Stack
+            sx={{
+              flexGrow: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <CircularProgress size={24} />
+          </Stack>
+        }>
+        {children}
+      </Suspense>
     </MuiThemeProvider>
   );
 }

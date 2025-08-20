@@ -161,7 +161,16 @@ const LogMessages = () => {
             </LocalizationProvider>
           </Header>
 
-          <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 2 }}>
+          <Box
+            sx={{
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.default',
+              borderRadius: 1,
+              py: 1,
+              px: 1.5,
+              mt: 2,
+            }}>
             <Stack
               sx={{
                 flex: 1,

@@ -1,5 +1,3 @@
-import './index.css';
-
 import { HistoryState, createEmptyHistoryState } from '@lexical/history';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
@@ -10,6 +8,7 @@ import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { EditorState, LexicalEditor, TextNode } from 'lexical';
 import { ComponentProps, JSX, RefObject, useEffect, useState } from 'react';
 
+import AppStyles from './app-styles';
 import CommentPlugin from './plugins/CommentPlugin';
 import ComponentPickerMenuPlugin from './plugins/ComponentPickerPlugin';
 import FloatingToolbarPlugin from './plugins/FloatingToolbarPlugin';
@@ -84,6 +83,7 @@ export default function Editor({
 
   return (
     <>
+      <AppStyles />
       <PlainTextPlugin
         contentEditable={<ContentEditable {...ContentProps} />}
         placeholder={placeholderNode}

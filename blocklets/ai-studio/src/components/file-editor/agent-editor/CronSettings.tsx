@@ -284,8 +284,9 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
         <Typography variant="subtitle2">{t('time')}</Typography>
         <GlobalStyles
           styles={(theme) => ({
-            '.ant-select-dropdown': { zIndex: theme.zIndex.modal + 1 },
+            '.ant-select-dropdown': { zIndex: theme.zIndex.modal + 1, color: theme.palette.text.primary },
             '.ant-select-selector': {
+              color: `${theme.palette.text.primary} !important`,
               borderColor: `${theme.palette.divider} !important`,
               backgroundColor: 'transparent !important',
               '&:hover': {
@@ -293,9 +294,10 @@ function CronSettingsForm({ agent, job }: { agent: AssistantYjs; job: CronJob })
               },
             },
             '.ant-btn-primary.ant-btn-dangerous': {
-              backgroundColor: '#030712',
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
               '&:hover': {
-                backgroundColor: '#030712 !important',
+                backgroundColor: `${theme.palette.primary.main} !important`,
                 opacity: 0.7,
               },
             },

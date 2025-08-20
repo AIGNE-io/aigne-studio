@@ -1,10 +1,11 @@
-import { Box, styled } from '@mui/material';
+import { Box, styled, useTheme } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
 export default function AigneLogo() {
   const [eyePosition, setEyePosition] = useState({ leftOffset: 0, topOffset: 0 });
   const [isBlinking, setIsBlinking] = useState(false); // 是否闭眼
   const avatarRef = React.useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -60,7 +61,10 @@ export default function AigneLogo() {
   return (
     <AvatarContainer
       ref={avatarRef}
-      style={{ backgroundImage: 'url("https://www.aigne.io/image-bin/uploads/cc17dbd7750530beb89374fcd7063e7f.png")' }}>
+      style={{
+        backgroundImage: 'url("https://www.aigne.io/image-bin/uploads/cc17dbd7750530beb89374fcd7063e7f.png")',
+        filter: theme.palette.mode === 'dark' ? 'invert(1)' : 'none',
+      }}>
       <Eye
         style={{
           left: `${13.5 + eyePosition.leftOffset}%`,

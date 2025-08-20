@@ -37,7 +37,7 @@ export default function MenuButton({
             sx: {
               border: 1,
               borderColor: 'divider',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+              boxShadow: 2,
             },
           },
 

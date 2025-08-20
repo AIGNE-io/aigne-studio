@@ -38,7 +38,7 @@ export default function ImageFileSetting({
   const modelDetail = useMemo(() => {
     return supportedModels?.find((i) => i.model === model);
   }, [model, supportedModels]);
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400', mt: 0.25 }} />;
 
   return (
     <>

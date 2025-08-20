@@ -34,19 +34,19 @@ function WsStatus({ projectId, gitRef }: { projectId: string; gitRef: string }) 
   const color = useMemo(() => {
     const map: ColorMap = {
       CONNECTING: {
-        color: '#fff',
+        color: 'common.white',
         backgroundColor: 'grey.500',
       },
       OPEN: {
-        color: '#fff',
+        color: 'success.contrastText',
         backgroundColor: 'success.light',
       },
       CLOSED: {
-        color: '#fff',
+        color: 'error.contrastText',
         backgroundColor: 'error.light',
       },
       CLOSING: {
-        color: '#fff',
+        color: 'common.white',
         backgroundColor: 'grey.500',
       },
     };

@@ -242,8 +242,9 @@ export function DragSortItemContainer({
             }}>
             <Stack
               sx={{
-                border: '1px solid #E5E7EB',
-                bgcolor: '#fff',
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
                 borderRadius: 1,
                 p: 0.5,
                 gap: 0.25,

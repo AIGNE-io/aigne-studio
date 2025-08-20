@@ -251,9 +251,6 @@ function useFormTheme() {
   const theme = useTheme();
   return useMemo(() => {
     const themeOptions: ThemeOptions = {
-      shape: {
-        borderRadius: 8,
-      },
       components: {
         MuiTextField: {
           styleOverrides: {

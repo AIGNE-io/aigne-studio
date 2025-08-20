@@ -407,14 +407,14 @@ export const StyledPromptEditor = styled(PromptEditorField)(({ theme }) =>
       px: 1.5,
       minHeight: 40,
       ...theme.typography.body1,
-      bgcolor: '#fff',
+      bgcolor: 'background.default',
 
       ':hover': {
-        bgcolor: '#fff',
+        bgcolor: 'background.default',
       },
 
       ':focus': {
-        bgcolor: '#fff',
+        bgcolor: 'background.default',
       },
     },
 

@@ -35,6 +35,7 @@ import {
   TextField,
   Tooltip,
   Typography,
+  alpha,
   styled,
 } from '@mui/material';
 import { QueryBuilderMaterial } from '@react-querybuilder/material';
@@ -110,9 +111,9 @@ export default function RouterAssistantEditor({
                 display: 'flex',
                 flexDirection: 'column',
                 border: 1,
-                borderColor: '#1976d2',
+                borderColor: 'info.light',
                 borderRadius: 1,
-                background: '#fff',
+                bgcolor: 'background.default',
                 overflow: 'hidden',
               }}>
               <Stack
@@ -122,7 +123,8 @@ export default function RouterAssistantEditor({
                   gap: 1,
                   p: 1,
                   px: 1.5,
-                  borderBottom: '1px solid #BFDBFE',
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
                 }}>
                 {t('prompt')}
               </Stack>
@@ -130,7 +132,8 @@ export default function RouterAssistantEditor({
               <Box
                 sx={{
                   flex: 1,
-                  background: value.prompt ? '#fff' : 'rgba(255, 215, 213, 0.4)',
+                  background: (theme) =>
+                    value.prompt ? theme.palette.background.default : alpha(theme.palette.error.light, 0.1),
                 }}>
                 <StyledPromptEditor
                   readOnly={disabled}
@@ -345,7 +348,6 @@ export function AgentItemView({
   const file = f && isAssistant(f) ? f : undefined;
   const target = file ?? formattedOpenApis.find((x) => x.id === agent.id);
 
-  const red = '#e0193e';
   return (
     <Box
       sx={{
@@ -360,7 +362,7 @@ export function AgentItemView({
           width: 16,
           height: 16,
         }}>
-        <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: !target ? red : '#1976d2' }} />
+        <Box component={Icon} icon={ArrowFork} sx={{ fontSize: 16, color: !target ? 'error.main' : 'info.light' }} />
       </Box>
       <Stack
         key={`${projectId}-${projectRef}-${assistant.id}-${agent.id}`}
@@ -368,7 +370,7 @@ export function AgentItemView({
         sx={[
           {
             width: 1,
-            background: '#F9FAFB',
+            bgcolor: 'grey.50',
             py: 1,
             px: 1.5,
             minHeight: 40,
@@ -376,7 +378,8 @@ export function AgentItemView({
             alignItems: 'center',
             cursor: 'pointer',
             borderRadius: 1,
-            border: `1px solid ${!target ? red : '#1976d2'}`,
+            border: '1px solid',
+            borderColor: !target ? 'error.main' : 'info.light',
 
             ':hover': {
               '.hover-visible': {
@@ -409,7 +412,7 @@ export function AgentItemView({
                 fontWeight: 500,
                 input: {
                   fontSize: '18px',
-                  color: '#1976d2',
+                  color: 'info.light',
                 },
               }}
               slotProps={{
@@ -521,7 +524,7 @@ export function AgentItemView({
                       }
                     });
                   }}>
-                  <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
+                  <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: 'error.main' }} />
                 </Button>
               )}
 
@@ -598,7 +601,7 @@ function AddSelectAgentPopperButton({
               width: 1,
               py: 1,
               cursor: 'pointer',
-              color: '#3B82F6',
+              color: 'info.main',
             }}>
             <Box className="center">
               <Box component={Icon} icon={PlusIcon} sx={{ fontSize: 16, mt: -0.25 }} />
@@ -680,7 +683,7 @@ function AddSelectAgentPopperButton({
             <MenuItem>
               <Box
                 sx={{
-                  color: '#9CA3AF',
+                  color: 'text.secondary',
                 }}>
                 {t('noAgent')}
               </Box>
@@ -700,7 +703,7 @@ function AddSelectAgentPopperButton({
               }}>
               <Box
                 sx={{
-                  color: '#3B82F6',
+                  color: 'info.main',
                 }}>
                 {t('addAgent')}
               </Box>

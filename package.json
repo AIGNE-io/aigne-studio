@@ -53,8 +53,8 @@
     }
   },
   "devDependencies": {
-    "@arcblock/did": "^1.21.3",
-    "@arcblock/did-ext": "^1.21.3",
+    "@arcblock/did": "^1.22.2",
+    "@arcblock/did-ext": "^1.22.2",
     "@arcblock/eslint-config": "^0.3.3",
     "@arcblock/eslint-config-ts": "^0.3.3",
     "@blocklet/ai-runtime": "workspace:^",

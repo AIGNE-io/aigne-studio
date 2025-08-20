@@ -58,7 +58,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
     frequencyPenalty: agent.frequencyPenalty ?? projectSetting?.frequencyPenalty ?? model.frequencyPenaltyDefault,
   });
 
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400', mt: 0.25 }} />;
 
   const handleOnChange = (value: Partial<Settings>) => {
     Object.assign(agent, value);

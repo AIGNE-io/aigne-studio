@@ -50,7 +50,6 @@ export default function RuntimeDebug({
       {!hideSessionsBar && (
         <ThemeProvider theme={hostTheme}>
           <SessionsBar />
-
           <Divider />
         </ThemeProvider>
       )}

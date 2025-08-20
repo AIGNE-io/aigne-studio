@@ -102,11 +102,13 @@ function CategoriesSidebar({
               alignItems: 'center',
               gap: 1.5,
             }}>
-            <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={onClose}>
+            <IconButton
+              sx={{ p: '5px', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+              onClick={onClose}>
               <Box component={Icon} icon="tabler:x" sx={{ fontSize: 20 }} />
             </IconButton>
 
-            <Typography sx={{ fontSize: 16, fontWeight: 500, lineHeight: '24px', color: '#030712' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 500, lineHeight: '24px', color: 'text.primary' }}>
               {t('category.title')}
             </Typography>
           </Box>
@@ -155,7 +157,7 @@ function CategoriesSidebar({
                 borderRadius: 1,
                 p: 1,
                 mb: 0.5,
-                '&.Mui-selected': { bgcolor: '#EBF6FF', '.icon, .text': { color: '#3B82F6' } },
+                '&.Mui-selected': { bgcolor: 'grey.100', '.icon, .text': { color: 'info.main' } },
               }}
               key={category.id}
               onClick={() => handleCategoryClick(category.slug)}
@@ -174,7 +176,7 @@ function CategoriesSidebar({
               <ListItemText
                 primary={category.name}
                 className="text"
-                sx={{ m: 0, color: '#4B5563', fontSize: 16, lineHeight: '28px' }}
+                sx={{ m: 0, color: 'text.secondary', fontSize: 16, lineHeight: '28px' }}
               />
             </ListItemButton>
           ))}
@@ -229,7 +231,8 @@ export default function ExploreCategoryLayout() {
             minWidth: 300,
             maxWidth: 500,
             width: '20%',
-            borderRight: '1px solid #EFF1F5',
+            borderRight: '1px solid',
+            borderColor: 'divider',
           }}>
           <CategoriesSidebar categories={categories} isMobile={isMobile} onClose={() => {}} />
         </Box>
@@ -276,11 +279,13 @@ export function MobileSidebarHeader({ categories = [] }: { categories?: Category
             alignItems: 'center',
             gap: 1.5,
           }}>
-          <IconButton sx={{ p: '5px', borderRadius: 1, border: '1px solid #EFF1F5' }} onClick={toggleDrawer}>
+          <IconButton
+            sx={{ p: '5px', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}
+            onClick={toggleDrawer}>
             <Box component={Icon} icon="tabler:menu-2" sx={{ fontSize: 20 }} />
           </IconButton>
 
-          <Box sx={{ fontSize: 16, fontWeight: 500, lineHeight: '24px', color: '#030712' }}>
+          <Box sx={{ fontSize: 16, fontWeight: 500, lineHeight: '24px', color: 'text.primary' }}>
             {currentCategory?.name}
           </Box>
         </Box>

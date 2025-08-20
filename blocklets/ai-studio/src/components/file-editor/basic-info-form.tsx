@@ -54,7 +54,7 @@ export default function BasicInfoForm({
                   fontSize: 18,
                   fontWeight: 600,
                   lineHeight: '28px',
-                  color: '#030712',
+                  color: 'text.primary',
                   ...getDiffBackground('name'),
                 },
               }}
@@ -89,7 +89,7 @@ export default function BasicInfoForm({
                 fontSize: 14,
                 fontWeight: 400,
                 lineHeight: '24px',
-                color: '#9CA3AF',
+                color: 'text.secondary',
                 ...getDiffBackground('description'),
               },
             }}

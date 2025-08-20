@@ -5,7 +5,7 @@ export function Tag({ label, selected, ...rest }: { selected: boolean } & ChipPr
   const selectedStyle = {
     color: 'primary.dark',
     bgcolor: 'action.selected',
-    borderColor: '#c0dafd',
+    borderColor: 'divider',
   };
   return (
     <Chip

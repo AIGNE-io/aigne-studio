@@ -47,7 +47,7 @@ export default function ModelSelectField({
       data-testid="model-select-field"
       {...props}
       select
-      sx={{ [`.${filledInputClasses.root}`]: { border: '1px solid #E5E7EB' } }}>
+      sx={{ [`.${filledInputClasses.root}`]: { border: '1px solid', borderColor: 'divider' } }}>
       {value?.map((model) => {
         const icon = brandIcon(model!.brand);
 

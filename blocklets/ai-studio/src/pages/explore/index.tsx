@@ -32,7 +32,8 @@ export default function ExploreCategoryRoutes() {
 
           '> .dashboard-header': {
             border: 'none',
-            borderBottom: '1px solid #E5E7EB',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
           },
 
           '> .dashboard-body': {
@@ -43,7 +44,7 @@ export default function ExploreCategoryRoutes() {
               },
             },
             '> .dashboard-content': {
-              bgcolor: 'background.paper',
+              bgcolor: 'background.default',
               overflow: 'hidden',
             },
           },

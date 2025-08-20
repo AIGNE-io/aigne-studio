@@ -12,7 +12,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
-import { Box, Stack } from '@mui/material';
+import { Box, Stack, alpha } from '@mui/material';
 import { useRequest } from 'ahooks';
 
 import ArrowLine from '../../../pages/project/icons/line';
@@ -76,7 +76,7 @@ export default function AgentEditor({
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
-      <Box sx={{ borderRadius: 1, bgcolor: '#EFF6FF', px: 2, py: 1.5 }}>
+      <Box sx={{ borderRadius: 1, bgcolor: (theme) => alpha(theme.palette.info.light, 0.1), px: 2, py: 1.5 }}>
         <AgentProcessingView projectId={projectId} gitRef={gitRef} assistant={value}>
           {isPromptAssistant(value) ? (
             <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />
@@ -136,7 +136,7 @@ export default function AgentEditor({
           openApis={openApis}
         />
       </Box>
-      <Box sx={{ bgcolor: '#F9FAFB', borderRadius: 1, mt: 2 }}>
+      <Box sx={{ bgcolor: 'grey.50', borderRadius: 1, mt: 2 }}>
         <AgentSettings key={value.id} agent={value} />
       </Box>
     </Stack>

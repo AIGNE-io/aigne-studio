@@ -133,7 +133,8 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                     autoFocus
                     sx={{
                       width: 1,
-                      border: '1px solid #E5E7EB',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       borderRadius: '8px',
                       '.MuiSelect-select:focus': {
                         background: 'transparent',
@@ -274,7 +275,7 @@ export default function ImportFromBlank({ onClose }: { onClose: () => void }) {
                 multiline
                 minRows={3}
                 maxRows={5}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                 {...form.register('description')}
               />
             </Box>

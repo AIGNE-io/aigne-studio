@@ -1,9 +1,10 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
+import { ThemeProvider } from '@arcblock/ux/lib/Theme';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
 import withTracker from '@arcblock/ux/lib/withTracker';
 import { Dashboard } from '@blocklet/studio-ui';
 import Footer from '@blocklet/ui-react/lib/Footer';
-import { Box, CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
+import { Box, GlobalStyles } from '@mui/material';
 import { ReactNode, Suspense, lazy } from 'react';
 import {
   Navigate,
@@ -30,78 +31,75 @@ const basename = window.blocklet?.prefix || '/';
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline>
-        <GlobalStyles
-          styles={{
-            html: {
-              height: '100%',
-              width: '100%',
-            },
-            body: {
-              minHeight: '100%',
-              height: '100%',
-              width: '100%',
-              overflow: 'unset',
-              display: 'flex',
-              flexDirection: 'column',
-            },
-            '#app': {
-              height: '100%',
-              flexGrow: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              width: '100%',
-              fontSize: '0.875rem',
-            },
-            '*': {
-              WebkitTapHighlightColor: 'transparent',
-            },
+      <GlobalStyles
+        styles={{
+          html: {
+            height: '100%',
+            width: '100%',
+          },
+          body: {
+            minHeight: '100%',
+            height: '100%',
+            width: '100%',
+            overflow: 'unset',
+            display: 'flex',
+            flexDirection: 'column',
+          },
+          '#app': {
+            height: '100%',
+            flexGrow: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            fontSize: '0.875rem',
+          },
+          '*': {
+            WebkitTapHighlightColor: 'transparent',
+          },
 
-            '.between': {
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            },
+          '.between': {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          },
 
-            '.center': {
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
+          '.center': {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
 
-            '.ellipsis': {
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-            },
+          '.ellipsis': {
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+          },
 
-            '.multi-line-ellipsis': {
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical',
-            },
-          }}
-        />
-
-        <ToastProvider>
-          <LocaleProvider
-            translations={translations}
-            fallbackLocale="en"
-            locale={undefined}
-            onLoadingTranslation={undefined}
-            languages={undefined}>
-            <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
-              <Suspense fallback={<Loading fixed />}>
-                <ErrorBoundary>
-                  <PlanUpgrade />
-                  <AppRoutes />
-                </ErrorBoundary>
-              </Suspense>
-            </SessionProvider>
-          </LocaleProvider>
-        </ToastProvider>
-      </CssBaseline>
+          '.multi-line-ellipsis': {
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitBoxOrient: 'vertical',
+          },
+        }}
+      />
+      <ToastProvider>
+        <LocaleProvider
+          translations={translations}
+          fallbackLocale="en"
+          locale={undefined}
+          onLoadingTranslation={undefined}
+          languages={undefined}>
+          <SessionProvider serviceHost={basename} protectedRoutes={[`${basename}/*`]}>
+            <Suspense fallback={<Loading fixed />}>
+              <ErrorBoundary>
+                <PlanUpgrade />
+                <AppRoutes />
+              </ErrorBoundary>
+            </Suspense>
+          </SessionProvider>
+        </LocaleProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

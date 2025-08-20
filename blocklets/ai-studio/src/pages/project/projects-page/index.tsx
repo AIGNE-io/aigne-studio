@@ -108,7 +108,7 @@ export default function ProjectsPage() {
   }, [session?.user?.did, session?.user?.role]);
 
   return (
-    <Stack sx={{ minHeight: '100%', overflow: 'auto', bgcolor: '#F9FAFB' }}>
+    <Stack sx={{ minHeight: '100%', overflow: 'auto', bgcolor: 'grey.50' }}>
       <Stack sx={{ m: 2.5, flexGrow: 1, gap: 2.5 }}>
         <ProjectMenu />
 
@@ -325,7 +325,7 @@ function ProjectMenu() {
                       multiline
                       rows={4}
                       defaultValue={item?.description || ''}
-                      sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                      sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                       {...form.register('description')}
                     />
                   </Box>

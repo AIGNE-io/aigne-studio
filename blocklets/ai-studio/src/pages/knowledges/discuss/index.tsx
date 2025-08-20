@@ -118,7 +118,7 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
             fontWeight: 500,
             fontSize: 16,
             lineHeight: '28px',
-            color: '#030712',
+            color: 'text.primary',
           }}>
           {t('importFromDiscussion')}
         </Typography>
@@ -136,7 +136,8 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                 sx={{
                   borderRadius: 1,
                   p: 2,
-                  border: '1px solid #E5E7EB',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   flex: 1,
                 }}>
                 <FormControlLabel
@@ -188,7 +189,8 @@ export default function Discussion({ onChange }: { onChange: (value: CreateDiscu
                       flexDirection: 'row',
                       borderRadius: 1,
                       p: 2,
-                      border: '1px solid #E5E7EB',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       flex: 1,
                       flexWrap: 'wrap',
                     }}>

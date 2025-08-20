@@ -86,7 +86,7 @@ export default function ConfirmDialog({ name, isReset = undefined, onClose, onCo
               disableInteractive>
               <Typography
                 component="span"
-                sx={{ color: '#4B5563', cursor: 'pointer', fontWeight: 500, fontSize: '16px' }}
+                sx={{ color: 'text.secondary', cursor: 'pointer', fontWeight: 500, fontSize: '16px' }}
                 onClick={() => {
                   navigator.clipboard.writeText(name);
                   setCopied(true);
@@ -138,15 +138,9 @@ export default function ConfirmDialog({ name, isReset = undefined, onClose, onCo
           disabled={params.__disableConfirm || loading}
           variant="contained"
           autoFocus
-          color="warning"
+          color="error"
           sx={{
             border: 0,
-            background: '#E11D48',
-            color: '#fff',
-
-            '&:hover': {
-              background: '#E11D48',
-            },
           }}>
           {loading && <CircularProgress size={16} sx={{ mr: 1 }} />}
           {t(isReset ? 'reset' : 'alert.delete')}

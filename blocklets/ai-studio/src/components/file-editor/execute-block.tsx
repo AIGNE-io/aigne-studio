@@ -134,14 +134,14 @@ export default function ExecuteBlockForm({
         isRemoteCompare={isRemoteCompare}
         openApis={openApis}
         {...props}
-        sx={{ borderColor: '#7C3AED' }}
+        sx={{ borderColor: 'primary.main' }}
       />
     );
   }
 
   const prefixOrSuffix = value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt';
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, ...props.sx, borderColor: '#7C3AED' }}>
+    <Stack {...props} sx={{ border: 2, borderRadius: 1, ...props.sx, borderColor: 'primary.main' }}>
       <Stack px={1.5} py={1} gap={1.25}>
         <Box className="between">
           <Typography noWrap variant="subtitle4">
@@ -150,12 +150,20 @@ export default function ExecuteBlockForm({
 
           <>
             <IconButton {...bindTrigger(popperState)}>
-              <Box component={Icon} icon={PlusIcon} color="#3B82F6" fontSize={16} />
+              <Box component={Icon} icon={PlusIcon} color="info.main" fontSize={16} />
             </IconButton>
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
                 <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                  <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                  <Paper
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      maxWidth: 450,
+                      maxHeight: '80vh',
+                      overflow: 'auto',
+                      mt: 1,
+                    }}>
                     <ClickAwayListener
                       onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
                       <Box>
@@ -549,7 +557,7 @@ export default function ExecuteBlockForm({
         )}
       </Stack>
 
-      <Divider sx={{ borderColor: '#DDD6FE' }} />
+      <Divider />
 
       <Accordion
         sx={{
@@ -698,7 +706,7 @@ function ToolItemView({
       direction="row"
       {...props}
       sx={{
-        background: '#F9FAFB',
+        bgcolor: 'grey.50',
         py: 1,
         px: 1.5,
         minHeight: 40,
@@ -723,7 +731,7 @@ function ToolItemView({
           color={
             executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
               ? 'primary.main'
-              : '#030712'
+              : 'text.primary'
           }>
           {name || t('unnamed')}
         </Typography>
@@ -736,7 +744,7 @@ function ToolItemView({
         color={
           executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
             ? 'primary.main'
-            : '#030712'
+            : 'text.primary'
         }
         sx={{
           opacity: (theme) => theme.palette.action.disabledOpacity,
@@ -786,7 +794,7 @@ function ToolItemView({
                 }
               });
             }}>
-            <Trash sx={{ fontSize: 18, color: '#E11D48' }} />
+            <Trash sx={{ fontSize: 18, color: 'error.main' }} />
           </Button>
         )}
 

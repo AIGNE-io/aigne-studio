@@ -17,6 +17,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { SubscriptionError } from '@blocklet/aigne-hub/api';
 import { getYjsDoc } from '@blocklet/co-git/yjs';
+import { alpha, useTheme } from '@mui/material/styles';
 import { useMemoizedFn, useThrottleEffect } from 'ahooks';
 import equal from 'fast-deep-equal';
 import { Draft, produce } from 'immer';
@@ -808,6 +809,7 @@ export function useAssistantCompare({
   readOnly?: boolean;
   isRemoteCompare?: boolean;
 }) {
+  const theme = useTheme();
   const getDiffName = useCallback(
     (path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
       if (!compareValue) return '';
@@ -834,25 +836,28 @@ export function useAssistantCompare({
     [compareValue, value, isRemoteCompare]
   );
 
-  const getBackgroundColor = (name: string) => {
-    switch (name) {
-      case 'new':
-        return 'rgba(230, 255, 236, 0.4) !important';
-      case 'delete':
-        return 'rgba(255, 215, 213, 0.4) !important';
-      case 'modify':
-        return 'rgba(255, 235, 233, 0.4) !important';
-      default:
-        return '';
-    }
-  };
+  const getBackgroundColor = useCallback(
+    (name: string) => {
+      switch (name) {
+        case 'new':
+          return alpha(theme.palette.success.main, 0.1);
+        case 'delete':
+          return alpha(theme.palette.error.main, 0.1);
+        case 'modify':
+          return alpha(theme.palette.warning.main, 0.1);
+        default:
+          return '';
+      }
+    },
+    [theme]
+  );
 
   const getDiffStyle = useCallback(
     (style: string, path: keyof AssistantYjs, id?: string, defaultValue?: string) => {
       const diffName = getDiffName(path, id, defaultValue);
       return diffName ? { [style]: getBackgroundColor(diffName) } : {};
     },
-    [getDiffName]
+    [getDiffName, theme]
   );
 
   const getDiffBackground = useCallback(

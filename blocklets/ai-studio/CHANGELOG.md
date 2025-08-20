@@ -1,6 +1,6 @@
-## 0.5.7 (2025-8-15)
+## 0.5.7 (2025-8-19)
 
-- fix: e2e test is broken
+- feat: support dark mode
 
 ## 0.5.6 (2025-8-13)
 

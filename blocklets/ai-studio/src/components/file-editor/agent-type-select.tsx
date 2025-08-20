@@ -71,7 +71,7 @@ export default function AgentTypeSelect({ assistant }: { assistant: AssistantYjs
             <Box
               component={Icon}
               icon={SwitchHorizontalIcon}
-              sx={{ fontSize: 15, color: '#3B82F6', verticalAlign: 'middle', ml: 0.5, flexShrink: 0 }}
+              sx={{ fontSize: 15, color: 'info.main', verticalAlign: 'middle', ml: 0.5, flexShrink: 0 }}
             />
           </>
         ),

@@ -50,7 +50,7 @@ export default function ActionButton({
   const toolTipTitleText = error ? (
     <Box
       sx={{
-        color: 'error',
+        color: 'error.main',
       }}>
       {error.message}
     </Box>

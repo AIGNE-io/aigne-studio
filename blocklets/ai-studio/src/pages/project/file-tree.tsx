@@ -920,8 +920,8 @@ function TreeItem({
       sx={{
         mx: 1,
         borderRadius: 1,
-        bgcolor: editing ? 'action.hover' : selected ? '#EFF6FF' : open ? 'action.hover' : undefined,
-        color: selected ? '#3B82F6' : undefined,
+        bgcolor: editing ? 'action.hover' : selected ? 'grey.50' : open ? 'action.hover' : undefined,
+        color: selected ? 'info.main' : undefined,
         fontWeight: 500,
         fontSize: 13,
         ':hover': {
@@ -959,7 +959,7 @@ function TreeItem({
             [`.${svgIconClasses.root}`]: {
               fontSize: '1rem',
               fontWeight: 500,
-              color: selected ? '#3B82F6' : 'text.secondary',
+              color: selected ? 'primary.main' : 'text.secondary',
             },
           }}>
           {icon}

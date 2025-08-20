@@ -101,7 +101,7 @@ export default function KnowledgeSegments() {
         sx={{
           overflow: 'hidden',
           height: 1,
-          bgcolor: '#fff',
+          bgcolor: 'background.default',
         }}>
         <Box
           className="between"
@@ -113,11 +113,11 @@ export default function KnowledgeSegments() {
             sx={{
               gap: 1,
             }}>
-            <Breadcrumbs sx={{ color: '#9CA3AF' }}>
+            <Breadcrumbs sx={{ color: 'text.secondary' }}>
               <Typography sx={{ cursor: 'pointer' }} onClick={() => navigate(`../${knowledgeId}`)}>
                 {state?.dataset?.name || t('unnamed')}
               </Typography>
-              <Typography sx={{ color: '#030712' }}>{state.document?.name}</Typography>
+              <Typography sx={{ color: 'text.primary' }}>{state.document?.name}</Typography>
             </Breadcrumbs>
           </Stack>
 
@@ -136,7 +136,7 @@ export default function KnowledgeSegments() {
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: '#eff1f5' }} />
+        <Divider />
 
         {viewType === 'ContentView' && (
           <Stack
@@ -305,8 +305,8 @@ function Tag({ children }: { children: any }) {
       sx={{
         borderRadius: '6px',
         fontWeight: 500,
-        background: 'rgba(139,139,149,0.15)',
-        color: 'rgba(75,74,88,1)',
+        bgcolor: 'grey.50',
+        color: 'text.secondary',
         padding: '2px 8px',
         fontSize: '12px',
         height: '20px',
@@ -384,32 +384,29 @@ const SegmentRoot = styled(Stack)`
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  background: rgb(255, 255, 255);
-  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  background: ${({ theme }) => theme.palette.background.default};
+  box-shadow: ${({ theme }) => theme.shadows[1]};
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.newItemCard {
-    outline: 1px solid #e5e7eb;
+    outline: 1px solid;
+    outline-color: ${({ theme }) => theme.palette.divider};
     outline-offset: -1px;
-    background: rgba(229, 231, 235, 0.5);
+    background: ${({ theme }) => theme.palette.grey[100]};
     border-width: 0;
 
     &:hover {
-      background: rgb(255, 255, 255);
-      box-shadow:
-        0px 1px 2px rgba(16, 24, 40, 0.06),
-        0px 1px 3px rgba(16, 24, 40, 0.1);
+      background: ${({ theme }) => theme.palette.background.default};
+      box-shadow: ${({ theme }) => theme.shadows[2]};
     }
   }
 
   &.listItem {
-    border-color: rgba(0, 0, 0, 0.12);
-    background: rgb(249 250 251);
+    border-color: ${({ theme }) => theme.palette.divider};
+    background: ${({ theme }) => theme.palette.grey[50]};
 
     &:hover {
-      box-shadow:
-        0px 4px 6px -2px rgba(16, 24, 40, 0.03),
-        0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+      box-shadow: ${({ theme }) => theme.shadows[2]};
 
       .deleteIcon {
         display: flex;
@@ -471,7 +468,7 @@ const SegmentRoot = styled(Stack)`
     padding: 14px;
     font-size: 0.75rem;
     line-height: 1.5;
-    color: rgb(107, 114, 128);
+    color: ${({ theme }) => theme.palette.text.secondary};
     word-wrap: break-word;
   }
 
@@ -481,7 +478,7 @@ const SegmentRoot = styled(Stack)`
     gap: 1rem;
     font-size: 0.75rem;
     line-height: 1rem;
-    color: rgb(107, 114, 128);
+    color: ${({ theme }) => theme.palette.text.secondary};
     min-height: 42px;
     flex-wrap: wrap;
     padding: 0.5rem 14px 10px;

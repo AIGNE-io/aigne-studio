@@ -108,7 +108,8 @@ export default function ProjectHeader() {
           className="between"
           sx={{
             height: 64,
-            borderBottom: '1px solid #E5E7EB',
+            borderBottom: '1px solid',
+            borderColor: 'divider',
             px: { xs: 2, md: 3 },
           }}>
           <Box
@@ -194,7 +195,7 @@ export default function ProjectHeader() {
                 },
               },
             }}>
-            <Stack sx={{ width: '80vw', maxWidth: 300, background: '#fff', p: 2, pt: 10, height: 1 }}>
+            <Stack sx={{ width: '80vw', maxWidth: 300, bgcolor: 'background.default', p: 2, pt: 10, height: 1 }}>
               <Stack sx={{ gap: 1.5, flex: 1 }} onClick={() => setDrawerOpen(false)}>
                 {options.map((option) => {
                   return (
@@ -214,7 +215,7 @@ export default function ProjectHeader() {
                           fontWeight: 500,
                           fontSize: 16,
                           lineHeight: '28px',
-                          color: '#030712',
+                          color: 'text.primary',
                         }}>
                         {option.label}
                       </Typography>

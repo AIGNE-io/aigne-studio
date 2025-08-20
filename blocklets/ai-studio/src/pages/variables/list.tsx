@@ -62,7 +62,7 @@ function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
       <Typography
         variant="caption"
         sx={{
-          color: '#030712',
+          color: 'text.primary',
           fontSize: 13,
           lineHeight: '22px',
           fontWeight: 500,
@@ -255,7 +255,7 @@ function VariableList() {
                           border: 0,
                         },
                         '.save': {
-                          background: '#d32f2f',
+                          bgcolor: 'error.main',
                         },
                       },
                       maxWidth: 'sm',
@@ -268,7 +268,7 @@ function VariableList() {
                               fontWeight: 500,
                               fontSize: 16,
                               lineHeight: '28px',
-                              color: '#4B5563',
+                              color: 'text.secondary',
                             }}>
                             {t('deleteMemoryTip', { agents: agents.join(', ') })}
                           </Typography>
@@ -337,7 +337,7 @@ function VariableList() {
           mt: 2.5,
           mb: 1.5,
         }}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('memory.title')}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: 'text.primary' }}>{t('memory.title')}</Box>
         <SegmentedControl
           value={scope}
           options={[
@@ -352,10 +352,17 @@ function VariableList() {
       </Box>
       <Box
         data-testid="variable-list"
-        sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRadius: 1,
+          py: 1,
+          px: 1.5,
+        }}>
         <Box
           sx={{
-            borderBottom: () => (list?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
+            borderBottom: (theme) => (list?.length ? `1px solid ${theme.palette.divider}` : 0),
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
@@ -752,7 +759,16 @@ function VariableTable({ value, onChange }: { value: OutputVariableYjs; onChange
   const { t } = useLocaleContext();
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 1 }}>
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.default',
+        borderRadius: 1,
+        py: 1,
+        px: 1.5,
+        mt: 1,
+      }}>
       <Box
         component="table"
         sx={{
