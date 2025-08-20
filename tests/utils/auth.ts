@@ -31,6 +31,7 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
+  // 并行执行是因为 did-connect 环节目前不太稳定
   // claim did space for wallet (sequential)
   const vcs: Array<{ wallet: any; name: string; vc: any }> = [];
   for (const { wallet, ...rest } of wallets) {
