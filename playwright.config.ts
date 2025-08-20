@@ -3,8 +3,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 // import { TestConstants } from './tests/utils/constants';
 
+const isCI = ['1', 'true'].includes(process.env.CI || '');
 const seconds = 1000;
-const retries = 3;
+const retries = isCI ? 3 : 0;
 
 const headless = process.env.HEADLESS !== 'false';
 
