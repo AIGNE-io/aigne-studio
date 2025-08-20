@@ -119,7 +119,7 @@ function Agent({
         <Box
           sx={{
             borderBottom: 1,
-            borderColor: '#EFF1F5',
+            borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
             px: isMobile ? 1.5 : 3,
@@ -135,7 +135,11 @@ function Agent({
                 cursor: 'pointer',
                 mr: 0,
               }}>
-              <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
+              <Box
+                component={Icon}
+                icon={ChevronLeft}
+                sx={{ width: 20, height: 20, fontSize: 20, color: 'grey.400' }}
+              />
             </Stack>
           )}
 
@@ -143,15 +147,15 @@ function Agent({
             onChange={(_, tab) => setTab(tab)}
             sx={{
               '.MuiTab-root': {
-                color: '#9CA3AF',
+                color: 'grey.400',
               },
 
               '& .MuiTabs-indicator': {
-                backgroundColor: '#303030',
+                backgroundColor: 'text.primary',
                 height: '2px',
               },
               '& .Mui-selected': {
-                color: '#303030 !important',
+                color: (theme) => `${theme.palette.text.primary} !important`,
               },
             }}>
             <Tab label={t('readme')} value="readme" data-testid="readme-tab" />
@@ -211,11 +215,11 @@ function ReadmePage({
             gap: 2,
           }}>
           <Box>
-            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
+            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: 'text.primary' }} gutterBottom>
               {project.name}
             </Typography>
 
-            <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: 'text.secondary' }}>
               {project.description}
             </Typography>
           </Box>
@@ -263,7 +267,11 @@ function ReadmePage({
               target="_blank"
               sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               data-testid="run-button">
-              <Box component={Icon} icon={PlayFilledIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
+              <Box
+                component={Icon}
+                icon={PlayFilledIcon}
+                sx={{ width: 14, height: 14, fontSize: 14, color: 'primary.contrastText' }}
+              />
               {t('run')}
             </Button>
 
@@ -281,7 +289,7 @@ function ReadmePage({
           )}
         </Stack>
       </Stack>
-      <Divider sx={{ borderColor: '#EFF1F5' }} />
+      <Divider />
       <Stack>{project.readme && <MdViewer content={project.readme} sx={{ img: { maxWidth: '100%' } }} />}</Stack>
     </Stack>
   );

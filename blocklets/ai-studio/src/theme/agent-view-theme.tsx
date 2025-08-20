@@ -1,10 +1,6 @@
-import { buttonClasses, createTheme } from '@mui/material';
+import { ThemeOptions, buttonClasses } from '@mui/material';
 
-export const agentViewTheme = createTheme({
-  typography: { button: { textTransform: 'none' } } as any,
-  shape: {
-    borderRadius: 8,
-  },
+export const agentViewTheme: ThemeOptions = {
   components: {
     MuiButton: {
       defaultProps: {
@@ -14,32 +10,31 @@ export const agentViewTheme = createTheme({
         root: {
           lineHeight: 1.5,
         },
-
-        contained: {
-          backgroundColor: '#030712',
+        contained: ({ theme }) => ({
+          backgroundColor: theme.palette.text.primary,
           color: 'white',
 
           '&:hover': {
-            backgroundColor: '#030712',
+            backgroundColor: theme.palette.text.primary,
           },
 
           [`&.${buttonClasses.loading}`]: {
-            color: 'grey',
+            color: theme.palette.grey[500],
           },
-        },
-        outlined: {
-          backgroundColor: '#fff',
-          color: '#000',
-          border: '1px solid #E5E7EB',
+        }),
+        outlined: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          border: `1px solid ${theme.palette.divider}`,
           fontSize: '13px',
           fontWeight: 500,
           padding: '5px 12px',
 
           '&:hover': {
-            border: '1px solid #E5E7EB',
+            border: `1px solid ${theme.palette.divider}`,
           },
-        },
+        }),
       },
     },
   },
-});
+};

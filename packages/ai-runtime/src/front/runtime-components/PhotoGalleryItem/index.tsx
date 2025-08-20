@@ -157,7 +157,7 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
       slotProps={{
         backdrop: {
           sx: {
-            bgcolor: 'rgba(255, 255, 255, 0.4)',
+            bgcolor: (theme) => alpha(theme.palette.background.paper, 0.4),
             backdropFilter: 'blur(12px)',
             '@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)))': {
               bgcolor: (theme) => theme.palette.background.paper,

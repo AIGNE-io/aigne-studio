@@ -58,10 +58,11 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
           <Box
             key={color}
             sx={{
-              border: color === selectedColor ? '1px solid #030712' : '',
+              border: color === selectedColor ? '1px solid' : '',
+              borderColor: 'divider',
               borderRadius: '4px',
             }}>
-            <ColorBox bgcolor={color || '#ffffff'} onClick={() => handleClick(color)} />
+            <ColorBox bgcolor={color || 'background.default'} onClick={() => handleClick(color)} />
           </Box>
         ))}
 
@@ -86,20 +87,22 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
   );
 }
 
-const ColorBox = styled(Box)({
+const ColorBox = styled(Box)(({ theme }) => ({
   boxSizing: 'border-box',
   width: 20,
   height: 20,
   borderRadius: 4,
   margin: 2,
-  border: '1px solid #d6d6d6',
-});
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+}));
 
-const ChromePickerBox = styled(Box)({
+const ChromePickerBox = styled(Box)(({ theme }) => ({
   boxSizing: 'border-box',
   width: 24,
   height: 24,
   borderRadius: 4,
   margin: 2,
-  border: '1px solid #d6d6d6',
-});
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+}));

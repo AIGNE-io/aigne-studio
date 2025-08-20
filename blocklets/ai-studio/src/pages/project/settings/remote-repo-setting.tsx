@@ -296,7 +296,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
               {state.project && state.project.gitUrl ? (
                 <Button
                   disabled={isMultiTenant}
-                  sx={{ background: '#E11D48' }}
+                  sx={{ bgcolor: 'error.main' }}
                   variant="contained"
                   onClick={() => {
                     showConfirmDialog({
@@ -407,7 +407,7 @@ export default function RemoteRepoSetting({ projectId, gitRef }: { projectId: st
                     <Typography
                       variant="caption"
                       sx={{
-                        color: '#9CA3AF',
+                        color: 'text.secondary',
                       }}>
                       {/* @ts-ignore */}
                       <RelativeTime locale={locale} value={state.project.gitLastSyncedAt} />

@@ -37,7 +37,7 @@ export default function SegmentedControl({ value, options, onChange = undefined,
             p: '6px 12px',
           },
           '.MuiToggleButtonGroup-grouped.Mui-selected': {
-            bgcolor: '#fff',
+            bgcolor: 'background.default',
             border: 1,
             borderColor: 'divider',
             ':hover': {

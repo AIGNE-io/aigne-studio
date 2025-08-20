@@ -123,7 +123,7 @@ function DeploymentList() {
                             fontWeight: 500,
                             fontSize: 16,
                             lineHeight: '28px',
-                            color: '#4B5563',
+                            color: 'text.secondary',
                           }}>
                           {t('deployments.deleteDescription')}
                         </Typography>
@@ -161,9 +161,19 @@ function DeploymentList() {
           mt: 2.5,
           mb: 1.5,
         }}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('deployments.title')}</Box>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: 'text.primary' }}>
+          {t('deployments.title')}
+        </Box>
       </Box>
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRadius: 1,
+          py: 1,
+          px: 1.5,
+        }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',

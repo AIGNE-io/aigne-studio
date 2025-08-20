@@ -268,17 +268,17 @@ const CodeEditor = ({
                 width: 1,
                 height: 1,
                 '.monaco-editor': { outline: 'none !important' },
-                '--vscode-menu-background': 'rgba(255,255,255,1)',
-                '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
+                '--vscode-menu-background': (theme) => theme.palette.background.default,
+                '--vscode-widget-shadow': (theme) => theme.shadows[2],
                 '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
                 ...props.sx,
                 '&.vim-normal .cursor.monaco-mouse-cursor-text':
                   settings?.vimMode === 'normal'
                     ? {
                         width: '9px !important',
-                        backgroundColor: '#aeafad',
-                        borderColor: '#aeafad',
-                        color: '#515052',
+                        backgroundColor: 'grey.100',
+                        borderColor: 'divider',
+                        color: 'text.secondary',
                         opacity: 0.7,
                       }
                     : {},
@@ -321,13 +321,11 @@ const CodeEditor = ({
               alignItems: 'center',
               px: 1,
               gap: 1,
-              backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f5f5f5',
-              boxShadow:
-                theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.7)' : '0 1px 5px rgba(0, 0, 0, 0.1)',
+              backgroundColor: 'grey.50',
+              boxShadow: 2,
               zIndex: 1,
-              color: '#999',
+              color: 'text.secondary',
               py: 0.25,
-              // borderTop: '1px solid rgba(0, 0, 0, 0.1)',
             }}>
             {codeSyntaxError && (
               <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
@@ -343,12 +341,12 @@ const CodeEditor = ({
                     </Box>
                   }
                   placement="right">
-                  <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: '#F16E6E' }} />
+                  <Box component={Icon} icon={XBoxIcon} sx={{ fontSize: 20, color: 'error.main' }} />
                 </Tooltip>
               </Box>
             )}
             <Box sx={{ flex: 1 }}>
-              <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: '#999' }} />
+              <Box ref={statusRef} sx={{ fontSize: 10, width: 1, mt: '1px', color: 'text.secondary' }} />
             </Box>
 
             <Box sx={{ display: 'flex', gap: 1, zIndex: 1, alignItems: 'center' }}>
@@ -367,7 +365,7 @@ const CodeEditor = ({
               {globalSettings?.vim && (
                 <Tooltip title={t('vimEnable')}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: '#999' }} />
+                    <Box component={Icon} icon={LogosVim} sx={{ fontSize: 14, color: 'text.secondary' }} />
                   </Box>
                 </Tooltip>
               )}
@@ -377,8 +375,8 @@ const CodeEditor = ({
                 onClick={() => editor?.trigger('formatter', 'editor.action.formatDocument', {})}
                 sx={{ borderRadius: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: '#999' }} />
-                  <Box sx={{ fontSize: 12, color: '#999' }}>{t('prettier')}</Box>
+                  <Box component={Icon} icon={ChecksIcon} sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Box sx={{ fontSize: 12, color: 'text.secondary' }}>{t('prettier')}</Box>
                 </Box>
               </IconButton>
 
@@ -386,7 +384,7 @@ const CodeEditor = ({
                 <Box
                   component={Icon}
                   icon={handle.active ? FullMinIcon : FullMaxIcon}
-                  sx={{ color: '#999', fontSize: 16 }}
+                  sx={{ color: 'text.secondary', fontSize: 16 }}
                 />
               </IconButton>
 
@@ -462,7 +460,8 @@ const Resizable = styled(ResizableBox)`
       height: 14px;
       right: 0;
       bottom: 0;
-      background: repeating-linear-gradient(135deg, #bdbdbd, #bdbdbd 1px, transparent 2px, transparent 4px);
+      background: ${({ theme }) =>
+        `repeating-linear-gradient(135deg, ${theme.palette.grey[400]}, ${theme.palette.grey[400]} 1px, transparent 2px, transparent 4px)`};
       clip-path: polygon(100% 0, 0 100%, 100% 100%);
       cursor: se-resize;
     }
@@ -499,7 +498,7 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF',
+        bgcolor: 'grey.50',
         px: 2,
         py: 1.5,
         width: 1,
@@ -532,11 +531,12 @@ function FullScreenContainer({ locale, children }: { locale: string; children: R
           flex: 1,
           gap: 1,
           borderRadius: 1,
-          bgcolor: '#EFF6FF',
+          bgcolor: 'grey.50',
         }}>
         <Box
           sx={{
-            border: '1px solid #3B82F6',
+            border: '1px solid',
+            borderColor: 'primary.main',
             borderRadius: 1,
             bgcolor: 'background.paper',
             width: 1,

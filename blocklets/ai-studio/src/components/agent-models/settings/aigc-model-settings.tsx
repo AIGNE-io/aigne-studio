@@ -29,7 +29,7 @@ interface SettingItemProps {
 function SettingItem({ label, tooltip, agentId, path, sx = undefined, children }: SettingItemProps) {
   const { t } = useLocaleContext();
   const { projectId, projectRef } = useCurrentProject();
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400', mt: 0.25 }} />;
 
   return (
     <Box

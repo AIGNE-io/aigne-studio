@@ -1,3 +1,7 @@
+## 0.5.7 (2025-8-19)
+
+- feat: support dark mode
+
 ## 0.5.6 (2025-8-13)
 
 - chore: update deps

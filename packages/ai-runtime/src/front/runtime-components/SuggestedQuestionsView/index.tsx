@@ -49,13 +49,13 @@ function MessageSuggestedQuestion({ ...props }: TypographyProps) {
       sx={{
         display: 'inline-block',
         border: 1,
-        borderColor: 'rgba(229, 231, 235, 1)',
+        borderColor: 'divider',
         borderRadius: 1,
         py: 1,
         px: 2,
         cursor: 'pointer',
         '&:hover': {
-          backgroundColor: 'rgba(239, 246, 255, 1)',
+          backgroundColor: 'grey.50',
         },
         ...props.sx,
       }}

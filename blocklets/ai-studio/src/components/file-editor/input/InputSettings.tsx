@@ -38,7 +38,7 @@ export default function InputSettings({
     <Box
       data-testid="input-settings"
       sx={{
-        background: '#F9FAFB',
+        bgcolor: 'grey.50',
         py: 1.5,
         px: 2,
         borderRadius: 1,

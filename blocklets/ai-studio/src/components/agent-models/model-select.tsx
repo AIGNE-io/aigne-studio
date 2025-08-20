@@ -78,7 +78,7 @@ export function ModelSelect({
                 borderRadius: 1.5,
                 cursor: 'pointer',
                 ...(isSelected && { bgcolor: 'action.selected', borderColor: 'primary.main' }),
-                ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
+                ...(!isSelected && { '&:hover': { bgcolor: 'grey.100' } }),
               }}>
               <Stack
                 direction="row"
@@ -264,7 +264,7 @@ export function ModelSelectDialog({ type, dialogProps, agent }: ModelSelectDialo
           {!isAdmin && (
             <Tooltip title={t('installMoreModelsTip')} placement="top" disableInteractive enterTouchDelay={0}>
               <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF' }} />
+                <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400' }} />
               </Box>
             </Tooltip>
           )}

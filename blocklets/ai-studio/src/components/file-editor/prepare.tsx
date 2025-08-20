@@ -32,7 +32,7 @@ export default function Prepare({
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EDE9FE',
+        bgcolor: 'grey.50',
         px: 2,
         py: 1.5,
       }}>
@@ -42,7 +42,7 @@ export default function Prepare({
           alignItems: 'center',
           gap: 1,
         }}>
-        <Box component={Icon} icon="tabler:bule" sx={{ color: '#7C3AED', fontSize: 15 }} />
+        <Box component={Icon} icon="tabler:bule" sx={{ color: 'primary.main', fontSize: 15 }} />
         <Typography variant="subtitle2" sx={{ m: 0 }}>
           {t('prepareExecutes')}
         </Typography>
@@ -70,7 +70,7 @@ export default function Prepare({
             gap: 1.5,
           }}>
           <Button
-            sx={{ color: '#6D28D9' }}
+            sx={{ color: 'primary.main' }}
             startIcon={<Box component={Icon} icon={PlusIcon} />}
             onClick={() => {
               const doc = (getYjsValue(value) as Map<any>).doc!;

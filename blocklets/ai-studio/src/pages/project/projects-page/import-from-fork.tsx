@@ -82,7 +82,7 @@ export default function ImportFromFork({
                 multiline
                 minRows={3}
                 maxRows={5}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                 {...form.register('description')}
               />
             </Box>

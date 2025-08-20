@@ -1,4 +1,4 @@
-import { Box, BoxProps, CircularProgress, Skeleton } from '@mui/material';
+import { Box, BoxProps, CircularProgress, Skeleton, alpha } from '@mui/material';
 
 export default function Loading(props: BoxProps) {
   const { sx, ...restProps } = props;
@@ -14,7 +14,7 @@ export default function Loading(props: BoxProps) {
         left: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        backgroundColor: (theme) => alpha(theme.palette.background.default, 0.8),
         ...sx,
       }}
       {...restProps}>

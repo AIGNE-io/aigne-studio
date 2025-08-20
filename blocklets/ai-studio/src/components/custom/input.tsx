@@ -5,9 +5,9 @@ const BaseInput = muiStyled(InputBase)(({ theme }) => ({
   '& .MuiInputBase-input': {
     borderRadius: 6,
     padding: '4px 12px',
-    backgroundColor: theme.palette.mode === 'light' ? '#F3F6F9' : '#1A2027',
+    backgroundColor: theme.palette.background.default,
     border: '1px solid',
-    borderColor: theme.palette.mode === 'light' ? '#E5E7EB' : '#2D3843',
+    borderColor: theme.palette.grey[200],
     transition: theme.transitions.create(['border-color', 'background-color', 'box-shadow']),
     fontSize: '14px',
 

@@ -123,7 +123,7 @@ const Root = styled(Stack)`
     right: 0;
     z-index: ${({ theme }) => theme.zIndex.appBar + 2};
     border-bottom: ${({ theme }) => `1px solid ${theme.palette.grey[200]}`};
-    background-color: ${({ theme }) => theme.palette.background.paper};
+    background-color: ${({ theme }) => theme.palette.background.default};
 
     .blocklet-header {
       background-color: transparent;

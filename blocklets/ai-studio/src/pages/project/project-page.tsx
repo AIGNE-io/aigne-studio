@@ -155,7 +155,7 @@ function ProjectPageView() {
             sx={{
               position: 'sticky',
               top: 0,
-              bgcolor: 'background.paper',
+              bgcolor: 'background.default',
               zIndex: 10,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
@@ -178,7 +178,7 @@ function ProjectPageView() {
                     icon={PlayerPlayIcon}
                     sx={{
                       fontSize: 20,
-                      color: '#3B82F6',
+                      color: 'info.main',
                     }}
                   />
                 </Button>
@@ -196,7 +196,7 @@ function ProjectPageView() {
                       icon={TableImportIcon}
                       sx={{
                         fontSize: 20,
-                        color: '#3B82F6',
+                        color: 'primary.main',
                       }}
                     />
                   </Button>
@@ -218,7 +218,7 @@ function ProjectPageView() {
                       icon={FolderPlusIcon}
                       sx={{
                         fontSize: 20,
-                        color: '#3B82F6',
+                        color: 'primary.main',
                       }}
                     />
                   </Button>
@@ -244,7 +244,7 @@ function ProjectPageView() {
                       icon={PlusIcon}
                       sx={{
                         fontSize: 20,
-                        color: '#3B82F6',
+                        color: 'primary.main',
                       }}
                     />
                   </Button>
@@ -269,7 +269,8 @@ function ProjectPageView() {
           <Box
             sx={{
               bgcolor: 'background.paper',
-              borderBottom: '1px solid #E5E7EB',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
               zIndex: 10,
             }}>
             <Box
@@ -283,13 +284,13 @@ function ProjectPageView() {
                   fontSize: 14,
 
                   '&.Mui-selected': {
-                    color: '#3B82F6',
+                    color: 'primary.main',
                   },
                 },
 
                 '.MuiTabs-indicator': {
                   span: {
-                    background: '#3B82F6 !important',
+                    background: (theme) => `${theme.palette.primary.main} !important`,
                   },
                 },
               }}>
@@ -430,7 +431,7 @@ function PanelToggleButton({
           icon={placement === 'left' ? SidebarLeft : SidebarRight}
           sx={{
             fontSize: 20,
-            color: '#3B82F6',
+            color: 'primary.main',
           }}
         />
       </Button>

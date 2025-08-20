@@ -71,7 +71,7 @@ const ColumnsLayout = ({
         sx={{
           height: '100%',
           overflow: 'auto',
-          bgcolor: 'background.paper',
+          bgcolor: 'background.default',
         }}>
         {children}
         <Drawer
@@ -101,7 +101,7 @@ const ColumnsLayout = ({
     <Box
       sx={{
         height: '100%',
-        bgcolor: 'background.paper',
+        bgcolor: 'background.default',
       }}>
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         {left && (
@@ -165,7 +165,7 @@ function ResizeHandle({ collapsed = undefined, ...props }: { collapsed?: boolean
     <ResizeHandleRoot
       component={PanelResizeHandle}
       className={cx(collapsed && 'collapsed')}
-      sx={{ borderColor: '#E5E7EB' }}>
+      sx={{ borderColor: 'divider' }}>
       <Box {...props} className="handler" />
     </ResizeHandleRoot>
   );

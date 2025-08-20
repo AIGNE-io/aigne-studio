@@ -40,7 +40,8 @@ export default function ProjectRoutes() {
 
             '> .dashboard-header': {
               border: 'none',
-              borderBottom: '1px solid #E5E7EB',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
             },
 
             '> .dashboard-body': {
@@ -51,7 +52,7 @@ export default function ProjectRoutes() {
                 },
               },
               '> .dashboard-content': {
-                bgcolor: 'background.paper',
+                bgcolor: 'background.default',
                 overflow: 'hidden',
               },
             },

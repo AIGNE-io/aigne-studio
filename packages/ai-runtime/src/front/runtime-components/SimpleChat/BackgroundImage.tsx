@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, alpha } from '@mui/material';
 
 import { getAssetUrl } from '../../api/asset';
 import { useComponentPreferences } from '../../contexts/ComponentPreferences';
@@ -32,7 +32,7 @@ export default function BackgroundImage() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.12)',
+          backgroundColor: (theme) => alpha(theme.palette.common.black, 0.12),
           pointerEvents: 'none',
         },
       }}

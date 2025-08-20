@@ -91,14 +91,14 @@ export default function Compare({
           <Select
             sx={{
               fontSize: 16,
-              color: '#3B82F6',
+              color: 'info.main',
               background: 'transparent',
               ':hover': {
                 background: 'transparent',
               },
             }}
             startAdornment={
-              <Box component={Icon} icon={ArrowRightIcon} sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+              <Box component={Icon} icon={ArrowRightIcon} sx={{ fontSize: 16, color: 'info.main', mr: 1 }} />
             }
             value={branch}
             onChange={(e) => {
@@ -116,7 +116,7 @@ export default function Compare({
         <Select
           sx={{
             fontSize: 16,
-            color: '#3B82F6',
+            color: 'info.main',
             background: 'transparent',
             ':hover': {
               background: 'transparent',
@@ -124,7 +124,7 @@ export default function Compare({
           }}
           value={commit}
           startAdornment={
-            <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 16, color: '#3B82F6', mr: 1 }} />
+            <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 16, color: 'info.main', mr: 1 }} />
           }
           onChange={(e) => {
             setCommit(e.target.value);

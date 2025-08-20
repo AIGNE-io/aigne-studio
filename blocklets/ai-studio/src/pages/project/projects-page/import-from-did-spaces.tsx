@@ -59,7 +59,7 @@ function ImportWayItem({
       {...rest}
       sx={{
         borderRadius: 2,
-        backgroundColor: 'rgba(249, 250, 251, 1)',
+        backgroundColor: 'grey.50',
         p: 2,
         transition: 'background-color 0.5s',
         display: 'flex',
@@ -67,7 +67,7 @@ function ImportWayItem({
         alignItems: 'center',
         cursor: 'pointer',
         '&:hover': {
-          backgroundColor: 'rgba(19, 125, 250, 0.06)',
+          backgroundColor: 'grey.100',
           '& .other-item-icon': {
             display: 'inline-flex',
             transform: 'translateX(0)',
@@ -92,7 +92,7 @@ function ImportWayItem({
         className="other-item-icon"
         sx={{
           fontSize: '1.3rem',
-          color: 'rgba(19, 125, 250, 1)',
+          color: 'info.main',
         }}
       />
     </Box>
@@ -332,7 +332,7 @@ export default function FromDidSpacesImport() {
               <Typography variant="subtitle2">{t('projectSetting.selectProject')}</Typography>
               <TextField
                 placeholder={t('selectProjectToImportPlaceholder')}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                 {...form.register('id', { required: true })}
                 select
                 hiddenLabel
@@ -369,7 +369,7 @@ export default function FromDidSpacesImport() {
                 multiline
                 rows={4}
                 focused
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                 slotProps={{
                   input: {
                     readOnly: true,

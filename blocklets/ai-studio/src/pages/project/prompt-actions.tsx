@@ -98,14 +98,14 @@ export function HeaderActions() {
         <AgentTokenUsage />
 
         <Button
-          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}
           onClick={() => {
             window.open(
               joinURL(window.location.origin, window.blocklet.prefix, `projects/${projectId}/logs/main`),
               '_blank'
             );
           }}>
-          <Box component={Icon} icon={LogIcon} sx={{ fontSize: 20, color: '#030712' }} />
+          <Box component={Icon} icon={LogIcon} sx={{ fontSize: 20, color: 'text.primary' }} />
         </Button>
 
         <CommitsTip
@@ -117,8 +117,9 @@ export function HeaderActions() {
           }}>
           <span>
             <Tooltip disableInteractive title={t('alert.history')}>
-              <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-                <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: '#030712' }} />
+              <Button
+                sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}>
+                <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: 'text.primary' }} />
               </Button>
             </Tooltip>
           </span>
@@ -130,9 +131,9 @@ export function HeaderActions() {
           <Tooltip disableInteractive title={t('setting')}>
             <Button
               data-testid="header-actions-setting"
-              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}
               onClick={toggleDrawer}>
-              <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
+              <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: 'text.primary' }} />
             </Button>
           </Tooltip>
 
@@ -187,7 +188,7 @@ export function MobileHeaderActions() {
             fontWeight: 500,
             fontSize: 16,
             lineHeight: '28px',
-            color: '#030712',
+            color: 'text.primary',
           }}>
           {t('log')}
         </Typography>
@@ -235,7 +236,7 @@ function HistoryAction() {
             fontWeight: 500,
             fontSize: 16,
             lineHeight: '28px',
-            color: '#030712',
+            color: 'text.primary',
           }}>
           {t('alert.history')}
         </Typography>
@@ -333,7 +334,7 @@ function SaveAction() {
               fontWeight: 500,
               fontSize: 16,
               lineHeight: '28px',
-              color: '#030712',
+              color: 'text.primary',
             }}>
             {t('save')}
           </Typography>
@@ -427,7 +428,7 @@ function SettingsAction() {
             fontWeight: 500,
             fontSize: 16,
             lineHeight: '28px',
-            color: '#030712',
+            color: 'text.primary',
           }}>
           {t('setting')}
         </Typography>

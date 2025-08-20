@@ -48,7 +48,7 @@ export default function PromptPrompts({
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: '#EFF6FF',
+        bgcolor: 'grey.50',
       }}>
       <>
         {value.prompts && (
@@ -168,10 +168,11 @@ function PromptItemMessage({
     <Stack
       sx={{
         border: 1,
-        borderColor: '#3B82F6',
+        borderColor: 'info.main',
         borderRadius: 1,
         '*': promptHidden ? { color: 'text.disabled' } : {},
-        '.variable': promptHidden ? { color: 'rgba(0, 0, 0, 0.38) !important', fontWeight: 'normal !important' } : {},
+        '.variable': (theme) =>
+          promptHidden ? { color: `${theme.palette.text.disabled} !important`, fontWeight: 'normal !important' } : {},
         backgroundColor: promptHidden ? 'action.hover' : backgroundColor,
       }}>
       <Stack
@@ -181,7 +182,8 @@ function PromptItemMessage({
           gap: 1,
           p: 1,
           px: 1.5,
-          borderBottom: '1px solid #BFDBFE',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
         }}>
         <RoleSelectField
           projectId={projectId}

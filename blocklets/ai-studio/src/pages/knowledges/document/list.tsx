@@ -100,7 +100,7 @@ const KnowledgeDocuments = ({
                 className="ellipsis"
                 sx={{
                   flexGrow: 1,
-                  color: '#030712',
+                  color: 'text.primary',
                 }}>
                 {params.row.name}
               </Box>
@@ -130,10 +130,10 @@ const KnowledgeDocuments = ({
           headerAlign: 'center',
           renderCell: (params) => {
             const colors: any = {
-              idle: '#D97706',
-              uploading: '#D97706',
-              success: '#059669',
-              error: '#E11D48',
+              idle: 'warning.main',
+              uploading: 'warning.main',
+              success: 'success.main',
+              error: 'error.main',
             };
 
             function isSymmetricAroundSlash(str: string = '') {
@@ -155,9 +155,10 @@ const KnowledgeDocuments = ({
                   <Box
                     sx={{
                       borderRadius: 20,
-                      border: '1px solid #E5E7EB',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       p: '4px 12px',
-                      color: '#030712',
+                      color: 'text.primary',
                       fontSize: 13,
                       display: 'flex',
                       alignItems: 'center',
@@ -196,7 +197,7 @@ const KnowledgeDocuments = ({
                       sx={{
                         borderRadius: 20,
                         p: '4px 12px',
-                        color: '#030712',
+                        color: 'text.primary',
                         fontSize: 13,
                         display: 'flex',
                         alignItems: 'center',
@@ -235,7 +236,7 @@ const KnowledgeDocuments = ({
                   sx={{
                     borderRadius: 20,
                     p: '4px 12px',
-                    color: '#030712',
+                    color: 'text.primary',
                     fontSize: 13,
                     display: 'flex',
                     alignItems: 'center',
@@ -403,7 +404,7 @@ function Actions({
                   border: 0,
                 },
                 '.save': {
-                  background: '#d32f2f',
+                  bgcolor: 'error.main',
                 },
               },
               maxWidth: 'sm',
@@ -420,7 +421,7 @@ function Actions({
                       fontWeight: 500,
                       fontSize: 16,
                       lineHeight: '28px',
-                      color: '#4B5563',
+                      color: 'text.secondary',
                     }}>
                     {t('knowledge.deleteDescription')}
                   </Typography>
@@ -571,7 +572,7 @@ export const DocumentIcon = ({ document = undefined }: { document?: KnowledgeDoc
 export default KnowledgeDocuments;
 
 const Table = styled(DataGrid)`
-  --DataGrid-rowBorderColor: #eff1f5;
+  --DataGrid-rowBorderColor: ${({ theme }) => theme.palette.divider};
 
   .MuiDataGrid-columnSeparator {
     display: none;
@@ -579,7 +580,7 @@ const Table = styled(DataGrid)`
 
   .MuiDataGrid-columnHeader {
     padding: 0;
-    background: #fff;
+    background: ${({ theme }) => theme.palette.background.default};
 
     &:last-child {
       padding-left: 16px;
@@ -595,6 +596,6 @@ const Table = styled(DataGrid)`
   }
 
   .MuiTablePagination-root {
-    color: #030712;
+    color: ${({ theme }) => theme.palette.text.primary};
   }
 `;

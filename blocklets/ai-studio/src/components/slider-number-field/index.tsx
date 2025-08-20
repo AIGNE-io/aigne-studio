@@ -60,7 +60,7 @@ export default function SliderNumberField({
         hiddenLabel
         size="small"
         type="number"
-        sx={{ minWidth: 80, width: 80, border: '1px solid #E5E7EB', borderRadius: 1 }}
+        sx={{ minWidth: 80, width: 80, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}
         value={value}
         onChange={handleChange}
         slotProps={{

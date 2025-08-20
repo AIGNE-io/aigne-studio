@@ -27,7 +27,14 @@ export default function ApiAssistantSetting({
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
-    <Box sx={{ border: '1px solid #3B82F6', p: '8px 16px', borderRadius: 1, bgcolor: 'background.paper' }}>
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'info.main',
+        p: '8px 16px',
+        borderRadius: 1,
+        bgcolor: 'background.paper',
+      }}>
       <Stack
         sx={{
           py: 1,

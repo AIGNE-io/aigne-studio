@@ -43,7 +43,7 @@ export default function PublishEntries({ assistant }: { assistant: AssistantYjs 
         </Typography>
 
         <Button
-          sx={{ cursor: 'pointer', color: '#3B82F6', minWidth: 32, minHeight: 32, p: 0 }}
+          sx={{ cursor: 'pointer', color: 'info.main', minWidth: 32, minHeight: 32, p: 0 }}
           onClick={() => {
             const id = nanoid();
             doc.transact(() => {

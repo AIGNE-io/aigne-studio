@@ -51,7 +51,7 @@ export function UploaderButton({
       size="small"
       onClick={handleOpen}
       {...props}
-      sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)', ...props.sx }}>
+      sx={{ borderRadius: 0.5, bgcolor: 'grey.100', ...props.sx }}>
       <UploadIcon />
     </IconButton>
   );

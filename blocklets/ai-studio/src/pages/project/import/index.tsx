@@ -222,7 +222,7 @@ export default function ImportFrom({
                         <Box
                           sx={{
                             mr: 1,
-                            color: '#ccc',
+                            color: 'text.secondary',
                           }}>{`${item.parent} / `}</Box>
                       )}
 

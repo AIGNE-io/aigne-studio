@@ -359,7 +359,7 @@ export const AgentItemView = ({
       {...props}
       sx={{
         position: 'relative',
-        background: '#F9FAFB',
+        bgcolor: 'grey.50',
         py: 1,
         px: 1.5,
         minHeight: 40,
@@ -385,7 +385,7 @@ export const AgentItemView = ({
           transform: 'translateY(-50%)',
           cursor: 'move',
         }}>
-        <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+        <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.400', fontSize: 14 }} />
       </Box>
       <Stack
         sx={{
@@ -557,7 +557,7 @@ export const AgentItemView = ({
                 }
               });
             }}>
-            <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: '#E11D48' }} />
+            <Box component={Icon} icon={Trash} sx={{ fontSize: 18, color: 'error.main' }} />
           </Button>
         )}
 

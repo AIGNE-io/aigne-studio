@@ -244,7 +244,7 @@ export default function ProjectSettings({
             top: 0,
             display: 'flex',
             flexDirection: 'row-reverse',
-            bgcolor: '#fff',
+            bgcolor: 'background.default',
             zIndex: 10000,
           }}>
           <Button data-testid="settings-close-btn" onClick={onClose} sx={{ minWidth: 32, minHeight: 32, mt: 1, mx: 1 }}>
@@ -265,7 +265,7 @@ export default function ProjectSettings({
               minWidth: 32,
               borderRadius: 1,
             },
-            bgcolor: '#fff',
+            bgcolor: 'background.default',
             py: 1,
             zIndex: 10000,
             position: 'sticky',
@@ -396,11 +396,9 @@ export default function ProjectSettings({
                         overflowX: 'hidden',
                         overflow: 'overlay',
                         background: 'rgba(0, 0, 0, 0.03)',
-
                         img: {
                           width: '50%',
                         },
-
                         h1: { margin: 0 },
                         h2: { margin: 0 },
                         h3: { margin: 0 },
@@ -570,7 +568,7 @@ const SettingsContainer = styled(Box)`
 
   .version {
     .subTitle {
-      color: rgba(0, 0, 0, 0.6);
+      color: ${({ theme }) => theme.palette.text.secondary};
       font-weight: 400;
       font-size: 0.75rem;
     }

@@ -33,7 +33,8 @@ export default function ImageFilePrompt({
       }}>
       <Box
         sx={{
-          border: '1px solid #3B82F6',
+          border: '1px solid',
+          borderColor: 'info.main',
           borderRadius: 1,
           minHeight: 64,
 

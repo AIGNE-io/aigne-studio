@@ -188,7 +188,7 @@ function DefaultPromptSetting({
   const { t } = useLocaleContext();
 
   const { getDiffBackground } = useAssistantCompare({ value: agent, compareValue, readOnly, isRemoteCompare });
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400', mt: 0.25 }} />;
 
   const { projectId, projectRef } = useCurrentProject();
   const { projectSetting } = useProjectStore(projectId, projectRef);
