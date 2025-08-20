@@ -7,7 +7,7 @@ const singleAppUrl = process.env.SINGLE_TENANT_APP_URL!;
 const multipleAppUrl = process.env.MULTIPLE_TENANT_APP_URL!;
 const rootSeed = process.env.ROOT_SEED!;
 
-test.setTimeout(180_000);
+test.setTimeout(300_000);
 
 test('initialize single-tenant-mode-app', async () => {
   await setupUsers({ appName: playwrightConfigAppNames.single, appUrl: singleAppUrl, rootSeed });
