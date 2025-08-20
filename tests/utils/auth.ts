@@ -31,56 +31,53 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
-  // claim did space for wallet
-  const vcs = await Promise.all(
-    wallets.map(async ({ wallet, ...rest }) => {
-      const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
-        const page = await browser.newPage({});
-        const result = await claimDIDSpace({ page, wallet: spaceWallet });
-        return result;
-      });
-      console.log('claim did space for wallet', rest.name);
-      return { ...rest, wallet, vc };
-    })
-  );
+  // claim did space for wallet (sequential)
+  const vcs: Array<{ wallet: any; name: string; vc: any }> = [];
+  for (const { wallet, ...rest } of wallets) {
+    const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
+      const page = await browser.newPage({});
+      const result = await claimDIDSpace({ page, wallet: spaceWallet });
+      return result;
+    });
+    console.log('claim did space for wallet', rest.name);
+    vcs.push({ ...rest, wallet, vc });
+  }
 
-  await Promise.all(
-    vcs.map(async ({ wallet, name, vc }) => {
-      const page = await browser.newPage();
+  for (const { wallet, name, vc } of vcs) {
+    const page = await browser.newPage();
 
-      // login as owner and bind did space
-      await page.goto(appUrl);
-      const remindButton = page.getByRole('button', { name: 'Remind Me Later' });
-      await remindButton.waitFor({ state: 'visible' });
-      await remindButton.click({ timeout: 3000 });
+    // login as owner and bind did space
+    await page.goto(appUrl);
+    const remindButton = page.getByRole('button', { name: 'Remind Me Later' });
+    await remindButton.waitFor({ state: 'visible' });
+    await remindButton.click({ timeout: 3000 });
 
-      await login({ page, wallet, appWallet, passport: { name, title: name } });
+    await login({ page, wallet, appWallet, passport: { name, title: name } });
 
-      const connectNowButton = page.getByRole('button', { name: 'Connect Now' });
-      if ((await connectNowButton.count()) > 0) {
-        await connectNowButton.click();
-        const popupPage = await page.waitForEvent('popup');
-        await popupPage.waitForLoadState('networkidle');
+    const connectNowButton = page.getByRole('button', { name: 'Connect Now' });
+    if ((await connectNowButton.count()) > 0) {
+      await connectNowButton.click();
+      const popupPage = await page.waitForEvent('popup');
+      await popupPage.waitForLoadState('networkidle');
 
-        // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
-        const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
-        await popupPage.evaluate((redirectUrl) => {
-          window.location.href = redirectUrl;
-        }, url);
-        await popupPage.waitForLoadState('networkidle');
-        // wait 3 s
-        await popupPage.waitForTimeout(3 * 1000);
+      // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
+      const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
+      await popupPage.evaluate((redirectUrl) => {
+        window.location.href = redirectUrl;
+      }, url);
+      await popupPage.waitForLoadState('networkidle');
+      // wait 3 s
+      await popupPage.waitForTimeout(3 * 1000);
 
-        const authUrl = await getAuthUrl({ page: popupPage });
-        await showAssetOrVC({ authUrl, wallet: spaceWallet, vc, meta: { purpose: 'DidSpace' } });
+      const authUrl = await getAuthUrl({ page: popupPage });
+      await showAssetOrVC({ authUrl, wallet: spaceWallet, vc, meta: { purpose: 'DidSpace' } });
 
-        await popupPage.getByRole('button', { name: 'Authorize' }).click();
-        await page.waitForTimeout(5 * 1000);
-      }
+      await popupPage.getByRole('button', { name: 'Authorize' }).click();
+      await page.waitForTimeout(5 * 1000);
+    }
 
-      console.log('login for wallet', name);
-    })
-  );
+    console.log('login for wallet', name);
+  }
 
   await browser.close();
 }

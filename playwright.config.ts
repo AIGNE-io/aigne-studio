@@ -28,7 +28,7 @@ export default defineConfig<{
   storageStatePath: string;
   appName: string;
 }>({
-  timeout: 90 * seconds,
+  timeout: 60 * seconds,
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -46,7 +46,7 @@ export default defineConfig<{
   },
   use: {
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     launchOptions: headless
       ? undefined
       : {
