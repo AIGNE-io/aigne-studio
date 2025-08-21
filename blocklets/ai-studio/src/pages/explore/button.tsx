@@ -177,10 +177,11 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       text: t('shareOnTwitter'),
       icon: <Box component={Icon} icon={twitterIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
+        const description = project.description || '';
         window.open(
           generateTwitterShareUrl({
             title: project.name || '',
-            description: project.description || '',
+            description: description?.length > 100 ? `${description.slice(0, 100)}...` : description,
             url: shareUrl,
             hashtags: ['Arcblock', 'AIGNE', 'AI'],
             via: 'ArcBlock_io',
