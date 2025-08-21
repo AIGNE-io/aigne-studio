@@ -1,3 +1,7 @@
+## 0.5.11 (2025-8-21)
+
+- fix: incorrect image file extension after download
+
 ## 0.5.10 (2025-8-21)
 
 - fix: e2e test is broken
