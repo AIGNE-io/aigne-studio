@@ -273,14 +273,14 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         input.quality && imageModel?.quality?.includes(input.quality) ? input.quality : imageModel?.qualityDefault,
       style: input.style || imageModel?.styleDefault,
       size: input.size && imageModel?.size?.includes(input.size) ? input.size : imageModel?.sizeDefault,
-      outputFormat: input.outputFormat || imageModel?.outputFormatDefault,
+      outputFormat: input.outputFormat || imageModel?.outputFormatDefault || 'png',
       outputCompression: input.outputCompression || imageModel?.outputCompressionDefault,
       background: input.background || imageModel?.backgroundDefault,
       moderation: input.moderation || imageModel?.moderationDefault,
     };
     logger.info('call imageGenerationsV2 input', model);
 
-    const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
+    const format = input.model === 'gpt-image-1' ? model.outputFormat : 'png';
     return imageGenerationsV2(
       {
         ...input,
