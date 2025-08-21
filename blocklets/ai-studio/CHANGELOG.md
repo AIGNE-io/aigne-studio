@@ -1,3 +1,10 @@
+## 0.5.9 (2025-8-21)
+
+- tweaks
+- tweaks
+- improve logo component
+- chore: integrate code-inspector-plugin
+
 ## 0.5.8 (2025-8-20)
 
 - chore: update deps
