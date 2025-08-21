@@ -1,22 +1,79 @@
 import { Box, styled, useTheme } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
+interface EyeProps {
+  leftPercentage: number;
+  topPercentage: number;
+  isBlinking: boolean;
+  eyeColor: string;
+}
+
+interface EyePosition {
+  left: number;
+  top: number;
+}
+
+interface LogoConfig {
+  py?: number;
+  bgUrl: string;
+  eyeColor: string;
+  eyes: EyePosition[];
+}
+
+const LOGO_HEIGHT = 44;
+
+// https://github.com/blocklet/arcblock-pages-kit-components/blob/2ad141ed68a2a8e7abaed6d15b72d2d04f260983/src/components/AnimateLogo/index.tsx#L38C17-L55C4
+const aigneStudioLogoConfigs = {
+  light: {
+    bgUrl: 'https://www.aigne.io/image-bin/uploads/1d3070fd4b4b93ba7920f1d1e51c7536.png',
+    eyeColor: 'black',
+    eyes: [
+      { left: 7.5, top: 51 },
+      { left: 13.5, top: 51 },
+    ],
+  },
+  dark: {
+    bgUrl: 'https://www.aigne.io/image-bin/uploads/a2752eafda792ba59347cc5b99319efc.png',
+    eyeColor: 'white',
+    eyes: [
+      { left: 7.5, top: 51 },
+      { left: 13.5, top: 51 },
+    ],
+  },
+};
+
 export default function AigneLogo() {
-  const [eyePosition, setEyePosition] = useState({ leftOffset: 0, topOffset: 0 });
+  const logoConfig = useLogoConfig();
+  return <AnimLogo logoConfig={logoConfig} />;
+}
+
+function useLogoConfig() {
+  const theme = useTheme();
+  const logoConfig = theme.palette.mode === 'dark' ? aigneStudioLogoConfigs.dark : aigneStudioLogoConfigs.light;
+  return logoConfig;
+}
+
+const AnimLogo: React.FC<{ logoConfig: LogoConfig }> = ({ logoConfig }) => {
+  const [eyePosition, setEyePosition] = useState({
+    leftOffset: 0,
+    topOffset: 0,
+  });
   const [isBlinking, setIsBlinking] = useState(false); // 是否闭眼
   const avatarRef = React.useRef<HTMLDivElement>(null);
-  const theme = useTheme();
 
+  // 定时器，控制眼睛闭合和睁开
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    if (isBlinking) {
-      timeoutId = setTimeout(() => setIsBlinking(false), 100);
-    } else {
-      timeoutId = setTimeout(() => setIsBlinking(true), Math.random() * 5000 + 2000);
-    }
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-    };
+    const blinkInterval = setTimeout(
+      () => {
+        setIsBlinking(true); // 眨眼闭合
+        const blinkTimeout = setTimeout(() => {
+          setIsBlinking(false); // 眨眼睁开
+        }, 100); // 持续时间
+        return () => clearTimeout(blinkTimeout);
+      },
+      Math.random() * 5000 + 2000
+    ); // 随机时间间隔
+    return () => clearTimeout(blinkInterval);
   }, [isBlinking]);
 
   useEffect(() => {
@@ -62,45 +119,45 @@ export default function AigneLogo() {
     <AvatarContainer
       ref={avatarRef}
       style={{
-        backgroundImage: 'url("https://www.aigne.io/image-bin/uploads/cc17dbd7750530beb89374fcd7063e7f.png")',
-        filter: theme.palette.mode === 'dark' ? 'invert(1)' : 'none',
+        // backgroundImage: `url("${logoConfig.bgUrl}")`,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center center',
       }}>
-      <Eye
-        style={{
-          left: `${13.5 + eyePosition.leftOffset}%`,
-          top: `${51 + eyePosition.topOffset}%`,
-          height: isBlinking ? '0' : '18%',
-          transform: `translate(-50%, -50%) scaleY(${isBlinking ? '0.4' : '1'})`,
-        }}
+      <Box
+        component="img"
+        src={logoConfig.bgUrl}
+        alt="logo"
+        sx={{ width: '100%', height: LOGO_HEIGHT, py: logoConfig.py }}
       />
-      <Eye
-        style={{
-          left: `${21 + eyePosition.leftOffset}%`,
-          top: `${51 + eyePosition.topOffset}%`,
-          height: isBlinking ? '0' : '18%',
-          transform: `translate(-50%, -50%) scaleY(${isBlinking ? '0.4' : '1'})`,
-        }}
-      />
+      {logoConfig.eyes.map((eye, index) => (
+        <Eye
+          key={index}
+          leftPercentage={eye.left + eyePosition.leftOffset}
+          topPercentage={eye.top + eyePosition.topOffset}
+          isBlinking={isBlinking}
+          eyeColor={logoConfig.eyeColor}
+        />
+      ))}
     </AvatarContainer>
   );
-}
+};
 
 const AvatarContainer = styled(Box)`
   position: relative;
-  width: 128px;
-  min-width: 128px;
-  height: 44px;
-  overflow: hidden;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  margin: auto;
+  width: auto;
+  height: ${LOGO_HEIGHT}px;
+  background-size: contain;
+  margin: 0 auto;
 `;
 
-const Eye = styled(Box)<{ isBlinking?: boolean; leftPercentage?: number; topPercentage?: number }>`
+const Eye = styled(Box)<EyeProps>`
   position: absolute;
-  width: 3.5%;
-  background-color: black;
+  width: 6px;
+  height: ${(props) => (props.isBlinking ? '0' : '18%')};
+  background-color: ${(props) => props.eyeColor};
   border-radius: 100% / 100%;
+  left: ${(props) => props.leftPercentage}%;
+  top: ${(props) => props.topPercentage}%;
+  transform: translate(-50%, -50%) scaleY(${(props) => (props.isBlinking ? '0.4' : '1')});
   transition: height 0.2s ease-out;
 `;
