@@ -60,7 +60,6 @@ const AnimLogo: React.FC<{ logoConfig: LogoConfig }> = ({ logoConfig }) => {
   });
   const [isBlinking, setIsBlinking] = useState(false); // 是否闭眼
   const avatarRef = React.useRef<HTMLDivElement>(null);
-  const theme = useTheme();
 
   // 定时器，控制眼睛闭合和睁开
   useEffect(() => {
