@@ -1,7 +1,6 @@
 // import { login } from '@blocklet/testlab/utils/playwright';
 // import { ensureWallet } from '@blocklet/testlab/utils/wallet';
-import { test } from '@playwright/test';
-
+import test from '../../utils/base';
 import { createProject } from '../../utils/project';
 
 test.beforeEach('clean and create project', async ({ browser }) => {

@@ -18,11 +18,6 @@ jobs:
     name: Bundle Blocklets
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    container:
-      image: arcblock/blocklet-server-ci
-      ports:
-        - 80:80
-        - 443:443
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
 
@@ -30,13 +25,28 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install
+
+      - name: Install blocklet cli
+        run: |
+          npm install -g @blocklet/cli@beta
 
       - name: Bundle blocklets
         run: |
           pnpm build:libs
-          pnpm -F ai-studio -F ai-runtime bundle
+          pnpm -F ai-studio bundle
+          pnpm -F ai-runtime bundle
 
       - name: Upload bundle artifacts
         uses: actions/upload-artifact@v4
@@ -53,11 +63,6 @@ jobs:
       - bundle
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    container:
-      image: arcblock/blocklet-server-ci
-      ports:
-        - 80:80
-        - 443:443
 
     steps:
       - name: Checkout repo
@@ -68,6 +73,27 @@ jobs:
         with:
           name: blocklet-bundles
           path: blocklets
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+
+      - name: Install Nginx with stream module
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nginx-extras  # nginx-extras 包含 ngx_stream_module
+          sudo nginx -t  # 测试配置文件是否正确
+          sudo setcap 'cap_net_bind_service=+ep' $(which nginx)
+
+      - name: Install blocklet cli
+        run: |
+          npm install -g @blocklet/cli@beta
 
       - name: Install dependencies
         run: |
@@ -82,5 +108,7 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 30

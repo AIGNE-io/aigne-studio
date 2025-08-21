@@ -13,7 +13,7 @@ customSetup('owner authenticate', async ({ page, storageStatePath = 'owner', app
   await login({
     page,
     wallet: ensureWallet({ name: 'owner' }),
-    appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
+    appWallet: ensureWallet({ name: appName, onlyFromCache: false }),
     passport: { name: 'owner', title: 'owner' },
   });
 

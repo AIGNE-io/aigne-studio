@@ -5,6 +5,8 @@ packages:
 
 onlyBuiltDependencies:
   - '@blocklet/puppeteer'
+  - '@parcel/watcher'
+  - '@scarf/scarf'
   - canvas
   - core-js
   - core-js-pure
@@ -22,6 +24,7 @@ onlyBuiltDependencies:
   - simple-git-hooks
   - sqlite3
   - tree-sitter
+  - unrs-resolver
 
 overrides:
   '@abtnode/client': '^1.16.48'

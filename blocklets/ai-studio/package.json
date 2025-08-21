@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.5.9",
+  "version": "0.5.10",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -12,12 +12,12 @@
     "clean": "node scripts/build-clean.js",
     "build": "run-s clean bundle:client bundle:api",
     "bundle": "run-s clean bundle:*",
-    "bundle:client": "vite build",
+    "bundle:client": "cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "bundle:api": "tsc -p tsconfig.api.json && tsc-alias -p tsconfig.api.json",
     "bundle:blocklet": "blocklet bundle --compact --external sqlite3,faiss-node,pdf2json,prettier --monorepo --create-release",
     "deploy": "npm run bundle && blocklet deploy .blocklet/bundle",
     "upload": "npm run bundle && blocklet upload .blocklet/release/blocklet.json",
-    "bundle:analyze": "pnpx vite-bundle-visualizer -o stats.html --open"
+    "analyze": "pnpx vite-bundle-visualizer -o stats.html --open"
   },
   "browserslist": {
     "production": [

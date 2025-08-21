@@ -1,7 +1,7 @@
 {
   "name": "ai-studio",
   "private": true,
-  "version": "0.5.9",
+  "version": "0.5.10",
   "workspaces": [
     "blocklets/*",
     "packages/*",
@@ -59,8 +59,8 @@
     "@arcblock/eslint-config-ts": "^0.3.3",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/testlab": "^0.0.23",
-    "@ocap/util": "^1.22.3",
-    "@playwright/test": "^1.46.1",
+    "@ocap/util": "^1.21.3",
+    "@playwright/test": "^1.54.2",
     "bumpp": "^9.5.2",
     "code-inspector-plugin": "^1.2.2",
     "dotenv": "^16.4.5",

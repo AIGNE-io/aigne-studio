@@ -13,7 +13,7 @@ customSetup('admin authenticate', async ({ page, storageStatePath, appName }) =>
   await login({
     page,
     wallet: ensureWallet({ name: 'admin' }),
-    appWallet: ensureWallet({ name: appName, onlyFromCache: true }),
+    appWallet: ensureWallet({ name: appName, onlyFromCache: false }),
     passport: { name: 'admin', title: 'admin' },
   });
 
