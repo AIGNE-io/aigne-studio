@@ -67,6 +67,9 @@ export default defineConfig(({ mode }) => {
       embedBuildConcurrency: 3,
     }),
     svgr(),
+    codeInspectorPlugin({
+      bundler: 'vite',
+    }),
   ];
 
   if (mode === 'development') {
@@ -105,6 +108,7 @@ export default defineConfig(({ mode }) => {
             if (id.includes('js-tiktoken')) {
               return 'vendor-js-tiktoken';
             }
+            return undefined;
           },
         },
       },

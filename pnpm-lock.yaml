@@ -89,6 +89,9 @@ importers:
       bumpp:
         specifier: ^9.5.2
         version: 9.11.1
+      code-inspector-plugin:
+        specifier: ^1.2.2
+        version: 1.2.2
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1

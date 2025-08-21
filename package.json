@@ -62,6 +62,7 @@
     "@ocap/util": "^1.21.3",
     "@playwright/test": "^1.54.2",
     "bumpp": "^9.5.2",
+    "code-inspector-plugin": "^1.2.2",
     "dotenv": "^16.4.5",
     "eslint": "^8.57.0",
     "eslint-plugin-prettier": "^5.2.1",
