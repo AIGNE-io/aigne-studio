@@ -1,9 +1,6 @@
 ## 0.5.9 (2025-8-21)
 
-- tweaks
-- tweaks
-- improve logo component
-- chore: integrate code-inspector-plugin
+- chore: improve aigne studio logo and page layout
 
 ## 0.5.8 (2025-8-20)
 
