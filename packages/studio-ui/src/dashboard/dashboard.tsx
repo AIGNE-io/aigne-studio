@@ -1,5 +1,6 @@
 // @ts-ignore
 import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
+import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
 import { MenuOpenRounded, MenuRounded } from '@mui/icons-material';
 import {
@@ -30,6 +31,7 @@ export interface DashboardProps extends StackProps {
   menus?: ReactElement<{ collapsed?: boolean; onClick?: () => void }> | null;
   children?: ReactNode;
   collapseBreakpoint?: 'sm' | 'md';
+  showFooter?: boolean;
 }
 
 const miniDrawerWidth = 87;
@@ -41,6 +43,7 @@ export default function Dashboard({
   menus = undefined,
   children = undefined,
   collapseBreakpoint = 'md',
+  showFooter = false,
   ...props
 }: DashboardProps) {
   const theme = useTheme();
@@ -62,7 +65,14 @@ export default function Dashboard({
 
   return (
     <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, ...props.sx }}>
-      <Box className="dashboard-header" component="header">
+      <Box
+        className="dashboard-header"
+        component="header"
+        sx={{
+          '.header-brand-wrapper': {
+            display: { xs: 'none', sm: 'block' },
+          },
+        }}>
         <Header
           className="blocklet-header"
           theme={theme}
@@ -111,6 +121,8 @@ export default function Dashboard({
           {children}
         </Stack>
       </Stack>
+
+      {showFooter && <Footer />}
     </Root>
   );
 }

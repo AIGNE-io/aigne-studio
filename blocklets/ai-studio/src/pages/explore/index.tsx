@@ -27,6 +27,7 @@ export default function ExploreCategoryRoutes() {
           homeLink: joinURL(blocklet?.prefix || '', 'explore'),
         }}
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
+        showFooter
         sx={{
           bgcolor: 'background.default',
 
