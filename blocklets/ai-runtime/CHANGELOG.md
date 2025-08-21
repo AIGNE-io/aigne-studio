@@ -1,3 +1,7 @@
+## 0.5.10 (2025-8-21)
+
+- fix: e2e test is broken
+
 ## 0.5.9 (2025-8-21)
 
 - chore: improve aigne studio logo and page layout
