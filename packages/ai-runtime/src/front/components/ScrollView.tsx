@@ -42,7 +42,7 @@ export default function ScrollView({
 
   return (
     <scrollViewContext.Provider value>
-      <Composer initialScrollBehavior={initialScrollBehavior}>
+      <Composer initialScrollBehavior={initialScrollBehavior} scroller={() => Infinity}>
         <ScrollViewWithinWindow scroll={scroll} component={component} {...props}>
           {children}
         </ScrollViewWithinWindow>

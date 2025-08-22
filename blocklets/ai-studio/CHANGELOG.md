@@ -1,3 +1,7 @@
+## 0.5.12 (2025-8-22)
+
+- fix: should pass default props scroller
+
 ## 0.5.11 (2025-8-21)
 
 - fix: incorrect image file extension after download
