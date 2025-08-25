@@ -1,3 +1,7 @@
+## 0.5.13 (2025-8-25)
+
+- fix: improve explore list/detail page layout
+
 ## 0.5.12 (2025-8-22)
 
 - fix: should pass default props scroller
