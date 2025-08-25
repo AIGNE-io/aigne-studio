@@ -1,0 +1,51 @@
+id: PRESS_RELEASE_AGENT_ID
+name: Press Release
+description: Press Release Agent
+
+inputs:
+  - id: INPUT_PROJECT_ID
+    comment: User input project
+    name: Project
+    type: knowledge
+    placeholder: Project to generate press release
+    required: true
+
+  - id: INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything about ArcBlock
+    required: true
+
+knowledge:
+  - id: PRESS_RELEASE_KNOWLEDGE_ID
+    comment: Use ArcBlock knowledge to answer questions
+    knowledge:
+      from: 'variable'
+      variableId: INPUT_PROJECT_ID
+
+processes:
+  - id: PROCESS_LLM_ID
+    comment: Use LLM to answer questions
+    name: LLM
+    type: llm
+    llm:
+      prompt:
+        - id: PROMPT_MESSAGE_ID_1
+          role: system
+          content: |-
+            You are a professional press release generator, generate a beautiful press release base on the user's instruction.
+
+        - id: PROMPT_MESSAGE_ID_2
+          role: user
+          content: '{{ Question }}'
+
+outputs:
+  - id: OUTPUT_ANSWER_ID
+    comment: Return LLM answer to user
+    name: Answer
+    value:
+      from: variable
+      variableId: PROCESS_LLM_ID
+      path:
+        - $text
