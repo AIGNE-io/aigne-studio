@@ -62,9 +62,10 @@ export default function Dashboard({
   const isMiniMenu = !open && isPermanent;
   const browser = useBrowser();
   const isArcSphere = browser?.arcSphere ?? false;
+  const isDownSm = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
   return (
-    <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, ...props.sx }}>
+    <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, pb: showFooter ? 8 : 0, ...props.sx }}>
       <Box
         className="dashboard-header"
         component="header"
@@ -122,7 +123,34 @@ export default function Dashboard({
         </Stack>
       </Stack>
 
-      {showFooter && <Footer />}
+      {showFooter && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            right: 0,
+            zIndex: (theme) => theme.zIndex.appBar + 2,
+            '.MuiContainer-root': {
+              maxWidth: '100%',
+            },
+            '.blocklet__footer': {
+              height: 64,
+              lineHeight: '64px',
+              '> div': { padding: 0 },
+            },
+            ...(isDownSm && {
+              '&& .plain-layout-container': {
+                justifyContent: 'center',
+                '> :nth-child(1)': {
+                  display: 'none',
+                },
+              },
+            }),
+          }}>
+          <Footer layout="plain" bordered socialMedia={null} links={null} meta={{ navigation: [] }} />
+        </Box>
+      )}
     </Root>
   );
 }
