@@ -15,7 +15,13 @@ interface Props {
   project?: ProjectSettings;
 }
 
-export function MultiTenantBrandGuard({ deployment, project, sx, children, ...rest }: Props & BoxProps) {
+export function MultiTenantBrandGuard({
+  deployment = undefined,
+  project = undefined,
+  sx,
+  children,
+  ...rest
+}: Props & BoxProps) {
   const [aigneBannerVisible, setAigneBannerVisible] = useState(false);
   const { session } = useSessionContext();
   const isAdmin = useIsAdmin();
@@ -26,7 +32,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
       position: 'relative',
       height: '100%',
       pb: `${bottomHeight}px`,
-      bgcolor: '#f0eee6',
+      bgcolor: 'grey.50',
 
       ...(!aigneBannerVisible && {
         p: 0,
@@ -52,7 +58,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
           sx={{
             height: '100%',
             overflow: 'hidden',
-            bgcolor: '#fff',
+            bgcolor: 'background.default',
           }}>
           <Box
             sx={{
@@ -75,7 +81,7 @@ export function MultiTenantBrandGuard({ deployment, project, sx, children, ...re
             right: 0,
             height: bottomHeight,
             p: 2,
-            bgcolor: '#f0eee6',
+            bgcolor: 'grey.50',
           }}>
           <MadeWithAigne />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

@@ -2,7 +2,6 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { ProjectSettings } from '@blocklet/ai-runtime/types/resource/project';
 import { Icon } from '@iconify-icon/react';
 import PlusIcon from '@iconify-icons/tabler/plus';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -11,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Button as LoadingButton,
   Stack,
   TextField,
   Typography,
@@ -57,10 +57,17 @@ export default function ImportFromFork({
           <Close />
         </IconButton>
       </DialogTitle>
-
       <DialogContent>
-        <Stack flexDirection={{ xs: 'column', md: 'row' }} gap={{ xs: 2.5, md: 4 }}>
-          <Stack flex={1} gap={2.5}>
+        <Stack
+          sx={{
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: { xs: 2.5, md: 4 },
+          }}>
+          <Stack
+            sx={{
+              flex: 1,
+              gap: 2.5,
+            }}>
             <Box>
               <Typography variant="subtitle2">{t('name')}</Typography>
               <NameField form={form} triggerOnMount beforeDuplicateProjectNavigate={() => onClose()} />
@@ -75,14 +82,13 @@ export default function ImportFromFork({
                 multiline
                 minRows={3}
                 maxRows={5}
-                sx={{ width: 1, border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                sx={{ width: 1, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}
                 {...form.register('description')}
               />
             </Box>
           </Stack>
         </Stack>
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose} className="cancel" variant="outlined">
           {t('cancel')}

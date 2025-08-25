@@ -1,7 +1,7 @@
 name: upload-to-production-store
 
 env:
-  NODE_OPTIONS: '--max_old_space_size=6144'
+  NODE_OPTIONS: '--max_old_space_size=8192'
 
 on:
   push:
@@ -20,9 +20,9 @@ jobs:
         with:
           ref: release
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
 
       - name: Setup node
         uses: actions/setup-node@v4

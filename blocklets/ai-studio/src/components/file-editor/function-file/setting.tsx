@@ -6,7 +6,12 @@ export default function FunctionCodeSetting() {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" gap={2}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          gap: 2,
+        }}>
         <Typography variant="subtitle2">{t('callFunction')}</Typography>
       </Stack>
     </Box>

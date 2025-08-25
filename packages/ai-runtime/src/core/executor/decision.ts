@@ -7,7 +7,7 @@ import {
   ChatCompletionResponse,
   isChatCompletionChunk,
   isChatCompletionUsage,
-} from '@blocklet/ai-kit/api/types/index';
+} from '@blocklet/aigne-hub/api/types/index';
 import { getAllParameters, getRequiredFields } from '@blocklet/dataset-sdk/request/util';
 import { logger } from '@blocklet/sdk/lib/config';
 

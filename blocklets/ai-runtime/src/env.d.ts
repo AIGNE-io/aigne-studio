@@ -11,5 +11,5 @@ interface ImportMeta {
 
 declare var blocklet: import('@blocklet/sdk').WindowBlocklet | undefined;
 
-declare module '@arcblock/did-connect/*';
+declare module '@arcblock/did-connect-react/*';
 declare module '@arcblock/ux/*';

@@ -1,4 +1,6 @@
+// @ts-ignore
 import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
+import Footer from '@blocklet/ui-react/lib/Footer';
 import Header from '@blocklet/ui-react/lib/Header';
 import { MenuOpenRounded, MenuRounded } from '@mui/icons-material';
 import {
@@ -29,17 +31,19 @@ export interface DashboardProps extends StackProps {
   menus?: ReactElement<{ collapsed?: boolean; onClick?: () => void }> | null;
   children?: ReactNode;
   collapseBreakpoint?: 'sm' | 'md';
+  showFooter?: boolean;
 }
 
 const miniDrawerWidth = 87;
 const drawerWidth = 300;
 
 export default function Dashboard({
-  HeaderProps,
-  MenusDrawerProps,
-  menus,
-  children,
+  HeaderProps = undefined,
+  MenusDrawerProps = undefined,
+  menus = undefined,
+  children = undefined,
   collapseBreakpoint = 'md',
+  showFooter = false,
   ...props
 }: DashboardProps) {
   const theme = useTheme();
@@ -58,10 +62,18 @@ export default function Dashboard({
   const isMiniMenu = !open && isPermanent;
   const browser = useBrowser();
   const isArcSphere = browser?.arcSphere ?? false;
+  const isDownSm = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
   return (
-    <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, ...props.sx }}>
-      <Box className="dashboard-header" component="header">
+    <Root {...props} sx={{ height: '100%', pt: isArcSphere ? 0 : 8, pb: showFooter ? 8 : 0, ...props.sx }}>
+      <Box
+        className="dashboard-header"
+        component="header"
+        sx={{
+          '.header-brand-wrapper': {
+            display: { xs: 'none', sm: 'block' },
+          },
+        }}>
         <Header
           className="blocklet-header"
           theme={theme}
@@ -110,6 +122,35 @@ export default function Dashboard({
           {children}
         </Stack>
       </Stack>
+
+      {showFooter && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: 0,
+            bottom: 0,
+            right: 0,
+            zIndex: (theme) => theme.zIndex.appBar + 2,
+            '.MuiContainer-root': {
+              maxWidth: '100%',
+            },
+            '.blocklet__footer': {
+              height: 64,
+              lineHeight: '64px',
+              '> div': { padding: 0 },
+            },
+            ...(isDownSm && {
+              '&& .plain-layout-container': {
+                justifyContent: 'center',
+                '> :nth-child(1)': {
+                  display: 'none',
+                },
+              },
+            }),
+          }}>
+          <Footer layout="plain" bordered socialMedia={null} links={null} meta={{ navigation: [] }} />
+        </Box>
+      )}
     </Root>
   );
 }
@@ -122,7 +163,7 @@ const Root = styled(Stack)`
     right: 0;
     z-index: ${({ theme }) => theme.zIndex.appBar + 2};
     border-bottom: ${({ theme }) => `1px solid ${theme.palette.grey[200]}`};
-    background-color: ${({ theme }) => theme.palette.background.paper};
+    background-color: ${({ theme }) => theme.palette.background.default};
 
     .blocklet-header {
       background-color: transparent;
@@ -143,30 +184,32 @@ const transition = (theme: Theme, props: string | string[], open?: boolean) =>
     duration: open ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
   });
 
-function MenusDrawer({ collapsed, ...props }: DrawerProps & { collapsed?: boolean }) {
+function MenusDrawer({ collapsed = undefined, ...props }: DrawerProps & { collapsed?: boolean }) {
   return (
     <Drawer
       {...props}
       sx={{ height: '100%', zIndex: (theme) => theme.zIndex.appBar + 1, ...props.sx }}
-      PaperProps={{
-        ...props.PaperProps,
-        sx: {
-          top: 64,
-          bottom: 0,
-          height: 'auto',
-          width: collapsed ? miniDrawerWidth : drawerWidth,
-          transition: (theme) => transition(theme, 'width', props.open),
-          borderRightWidth: props.variant === 'permanent' ? 1 : 0,
-          borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
-          borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
-          zIndex: (theme) => theme.zIndex.appBar + 1,
-          boxShadow: 0,
+      slotProps={{
+        paper: {
+          ...props.PaperProps,
+          sx: {
+            top: 64,
+            bottom: 0,
+            height: 'auto',
+            width: collapsed ? miniDrawerWidth : drawerWidth,
+            transition: (theme) => transition(theme, 'width', props.open),
+            borderRightWidth: props.variant === 'permanent' ? 1 : 0,
+            borderRightStyle: props.variant === 'permanent' ? 'solid' : 'none',
+            borderRightColor: (theme) => (props.variant === 'permanent' ? theme.palette.grey[200] : 'transparent'),
+            zIndex: (theme) => theme.zIndex.appBar + 1,
+            boxShadow: 0,
 
-          '*::-webkit-scrollbar': {
-            display: 'none',
+            '*::-webkit-scrollbar': {
+              display: 'none',
+            },
+
+            ...props.PaperProps?.sx,
           },
-
-          ...props.PaperProps?.sx,
         },
       }}>
       {props.children}

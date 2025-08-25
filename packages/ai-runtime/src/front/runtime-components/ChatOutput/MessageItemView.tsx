@@ -15,30 +15,28 @@ import { useSessionContext } from '../../utils/session';
 import MessageErrorView from './MessageErrorView';
 import MessageMetadataRenderer from './MessageMetadataRenderer';
 
-const MessageItemView = memo(
-  ({
-    message,
-    hideAvatar,
-    ...props
-  }: {
-    message: MessageItem;
-    hideAvatar?: boolean;
-  } & StackProps) => {
-    const showUserMessage = !!message.inputs?.question;
+function MessageItemView({
+  message,
+  hideAvatar = false,
+  ...props
+}: {
+  message: MessageItem;
+  hideAvatar?: boolean;
+} & StackProps) {
+  const showUserMessage = !!message.inputs?.question;
 
-    return (
-      <MessageItemContainer
-        {...props}
-        className={cx('ai-chat-message-item', hideAvatar && 'hide-avatar', props.className)}>
-        {showUserMessage && !isEmpty(message.inputs) && <UserMessage message={message} hideAvatar={hideAvatar} />}
+  return (
+    <MessageItemContainer
+      {...props}
+      className={cx('ai-chat-message-item', hideAvatar && 'hide-avatar', props.className)}>
+      {showUserMessage && !isEmpty(message.inputs) && <UserMessage message={message} hideAvatar={hideAvatar} />}
 
-        {!isEmpty(message.outputs) && <AgentMessage message={message} hideAvatar={hideAvatar} />}
-      </MessageItemContainer>
-    );
-  }
-);
+      {!isEmpty(message.outputs) && <AgentMessage message={message} hideAvatar={hideAvatar} />}
+    </MessageItemContainer>
+  );
+}
 
-export default MessageItemView;
+export default memo(MessageItemView);
 
 const MessageItemContainer = styled(Stack)`
   gap: ${({ theme }) => theme.spacing(2.5)};
@@ -62,7 +60,7 @@ const MessageItemContainer = styled(Stack)`
     margin-top: ${({ theme }) => theme.spacing(0.5)};
     // without logo width
     max-width: calc(100% - 40px);
-    background-color: rgba(239, 246, 255, 1);
+    background-color: ${({ theme }) => theme.palette.grey[50]};
   }
 
   .message-response {
@@ -74,19 +72,19 @@ const MessageItemContainer = styled(Stack)`
     // without logo width
     max-width: calc(100% - 40px);
     display: inline-flex;
-    background-color: rgba(229, 231, 235, 1);
+    background-color: ${({ theme }) => theme.palette.grey[50]};
   }
 `;
 
-function UserMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar?: boolean }) {
+function UserMessage({ message, hideAvatar = false }: { message: MessageItem; hideAvatar?: boolean }) {
   const { session: authSession } = useSessionContext();
 
   return (
     <Stack
       className="ai-chat-message-user"
       direction="row"
-      gap={1.5}
       sx={{
+        gap: 1.5,
         display: 'flex',
         flexDirection: 'row-reverse',
         textAlign: 'right',
@@ -104,11 +102,10 @@ function UserMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar
           />
         </Box>
       )}
-
       <Stack
-        flex={1}
-        overflow="hidden"
         sx={{
+          flex: 1,
+          overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
@@ -128,7 +125,7 @@ function UserMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar
   );
 }
 
-function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvatar?: boolean }) {
+function AgentMessage({ message, hideAvatar = false }: { message: MessageItem; hideAvatar?: boolean }) {
   const { aid } = useEntryAgent();
   const profile = useProfile({ aid });
 
@@ -140,7 +137,12 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
-    <Stack className="ai-chat-message-ai" direction="row" gap={1.5}>
+    <Stack
+      className="ai-chat-message-ai"
+      direction="row"
+      sx={{
+        gap: 1.5,
+      }}>
       {!hideAvatar && (
         <Box>
           <Avatar
@@ -153,8 +155,11 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
           />
         </Box>
       )}
-
-      <Box flex={1} width={0}>
+      <Box
+        sx={{
+          flex: 1,
+          width: 0,
+        }}>
         {!hideAvatar && (
           <MessageUserName>
             {profile.name}
@@ -179,7 +184,7 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
                   ],
                 },
                 tooltip: {
-                  sx: { p: 0, bgcolor: 'white' },
+                  sx: { p: 0 },
                 },
               }}
               title={
@@ -188,15 +193,20 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
                   <ShareActions
                     sx={{
                       fontSize: '1rem',
-                      boxShadow: '0px 4px 8px 0px rgba(3, 7, 18, 0.08)',
-                      border: '1px solid rgba(229, 231, 235, 1)',
+                      boxShadow: 2,
+                      border: '1px solid',
+                      borderColor: 'divider',
                       borderRadius: 1,
                       p: 0.25,
                     }}
                   />
                 )
               }>
-              <Stack gap={1} className="message-response">
+              <Stack
+                className="message-response"
+                sx={{
+                  gap: 1,
+                }}>
                 {message.outputs?.content && (
                   <MarkdownRenderer className={isMessageLoading ? 'writing' : ''}>
                     {message.outputs.content}
@@ -215,7 +225,10 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
             )
           )}
 
-          {message.outputs?.objects?.map((object, index) => <MessageMetadataRenderer key={index} object={object} />)}
+          {message.outputs?.objects?.map((object, index) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <MessageMetadataRenderer key={index} object={object} />
+          ))}
 
           {message.error && <MessageErrorView error={message.error} />}
         </React.Suspense>
@@ -225,8 +238,8 @@ function AgentMessage({ message, hideAvatar }: { message: MessageItem; hideAvata
 }
 
 export function MessageItemWrapper({
-  hideAvatar,
-  agentMessage,
+  hideAvatar = false,
+  agentMessage = undefined,
   ...props
 }: {
   hideAvatar?: boolean;
@@ -241,7 +254,12 @@ export function MessageItemWrapper({
       {...props}
       className={cx('ai-chat-message-item', hideAvatar && 'hide-avatar', props.className)}>
       {agentMessage && (
-        <Stack className="ai-chat-message-ai" direction="row" gap={1.5}>
+        <Stack
+          className="ai-chat-message-ai"
+          direction="row"
+          sx={{
+            gap: 1.5,
+          }}>
           {!hideAvatar && (
             <Box>
               <Avatar
@@ -255,7 +273,11 @@ export function MessageItemWrapper({
             </Box>
           )}
 
-          <Box flex={1} width={0}>
+          <Box
+            sx={{
+              flex: 1,
+              width: 0,
+            }}>
             {!hideAvatar && (
               <MessageUserName>
                 {profile.name}

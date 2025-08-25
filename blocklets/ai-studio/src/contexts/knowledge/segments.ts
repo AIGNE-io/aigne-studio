@@ -1,40 +1,19 @@
+import { useMemoizedFn } from 'ahooks';
 import useInfiniteScroll from 'ahooks/lib/useInfiniteScroll';
 import { useCallback, useEffect } from 'react';
 import useInfiniteScrollHook from 'react-infinite-scroll-hook';
-import { RecoilState, atom, useRecoilState } from 'recoil';
 
-import Knowledge from '../../../api/src/store/models/dataset/dataset';
-import KnowledgeDocument from '../../../api/src/store/models/dataset/document';
-import DatasetSegment from '../../../api/src/store/models/dataset/segment';
 import { getDocument, getSegments } from '../../libs/knowledge';
+import { SegmentState, useKnowledgeSegmentsStore } from '../../store/knowledge-segments-store';
 
-interface SegmentState {
-  dataset?: Knowledge;
-  document?: KnowledgeDocument;
-  segments?: DatasetSegment[];
-  loading?: boolean;
-  error?: Error;
-  page: number;
-  size: number;
-  total?: number;
-}
-
-const datasets: Record<string, RecoilState<SegmentState>> = {};
-
-const dataset = (knowledgeId: string, documentId: string) => {
+export const useSegmentState = (knowledgeId: string, documentId: string) => {
   const key = `${knowledgeId}-${documentId}`;
+  const { getState, updateState } = useKnowledgeSegmentsStore();
+  const state = getState(key);
+  const setState = useMemoizedFn((updater: (state: SegmentState) => SegmentState) => updateState(key, updater));
 
-  let dataset = datasets[key];
-  if (!dataset) {
-    dataset = atom<SegmentState>({ key: `dataset-${key}`, default: { page: 0, size: 20, loading: true } });
-    datasets[key] = dataset;
-  }
-
-  return dataset;
+  return [state, setState] as const;
 };
-
-export const useSegmentState = (knowledgeId: string, documentId: string) =>
-  useRecoilState(dataset(knowledgeId, documentId));
 
 export const useSegments = (
   knowledgeId: string,
@@ -62,7 +41,7 @@ export const useSegments = (
         total,
       }));
     } catch (error) {
-      setState((v) => ({ ...v, loading: false, error }));
+      setState((v) => ({ ...v, loading: false, error: error as Error }));
       throw error;
     }
   }, [knowledgeId, documentId, setState]);

@@ -1,16 +1,18 @@
 import { Checkbox, FormControlLabel, FormGroup, Radio, RadioGroup, RadioGroupProps, alpha } from '@mui/material';
-import { forwardRef } from 'react';
 
 import { SelectParameter } from '../../../types';
 
-const RadioField = forwardRef<
-  HTMLDivElement,
-  {
-    readOnly?: boolean;
-    parameter?: SelectParameter;
-    onChange: (value: string | string[]) => void;
-  } & Omit<RadioGroupProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+const RadioField = ({
+  ref,
+  readOnly = undefined,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  readOnly?: boolean;
+  parameter?: SelectParameter;
+  onChange: (value: string | string[]) => void;
+} & Omit<RadioGroupProps, 'onChange'>) => {
   if (parameter?.multiple) {
     const value = Array.isArray(props.value) ? props.value : props.value ? [props.value] : [];
 
@@ -89,6 +91,6 @@ const RadioField = forwardRef<
       })}
     </RadioGroup>
   );
-});
+};
 
 export default RadioField;

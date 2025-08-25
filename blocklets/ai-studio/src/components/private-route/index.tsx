@@ -8,19 +8,21 @@ interface Props {
   roles?: string[];
 }
 
-export function PrivateRoute({ roles, children }: PropsWithChildren<Props>) {
+export function PrivateRoute({ roles = undefined, children = undefined }: PropsWithChildren<Props>) {
   const { session } = useSessionContext();
   if (!session.initialized) {
     return (
       <Box
-        position="fixed"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        display="flex"
-        justifyContent="center"
-        alignItems="center">
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
         <CircularProgress />
       </Box>
     );

@@ -39,7 +39,13 @@ function GatewayAction({
     <>
       {/* 同步数据 */}
       {showSync && (
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
           <PromiseLoadingButton
             size="small"
             loadingPosition="start"
@@ -58,7 +64,7 @@ function GatewayAction({
                         target="_blank"
                         rel="noopener noreferrer"
                         size="small"
-                        sx={{ color: 'white' }}>
+                        sx={{ color: 'common.white', borderColor: 'common.white' }}>
                         {/* @ts-ignore */}
                         {t('viewData')}
                       </Button>
@@ -78,7 +84,11 @@ function GatewayAction({
             {t('sync')}
           </PromiseLoadingButton>
           {state?.project?.didSpaceLastSyncedAt && (
-            <Typography variant="caption" color="#9CA3AF">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}>
               {/* @ts-ignore */}
               <RelativeTime locale={locale} value={state.project.didSpaceLastSyncedAt} />
             </Typography>

@@ -26,7 +26,9 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
   };
 
   return (
-    <Stack gap={2}>
+    <Stack sx={{
+      gap: 2
+    }}>
       <Box>
         <Typography variant="subtitle2">{t('avatar')}</Typography>
         <LogoField
@@ -52,7 +54,6 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
           }}
         />
       </Box>
-
       <Box>
         <Typography variant="subtitle2">{t('agentName')}</Typography>
         <TextField
@@ -65,7 +66,6 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
           onChange={(e) => setField((f) => (f.name = e.target.value))}
         />
       </Box>
-
       <Box>
         <Typography variant="subtitle2">{t('agentDescription')}</Typography>
         <TextField
@@ -79,7 +79,6 @@ export default function ProfileSettings({ output }: { output: OutputVariableYjs 
           onChange={(e) => setField((f) => (f.description = e.target.value))}
         />
       </Box>
-
       <Box>
         <Typography variant="subtitle2">{t('ogImage')}</Typography>
         <TextField

@@ -9,14 +9,8 @@ import ExecutionCache from '@api/store/models/execution-cache';
 import History from '@api/store/models/history';
 import Secrets from '@api/store/models/secret';
 import Session from '@api/store/models/session';
-import { chatCompletions, imageGenerations } from '@blocklet/ai-kit/api/call';
-import {
-  ChatCompletionChunk,
-  ChatCompletionResponse,
-  isChatCompletionChunk,
-  isChatCompletionUsage,
-} from '@blocklet/ai-kit/api/types/index';
-import { defaultImageModel, defaultTextModel, getSupportedImagesModels } from '@blocklet/ai-runtime/common';
+import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/api/ai-runtime/models';
+import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
 import {
@@ -26,6 +20,13 @@ import {
   RuntimeOutputVariable,
 } from '@blocklet/ai-runtime/types';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
+import { chatCompletionsV2, imageGenerationsV2 } from '@blocklet/aigne-hub/api/call';
+import {
+  ChatCompletionChunk,
+  ChatCompletionResponse,
+  isChatCompletionChunk,
+  isChatCompletionUsage,
+} from '@blocklet/aigne-hub/api/types/index';
 import { getUserPassports, quotaChecker } from '@blocklet/aigne-sdk/api/premium';
 import middlewares from '@blocklet/sdk/lib/middlewares';
 import compression from 'compression';
@@ -103,6 +104,17 @@ const validateDebugModeAccess = (
   }
 };
 
+const getModelWithBrand = async (model: string) => {
+  const models = await getSupportedModels().catch(() => []);
+  const modelInfo = models.find((i) => i.model.toLowerCase() === model.toLowerCase());
+
+  if (!modelInfo) {
+    return model;
+  }
+
+  return `${(modelInfo.brand || '').toLowerCase()}/${model}`;
+};
+
 router.post('/call', middlewares.session({ componentCall: true }), compression(), async (req, res) => {
   const stream = req.accepts().includes('text/event-stream');
 
@@ -133,6 +145,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     working: input.working,
     rejectOnEmpty: true,
   });
+
   if (!agent.access?.noLoginRequired && !userId) {
     res.status(401).json({ error: { message: 'Unauthorized' } });
     return;
@@ -193,15 +206,17 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       )[RuntimeOutputVariable.llmResponseStream] as ReadableStream<ChatCompletionResponse>;
     }
 
-    const stream = await chatCompletions({
+    const inputParams = {
       ...input,
-      model: input.model || project.model || defaultTextModel,
+      model: await getModelWithBrand(input.model || project.model || defaultTextModel),
       temperature: input.temperature || project.temperature,
       topP: input.topP || project.topP,
       frequencyPenalty: input.frequencyPenalty || project.frequencyPenalty,
       presencePenalty: input.presencePenalty || project.presencePenalty,
       // maxTokens: input.maxTokens || project?.maxTokens,
-    });
+    };
+    logger.info('call chatCompletionsV2 input', inputParams);
+    const stream = await chatCompletionsV2(inputParams);
 
     return new ReadableStream({
       async start(controller) {
@@ -258,14 +273,15 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         input.quality && imageModel?.quality?.includes(input.quality) ? input.quality : imageModel?.qualityDefault,
       style: input.style || imageModel?.styleDefault,
       size: input.size && imageModel?.size?.includes(input.size) ? input.size : imageModel?.sizeDefault,
-      outputFormat: input.outputFormat || imageModel?.outputFormatDefault,
+      outputFormat: input.outputFormat || imageModel?.outputFormatDefault || 'png',
       outputCompression: input.outputCompression || imageModel?.outputCompressionDefault,
       background: input.background || imageModel?.backgroundDefault,
       moderation: input.moderation || imageModel?.moderationDefault,
     };
+    logger.info('call imageGenerationsV2 input', model);
 
-    const format = input.model === 'gpt-image-1' ? input.outputFormat || imageModel?.outputFormatDefault : 'png';
-    return imageGenerations(
+    const format = input.model === 'gpt-image-1' ? model.outputFormat : 'png';
+    return imageGenerationsV2(
       {
         ...input,
         ...model,
@@ -498,7 +514,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       }
     }
   } catch (e) {
-    logger.error('run assistant error', e);
+    logger.error('run assistant error', e.stack);
     let fetchErrorMsg = e?.response?.data?.error;
     if (typeof fetchErrorMsg !== 'string') fetchErrorMsg = fetchErrorMsg?.message;
 

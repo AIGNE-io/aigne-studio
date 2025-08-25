@@ -38,7 +38,6 @@ const ActionRefOutput = ({
       <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
         {`${t('ref')}${t('outputs')}`}
       </Divider>
-
       {outputs.map((output) => (
         <MenuItem
           key={output.id}
@@ -55,7 +54,9 @@ const ActionRefOutput = ({
           <ListItemIcon>
             <Icon icon={BranchIcon} />
           </ListItemIcon>
-          <Box flex={1}>{getOutputI18nName(output.name || '')}</Box>
+          <Box sx={{
+            flex: 1
+          }}>{getOutputI18nName(output.name || '')}</Box>
           <Box sx={{ width: 40, textAlign: 'right' }}>
             {outputsExist.has(output.id) && <Box component={Icon} icon={CheckIcon} />}
           </Box>
@@ -98,7 +99,9 @@ export default function AddOutputVariableButton({
     <PopperMenu
       ButtonProps={{
         sx: { mt: 1 },
-        startIcon: <Box fontSize={16} component={Icon} icon={PlusIcon} />,
+        startIcon: <Box component={Icon} icon={PlusIcon} sx={{
+          fontSize: 16
+        }} />,
         children: <Box data-testid="add-output-variable-button">{t('output')}</Box>,
       }}
       PopperProps={{ placement: 'bottom-start' }}>
@@ -125,7 +128,9 @@ export default function AddOutputVariableButton({
                 onSelect?.({ name: variable.name });
               }}>
               <ListItemIcon>{variable.icon}</ListItemIcon>
-              <Box flex={1}>{t(variable.i18nKey)}</Box>
+              <Box sx={{
+                flex: 1
+              }}>{t(variable.i18nKey)}</Box>
               <Box sx={{ width: 40, textAlign: 'right' }}>
                 {exists.has(variable.name) && <Box component={Icon} icon={CheckIcon} />}
               </Box>
@@ -133,7 +138,6 @@ export default function AddOutputVariableButton({
           );
         }),
       ])}
-
       {!!allSelectAgentOutputs?.length && (
         <>
           <Divider sx={{ my: '4px !important', p: 0 }} />
@@ -145,7 +149,6 @@ export default function AddOutputVariableButton({
           </MenuItem>
         </>
       )}
-
       {!!inputs?.length && (
         <>
           <Divider textAlign="left" sx={{ my: '4px !important', p: 0, fontSize: 13, color: 'text.secondary' }}>
@@ -168,7 +171,6 @@ export default function AddOutputVariableButton({
           ))}
         </>
       )}
-
       <ActionRefOutput
         projectId={projectId}
         gitRef={gitRef}
@@ -176,9 +178,7 @@ export default function AddOutputVariableButton({
         onDeleteSelect={onDeleteSelect}
         onSelect={onSelect}
       />
-
       <Divider sx={{ my: '4px !important', p: 0 }} />
-
       <MenuItem
         data-testid="add-output-variable-button-custom-output"
         onClick={() => onSelect?.({ name: '' })}

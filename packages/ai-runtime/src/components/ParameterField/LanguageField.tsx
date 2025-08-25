@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Autocomplete, ListItem, ListItemIcon, ListItemText, MenuItem, TextField, TextFieldProps } from '@mui/material';
-import { forwardRef } from 'react';
+import type { JSX } from 'react';
 
 import { languages } from '../../constant/languages';
 import { SelectParameter } from '../../types/assistant';
@@ -26,14 +26,15 @@ const filter = (options: Option[], state: { inputValue: string }) => {
   });
 };
 
-const LanguageField = forwardRef<
-  HTMLDivElement,
-  {
-    readOnly?: boolean;
-    parameter?: SelectParameter;
-    onChange: (value: string | undefined) => void;
-  } & Omit<TextFieldProps, 'onChange'>
->(({ readOnly, parameter, onChange, ...props }, ref) => {
+const LanguageField = ({
+  ref,
+  parameter = undefined,
+  onChange,
+  ...props
+}: {
+  parameter?: SelectParameter;
+  onChange: (value: string | undefined) => void;
+} & Omit<TextFieldProps, 'onChange'>) => {
   const value = props?.value ? languages.find((o) => o.en === props.value) : null;
   const { locale } = useLocaleContext();
 
@@ -91,6 +92,6 @@ const LanguageField = forwardRef<
       filterOptions={filter}
     />
   );
-});
+};
 
 export default LanguageField;

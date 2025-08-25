@@ -54,7 +54,11 @@ function SimpleChatView() {
         <HeaderView />
 
         {loading ? (
-          <Box textAlign="center" my={10}>
+          <Box
+            sx={{
+              textAlign: 'center',
+              my: 10,
+            }}>
             <CircularProgress size={24} />
           </Box>
         ) : (
@@ -98,7 +102,11 @@ function HeaderView() {
   const hasBg = !!preferences?.backgroundImage?.url;
 
   return (
-    <Stack px={4} sx={{ color: hasBg ? 'white' : undefined }}>
+    <Stack
+      sx={{
+        px: 4,
+        color: hasBg ? 'white' : undefined,
+      }}>
       <CustomComponentRenderer
         aid={aid}
         output={profile.outputSettings}

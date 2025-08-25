@@ -1,5 +1,5 @@
 import { getDefaultBranch } from '@app/store/current-git-store';
-import { createAuthServiceSessionContext } from '@arcblock/did-connect/lib/Session';
+import { createAuthServiceSessionContext } from '@arcblock/did-connect-react/lib/Session';
 import { useContext } from 'react';
 
 import { Config } from '../libs/env';

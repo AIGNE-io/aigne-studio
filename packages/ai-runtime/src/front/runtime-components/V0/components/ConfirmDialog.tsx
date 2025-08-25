@@ -1,7 +1,7 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify/react';
 import { Button, Dialog, DialogActions, DialogContent, DialogProps, DialogTitle, Typography } from '@mui/material';
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { useImperativeHandle, useState } from 'react';
 
 import LoadingButton from '../../../components/LoadingButton';
 
@@ -16,7 +16,12 @@ type OpenParamsProps = {
 
 interface ConfirmDialogProps extends Omit<DialogProps, 'open'> {}
 
-const ConfirmDialog = forwardRef((props: ConfirmDialogProps, ref: any) => {
+const ConfirmDialog = ({
+  ref,
+  ...props
+}: ConfirmDialogProps & {
+  ref: React.RefObject<unknown | null>;
+}) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openParams, setOpenParams] = useState<OpenParamsProps>({});
 
@@ -102,6 +107,6 @@ const ConfirmDialog = forwardRef((props: ConfirmDialogProps, ref: any) => {
       </DialogActions>
     </Dialog>
   );
-});
+};
 
 export default ConfirmDialog;

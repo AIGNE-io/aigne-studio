@@ -43,7 +43,13 @@ export default function ImageField({
   return (
     <>
       {list.length > 0 && (
-        <Stack direction="row" alignItems="center" flexWrap="wrap" gap={1}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1,
+          }}>
           {list.map((url, index) => (
             <ImagePreviewItem
               key={url}
@@ -57,7 +63,6 @@ export default function ImageField({
           ))}
         </Stack>
       )}
-
       <StringField
         {...({ parameter } as any)}
         size="small"

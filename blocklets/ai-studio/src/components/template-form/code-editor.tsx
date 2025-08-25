@@ -1,7 +1,7 @@
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { Box, BoxProps, useTheme } from '@mui/material';
 import { customAlphabet } from 'nanoid';
-import { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { useEffect, useImperativeHandle } from 'react';
 
 const randomId = customAlphabet('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
 const id = randomId();
@@ -61,51 +61,49 @@ function setupMonaco(monaco: typeof import('monaco-editor')) {
   monaco.editor.setTheme(themeName);
 }
 
-const CodeEditor = forwardRef(
-  ({ readOnly, maxHeight, ...props }: { readOnly?: boolean; maxHeight?: number } & BoxProps<typeof Editor>, ref) => {
-    const monaco = useMonaco();
+const CodeEditor = ({ ref, readOnly = undefined, ...props }: { readOnly?: boolean } & BoxProps<typeof Editor>) => {
+  const monaco = useMonaco();
 
-    useEffect(() => {
-      if (monaco) {
-        setupMonaco(monaco);
-      }
-    }, [monaco]);
+  useEffect(() => {
+    if (monaco) {
+      setupMonaco(monaco);
+    }
+  }, [monaco]);
 
-    useImperativeHandle(ref, () => {});
+  useImperativeHandle(ref, () => {});
 
-    const theme = useTheme();
+  const theme = useTheme();
 
-    return (
-      <Box
-        component={Editor}
-        theme={themeName}
-        {...props}
-        sx={{
-          '--vscode-menu-background': 'rgba(255,255,255,1)',
-          '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
-          '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
-          ...props.sx,
-        }}
-        options={{
-          lineNumbersMinChars: 2,
-          formatOnPaste: true,
-          scrollBeyondLastLine: false,
-          padding: { bottom: 100 },
-          minimap: { enabled: false },
-          readOnly,
-          tabSize: 2,
-          insertSpaces: true,
-          fixedOverflowWidgets: true,
-          contextmenu: true,
-          ...props.options,
-          scrollbar: {
-            alwaysConsumeMouseWheel: false,
-            ...props.options?.scrollbar,
-          },
-        }}
-      />
-    );
-  }
-);
+  return (
+    <Box
+      component={Editor}
+      theme={themeName}
+      {...props}
+      sx={{
+        '--vscode-menu-background': 'rgba(255,255,255,1)',
+        '--vscode-widget-shadow': 'rgba(0,0,0,0.1)',
+        '.overflowingContentWidgets': { position: 'relative', zIndex: theme.zIndex.tooltip },
+        ...props.sx,
+      }}
+      options={{
+        lineNumbersMinChars: 2,
+        formatOnPaste: true,
+        scrollBeyondLastLine: false,
+        padding: { bottom: 100 },
+        minimap: { enabled: false },
+        readOnly,
+        tabSize: 2,
+        insertSpaces: true,
+        fixedOverflowWidgets: true,
+        contextmenu: true,
+        ...props.options,
+        scrollbar: {
+          alwaysConsumeMouseWheel: false,
+          ...props.options?.scrollbar,
+        },
+      }}
+    />
+  );
+};
 
 export default CodeEditor;

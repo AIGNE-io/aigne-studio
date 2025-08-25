@@ -69,14 +69,16 @@ export default function TagsAutoComplete({
           label={label}
           {...params}
           placeholder={props.placeholder}
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {state.loading && <CircularProgress color="inherit" size={20} />}
-                {params.InputProps.endAdornment}
-              </>
-            ),
+          slotProps={{
+            input: {
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  {state.loading && <CircularProgress color="inherit" size={20} />}
+                  {params.InputProps.endAdornment}
+                </>
+              ),
+            },
           }}
         />
       )}

@@ -1,4 +1,4 @@
-import { DID_TYPE_ARCBLOCK } from '@arcblock/did';
+import { DID_TYPE_ARCBLOCK, types } from '@arcblock/did';
 import { fromAppDid } from '@arcblock/did-ext';
 import { showAssetOrVC } from '@blocklet/testlab/utils/auth';
 import { claimDIDSpace, getAuthUrl, login } from '@blocklet/testlab/utils/playwright';
@@ -10,7 +10,7 @@ import { cacheResult } from './cache';
 import { SPACE_APP_ID, TestConstants } from './constants';
 
 export async function setupUsers({ appName, appUrl, rootSeed }: { appName: string; appUrl: string; rootSeed: string }) {
-  const appWallet = ensureWallet({ name: appName, onlyFromCache: true });
+  const appWallet = ensureWallet({ name: appName, onlyFromCache: false, role: types.RoleType.ROLE_APPLICATION });
   const ownerWallet = ensureWallet({ name: 'owner' });
   const adminWallet = ensureWallet({ name: 'admin' });
   const guestWallet = ensureWallet({ name: 'guest' });
@@ -31,50 +31,54 @@ export async function setupUsers({ appName, appUrl, rootSeed }: { appName: strin
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
-  // claim did space for wallet
-  const vcs = await Promise.all(
-    wallets.map(async ({ wallet, ...rest }) => {
-      const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
-        const page = await browser.newPage({});
-        const result = await claimDIDSpace({ page, wallet: spaceWallet });
-        await page.close();
-        return result;
-      });
-      return { ...rest, wallet, vc };
-    })
-  );
+  // 并行执行是因为 did-connect 环节目前不太稳定
+  // claim did space for wallet (sequential)
+  const vcs: Array<{ wallet: any; name: string; vc: any }> = [];
+  for (const { wallet, ...rest } of wallets) {
+    const vc = await cacheResult(TestConstants.didSpaceVCPath(rest.name), async () => {
+      const page = await browser.newPage({});
+      const result = await claimDIDSpace({ page, wallet: spaceWallet });
+      return result;
+    });
+    console.log('claim did space for wallet', rest.name);
+    vcs.push({ ...rest, wallet, vc });
+  }
 
-  await Promise.all(
-    vcs.map(async ({ wallet, name, vc }) => {
-      const page = await browser.newPage();
+  for (const { wallet, name, vc } of vcs) {
+    const page = await browser.newPage();
 
-      // login as owner and bind did space
-      await page.goto(appUrl);
+    // login as owner and bind did space
+    await page.goto(appUrl);
+    const remindButton = page.getByRole('button', { name: 'Remind Me Later' });
+    await remindButton.waitFor({ state: 'visible' });
+    await remindButton.click({ timeout: 3000 });
 
-      await login({ page, wallet, appWallet, passport: { name, title: name } });
+    await login({ page, wallet, appWallet, passport: { name, title: name } });
 
-      const [popupPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        page.getByRole('button', { name: 'Connect Now' }).click(),
-      ]);
+    const connectNowButton = page.getByRole('button', { name: 'Connect Now' });
+    if ((await connectNowButton.count()) > 0) {
+      await connectNowButton.click();
+      const popupPage = await page.waitForEvent('popup');
       await popupPage.waitForLoadState('networkidle');
+
       // HACK: @jianchao 目前的方式并不优雅，本质上 @blocklet/testlab 应该提供配置应用环境变量的能力，进而修改 DID_SPACES_BASE_URL, 来影响 popup 的跳转地址
       const url = popupPage.url().replace('https://www.didspaces.com/app', 'https://spaces.staging.arcblock.io/app');
       await popupPage.evaluate((redirectUrl) => {
         window.location.href = redirectUrl;
       }, url);
       await popupPage.waitForLoadState('networkidle');
+      // wait 3 s
+      await popupPage.waitForTimeout(3 * 1000);
 
-      const authUrl = await getAuthUrl({ page: popupPage }).catch((error) => {
-        console.error('failed to get auth url to connect to did space, skip it', error);
-        return null;
-      });
+      const authUrl = await getAuthUrl({ page: popupPage });
+      await showAssetOrVC({ authUrl, wallet: spaceWallet, vc, meta: { purpose: 'DidSpace' } });
 
-      if (authUrl) await showAssetOrVC({ authUrl, wallet, vc, meta: { purpose: 'DidSpace' } });
-
+      await popupPage.getByRole('button', { name: 'Authorize' }).click();
       await page.waitForTimeout(5 * 1000);
-    })
-  );
+    }
+
+    console.log('login for wallet', name);
+  }
 
   await browser.close();
 }

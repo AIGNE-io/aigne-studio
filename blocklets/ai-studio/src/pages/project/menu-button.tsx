@@ -15,7 +15,7 @@ import React, { ReactNode, isValidElement } from 'react';
 
 export default function PopperMenuButton({
   PopperProps,
-  menus,
+  menus = undefined,
   ...props
 }: { PopperProps: Omit<PopperProps, 'open'>; menus?: ReactNode } & BoxProps<typeof Button>) {
   const state = usePopupState({ variant: 'popper' });
@@ -33,7 +33,7 @@ export default function PopperMenuButton({
 
       <Popper transition {...PopperProps} {...bindPopper(state)}>
         {({ TransitionProps }) => (
-          <ClickAwayListener onClickAway={state.close}>
+          <ClickAwayListener onClickAway={() => state.close()}>
             <Grow {...TransitionProps}>
               <Paper>
                 <List
@@ -48,6 +48,7 @@ export default function PopperMenuButton({
                       ? menu
                       : React.cloneElement(menu, {
                           onClick: async (...args: any[]) => {
+                            // @ts-ignore
                             await menu.props.onClick?.(...args);
                             state.close();
                           },

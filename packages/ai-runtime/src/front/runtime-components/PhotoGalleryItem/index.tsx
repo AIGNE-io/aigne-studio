@@ -51,10 +51,12 @@ export default function PhotoGalleryItem() {
         component="img"
         src={withQuery(url, { imageFilter: 'resize', w: 500 })}
         alt=""
-        width="100%"
-        height="100%"
         // 首屏 image 不能用 lazy，会闪烁乱序
         loading={index < 12 ? 'eager' : 'lazy'}
+        sx={{
+          width: '100%',
+          height: '100%',
+        }}
       />
       <Box
         className="photo-wall-item-alt"
@@ -155,7 +157,7 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
       slotProps={{
         backdrop: {
           sx: {
-            bgcolor: 'rgba(255, 255, 255, 0.4)',
+            bgcolor: (theme) => alpha(theme.palette.background.paper, 0.4),
             backdropFilter: 'blur(12px)',
             '@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)))': {
               bgcolor: (theme) => theme.palette.background.paper,
@@ -193,9 +195,12 @@ function PromptDialog({ url, ...props }: { url: string } & DialogProps) {
           </Button>
         </Box>
       </DialogTitle>
-
       <DialogContent>
-        <Stack gap={2.5} sx={{ flexDirection: { md: 'row' } }}>
+        <Stack
+          sx={{
+            gap: 2.5,
+            flexDirection: { md: 'row' },
+          }}>
           <Stack sx={{ flex: 3, width: { xs: '100%', md: 0 }, gap: 1 }}>
             <Box
               component="img"

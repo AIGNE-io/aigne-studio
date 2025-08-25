@@ -58,7 +58,7 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
     frequencyPenalty: agent.frequencyPenalty ?? projectSetting?.frequencyPenalty ?? model.frequencyPenaltyDefault,
   });
 
-  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: '#9CA3AF', mt: 0.25 }} />;
+  const icon = <Box component={Icon} icon={HelpIcon} sx={{ fontSize: 16, color: 'grey.400', mt: 0.25 }} />;
 
   const handleOnChange = (value: Partial<Settings>) => {
     Object.assign(agent, value);
@@ -113,11 +113,18 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
           </Box>
         ))}
       </Stack>
-      <Stack gap={2} sx={{ py: 2, mt: 4 }}>
+      <Stack
+        sx={{
+          gap: 2,
+          py: 2,
+          mt: 4,
+        }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={{ xs: 1, sm: 2 }}>
+          spacing={{ xs: 1, sm: 2 }}
+          sx={{
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}>
           <Tooltip
             title={t('temperatureTip')}
             placement="top"
@@ -148,8 +155,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
         </Stack>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={{ xs: 1, sm: 2 }}>
+          spacing={{ xs: 1, sm: 2 }}
+          sx={{
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}>
           <Tooltip
             title={t('topPTip')}
             placement="top"
@@ -180,8 +189,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
         </Stack>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={{ xs: 1, sm: 2 }}>
+          spacing={{ xs: 1, sm: 2 }}
+          sx={{
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}>
           <Tooltip
             title={t('frequencyPenaltyTip')}
             placement="top"
@@ -212,8 +223,10 @@ export function LLMModelSettings({ agent, model }: LLMModelSettingsProps) {
         </Stack>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={{ xs: 1, sm: 2 }}>
+          spacing={{ xs: 1, sm: 2 }}
+          sx={{
+            alignItems: { xs: 'stretch', sm: 'center' },
+          }}>
           <Tooltip
             title={t('presencePenaltyTip')}
             placement="top"

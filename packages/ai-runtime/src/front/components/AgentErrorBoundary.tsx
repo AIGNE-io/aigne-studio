@@ -1,8 +1,8 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
-import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
-import { SubscribeErrorAlert } from '@blocklet/ai-kit/components';
+import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
+import { SubscribeErrorAlert } from '@blocklet/aigne-hub/components';
 import CloseIcon from '@mui/icons-material/Close';
-import { Alert, Button, IconButton, Stack, alertClasses } from '@mui/material';
+import { Alert, Button, IconButton, Stack, Typography, alertClasses } from '@mui/material';
 import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -11,15 +11,15 @@ import { useEntryAgent } from '../contexts/EntryAgent';
 import { useIsAgentAdmin } from '../hooks/use-agent-admin';
 import { settingsDialogState } from './AgentSettings/AgentSettingsDialog';
 
-export function AgentErrorBoundary({ children }: { children?: ReactNode }) {
+export function AgentErrorBoundary({ children = undefined }: { children?: ReactNode }) {
   return <ErrorBoundary FallbackComponent={AgentErrorView}>{children}</ErrorBoundary>;
 }
 
 export function AgentErrorView({
   error,
-  fallbackErrorMessage,
-  fallbackErrorClosable: closable,
-  fallbackErrorOnClose: onClose,
+  fallbackErrorMessage = undefined,
+  fallbackErrorClosable: closable = undefined,
+  fallbackErrorOnClose: onClose = undefined,
 }: {
   error: any;
   fallbackErrorMessage?: string;
@@ -45,9 +45,13 @@ export function AgentErrorView({
     </IconButton>
   ) : undefined;
 
+  const clickable = (fallbackErrorMessage ?? String(error?.message)).replace(
+    /(https?:\/\/[^\s]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
   return (
     <Alert severity="error" action={action}>
-      {fallbackErrorMessage ?? String(error?.message)}
+      <Typography dangerouslySetInnerHTML={{ __html: clickable }} />
     </Alert>
   );
 }
@@ -61,13 +65,19 @@ function MissingSecretErrorView() {
 
   return (
     <Alert severity={allSecretsHasValue ? 'info' : 'error'} sx={{ [`.${alertClasses.message}`]: { flex: 1 } }}>
-      <Stack width="100%">
+      <Stack
+        sx={{
+          width: '100%',
+        }}>
         {allSecretsHasValue
           ? 'Configuration successful, you can continue to use it now!'
           : 'The required configuration is missing. Please complete the setup before proceeding!'}
 
         {isAdmin && (
-          <Stack alignItems="flex-end">
+          <Stack
+            sx={{
+              alignItems: 'flex-end',
+            }}>
             <Button size="small" variant="outlined" onClick={() => settingsDialogState.getState().open()}>
               {t('setup')}
             </Button>

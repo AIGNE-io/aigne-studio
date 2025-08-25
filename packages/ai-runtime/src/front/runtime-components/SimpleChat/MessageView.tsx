@@ -1,5 +1,5 @@
 import { cx } from '@emotion/css';
-import { Box, BoxProps, Stack } from '@mui/material';
+import { Box, BoxProps, Stack, alpha } from '@mui/material';
 import { Suspense, memo } from 'react';
 
 import { getAssetUrl } from '../../api/asset';
@@ -46,7 +46,12 @@ const MessageView = memo(({ message }: { message: MessageItem }) => {
   return (
     <CurrentAgentProvider aid={message.aid}>
       <CurrentMessageProvider message={message}>
-        <Stack gap={2} className="message-item" data-testid={`message-${message.id}`}>
+        <Stack
+          className="message-item"
+          data-testid={`message-${message.id}`}
+          sx={{
+            gap: 2,
+          }}>
           {!hideUserInputs && (
             <Box>
               <UserInfo
@@ -93,7 +98,10 @@ const MessageView = memo(({ message }: { message: MessageItem }) => {
 
 export default MessageView;
 
-export function MessageBodyContainer({ messageRole, ...props }: { messageRole?: 'assistant' | 'user' } & BoxProps) {
+export function MessageBodyContainer({
+  messageRole = undefined,
+  ...props
+}: { messageRole?: 'assistant' | 'user' } & BoxProps) {
   const preferences = useComponentPreferences<SimpleChatPreferences>();
   const hasBg = !!preferences?.backgroundImage?.url;
   const hideUserMessage = preferences?.hideUserInputs;
@@ -112,7 +120,7 @@ export function MessageBodyContainer({ messageRole, ...props }: { messageRole?: 
               py: 1,
               marginTop: 0.5,
               maxWidth: hideUserMessage ? 'unset' : 'calc(100% - 40px)',
-              bgcolor: 'rgba(255, 255, 255, 0.8)',
+              bgcolor: (theme) => alpha(theme.palette.background.paper, 0.8),
               backdropFilter: 'blur(16px)',
               '@supports not ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)))': {
                 bgcolor: (theme) => theme.palette.background.paper,

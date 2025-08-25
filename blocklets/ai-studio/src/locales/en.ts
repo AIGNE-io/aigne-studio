@@ -949,7 +949,7 @@ export default flatten({
   moreModels: 'More Models',
   installMoreModelsTip: 'To install more models, please launch your own AIGNE Studio',
   generateObject: 'Generate {object}',
-  clickToGenerateNpmLink: 'Click to generate npm link',
+
   modelSettingsTip:
     'We have some standard settings available for you, and you can make any changes to customize your own parameters.',
   favorites: 'Favorites',
@@ -963,7 +963,7 @@ export default flatten({
   as: ' As ',
   customOutputName: 'Custom Output Name',
   webhookSetting: 'Webhook Setting',
-  packageSetting: 'Package Setting',
+
   agentLog: 'Agent Log',
   viewLog: 'View Log',
   logDate: 'Log Date',
@@ -974,5 +974,4 @@ export default flatten({
   runType: 'Run Type',
   tokenCount: 'Token Count',
   executionTime: 'Execution Time',
-  aigneCliTip: 'supports run this project directly from the command line',
 });

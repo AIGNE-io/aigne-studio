@@ -6,7 +6,7 @@ export interface CurrentAgentState {
 
 const context = createContext<CurrentAgentState | undefined>(undefined);
 
-export function CurrentAgentProvider({ aid, children }: { aid: string; children?: ReactNode }) {
+export function CurrentAgentProvider({ aid, children = undefined }: { aid: string; children?: ReactNode }) {
   const value = useMemo(() => ({ aid }), [aid]);
 
   return <context.Provider value={value}>{children}</context.Provider>;

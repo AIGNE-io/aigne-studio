@@ -1,6 +1,7 @@
 import { LocaleProvider } from '@arcblock/ux/lib/Locale/context';
+import { ThemeProvider } from '@arcblock/ux/lib/Theme';
 import { ToastProvider } from '@arcblock/ux/lib/Toast';
-import { CssBaseline, GlobalStyles, StyledEngineProvider, ThemeProvider, createTheme, css } from '@mui/material';
+import { GlobalStyles, ThemeOptions, css } from '@mui/material';
 import { Suspense } from 'react';
 import { Outlet, Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from 'react-router-dom';
 
@@ -12,7 +13,7 @@ import HomePage from './pages/home';
 import MessagePage from './pages/message';
 import PreviewPage from './pages/preview';
 
-const theme = createTheme({ typography: { button: { textTransform: 'none' } } });
+const themeConfig: ThemeOptions = { typography: { button: { textTransform: 'none' } } };
 
 export default function WrappedApp() {
   const basename = window.blocklet?.prefix || '/';
@@ -21,47 +22,42 @@ export default function WrappedApp() {
     createRoutesFromElements(
       <Route
         element={
-          <StyledEngineProvider injectFirst>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
+          <ThemeProvider theme={themeConfig}>
+            <GlobalStyles
+              styles={css`
+                html {
+                  height: 100%;
+                }
 
-              <GlobalStyles
-                styles={css`
-                  html {
-                    height: 100%;
-                  }
+                body {
+                  min-height: 100%;
+                  overflow: unset;
+                  display: flex;
+                  flex-direction: column;
+                }
 
-                  body {
-                    min-height: 100%;
-                    overflow: unset;
-                    display: flex;
-                    flex-direction: column;
-                  }
-
-                  #app {
-                    flex-grow: 1;
-                    display: flex;
-                    flex-direction: column;
-                  }
-                `}
-              />
-
-              <ToastProvider>
-                <LocaleProvider
-                  translations={translations}
-                  fallbackLocale="en"
-                  locale={undefined}
-                  onLoadingTranslation={undefined}
-                  languages={undefined}>
-                  <Suspense fallback={<Loading />}>
-                    <SessionProvider serviceHost={basename}>
-                      <Outlet />
-                    </SessionProvider>
-                  </Suspense>
-                </LocaleProvider>
-              </ToastProvider>
-            </ThemeProvider>
-          </StyledEngineProvider>
+                #app {
+                  flex-grow: 1;
+                  display: flex;
+                  flex-direction: column;
+                }
+              `}
+            />
+            <ToastProvider>
+              <LocaleProvider
+                translations={translations}
+                fallbackLocale="en"
+                locale={undefined}
+                onLoadingTranslation={undefined}
+                languages={undefined}>
+                <Suspense fallback={<Loading />}>
+                  <SessionProvider serviceHost={basename}>
+                    <Outlet />
+                  </SessionProvider>
+                </Suspense>
+              </LocaleProvider>
+            </ToastProvider>
+          </ThemeProvider>
         }>
         <Route path="/" element={<HomePage />} />
         <Route path="/apps/:aid" element={<ApplicationPage />} />

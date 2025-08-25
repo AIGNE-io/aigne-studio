@@ -20,8 +20,17 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
 
   const pass = quotaChecker.checkAnonymousRequest({ showPrice: false });
   return (
-    <Stack direction="column" px={1.5} py={1} gap={1}>
-      <Stack alignItems="flex-start">
+    <Stack
+      direction="column"
+      sx={{
+        px: 1.5,
+        py: 1,
+        gap: 1,
+      }}>
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
+        }}>
         <FormControl>
           <FormControlLabel
             labelPlacement="start"
@@ -41,9 +50,15 @@ export function BaseAgentSettings({ agent }: { agent: AssistantYjs }) {
           />
         </FormControl>
       </Stack>
-
-      <Stack alignItems="flex-start">
-        <Stack direction="row" alignItems="center">
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
+        }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+          }}>
           <FormControl>
             <FormControlLabel
               labelPlacement="start"

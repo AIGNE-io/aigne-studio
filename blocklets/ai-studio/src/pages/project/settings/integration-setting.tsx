@@ -1,89 +1,15 @@
 import { useCurrentProject } from '@app/contexts/project';
-import {
-  generateProjectAgentSecret,
-  generateProjectNPMPackageSecret,
-  getAgentWebhookSecret,
-  getProjectNPMPackageSecret,
-} from '@app/libs/project';
+import { generateProjectAgentSecret, getAgentWebhookSecret } from '@app/libs/project';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { LoadingButton } from '@blocklet/studio-ui';
-import { Box, Button, CircularProgress, Link, Stack, Switch, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Stack, Switch, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
-import usePromise from 'react-promise-suspense';
 import { useParams } from 'react-router-dom';
 import { joinURL, withQuery } from 'ufo';
 
 import { getFileIdFromPath } from '../../../utils/path';
-import { useProjectState } from '../state';
 
-function NpmIntegrationSetting() {
-  const { projectId, projectRef } = useCurrentProject();
-  const { t } = useLocaleContext();
-  const loadedSecret = usePromise(() => getProjectNPMPackageSecret({ projectId }), []).secret;
-  const { state } = useProjectState(projectId, projectRef);
-  const hash = state.commits[0]?.oid;
-
-  const [secret, setSecret] = useState(loadedSecret);
-
-  const link = secret
-    ? withQuery(joinURL(blocklet!.appUrl, blocklet!.prefix, '/api/projects', projectId, 'npm/package.tgz'), {
-        secret,
-        hash,
-      })
-    : undefined;
-
-  const generateSecret = async () => {
-    try {
-      const { secret } = await generateProjectNPMPackageSecret({ projectId });
-      setSecret(secret);
-    } catch (error) {
-      Toast.error(error.message);
-    }
-  };
-
-  return (
-    <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5}>
-        {t('packageSetting')}
-      </Typography>
-
-      <Stack gap={3} ml={1}>
-        {(['npm', 'pnpm', 'yarn'] as const).map((manager) => {
-          const prefix = manager === 'pnpm' ? 'pnpm install ' : manager === 'yarn' ? 'yarn add' : 'npm install';
-          const cmd = link && `${prefix} "${link}"`;
-
-          return <CopyLink key={manager} cmd={cmd} link={link} manager={manager} onGenerate={generateSecret} />;
-        })}
-      </Stack>
-
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5} mt={3}>
-        AIGNE CLI
-      </Typography>
-
-      <Typography variant="caption">
-        <Link href="https://github.com/AIGNE-io/aigne-framework/blob/main/docs/cli.md" target="_blank" sx={{ mx: 0.5 }}>
-          AIGNE CLI
-        </Link>
-        {t('aigneCliTip')}
-      </Typography>
-
-      <CopyLink cmd={link ? `aigne run ${link}` : undefined} link={link} onGenerate={generateSecret} />
-    </Box>
-  );
-}
-
-function CopyLink({
-  link,
-  manager,
-  cmd,
-  onGenerate,
-}: {
-  link?: string;
-  manager?: 'npm' | 'pnpm' | 'yarn';
-  cmd?: string;
-  onGenerate?: () => any;
-}) {
+function CopyLink({ link = undefined, cmd = undefined }: { link?: string; cmd?: string }) {
   const { t } = useLocaleContext();
 
   const [copied, setCopied] = useState(false);
@@ -97,24 +23,24 @@ function CopyLink({
 
   return (
     <Stack>
-      <Typography variant="subtitle2" mb={0.5}>
-        {manager}
-      </Typography>
-
-      <Stack direction="row" alignItems="center" gap={1} border={1} borderColor="divider" borderRadius={1} pl={1}>
-        <Typography flex={1} noWrap>
-          {cmd || (
-            <Typography component="span" color="text.disabled">
-              {t('clickToGenerateNpmLink')}
-            </Typography>
-          )}
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          gap: 1,
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 1,
+          pl: 1,
+        }}>
+        <Typography
+          noWrap
+          sx={{
+            flex: 1,
+          }}>
+          {cmd}
         </Typography>
-
-        {!link ? (
-          <LoadingButton onClick={onGenerate}>{t('generateObject', { object: t('link') })}</LoadingButton>
-        ) : (
-          <Button onClick={copy}>{copied ? t('copied') : t('copy')}</Button>
-        )}
+        {link && <Button onClick={copy}>{copied ? t('copied') : t('copy')}</Button>}
       </Stack>
     </Stack>
   );
@@ -164,12 +90,24 @@ function WebhookIntegrationSetting() {
   if (!agentId) return null;
   return (
     <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={0.5}>
+      <Typography
+        variant="subtitle2"
+        sx={{
+          fontWeight: 600,
+          mb: 0.5,
+        }}>
         {t('webhookSetting')}
       </Typography>
-
-      <Stack gap={1} ml={1}>
-        <Box display="flex" alignItems="center">
+      <Stack
+        sx={{
+          gap: 1,
+          ml: 1,
+        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+          }}>
           <Switch
             disabled={loading}
             checked={state?.status === 'enabled'}
@@ -188,8 +126,10 @@ function WebhookIntegrationSetting() {
 
 export default function IntegrationSetting() {
   return (
-    <Stack gap={3}>
-      <NpmIntegrationSetting />
+    <Stack
+      sx={{
+        gap: 3,
+      }}>
       <WebhookIntegrationSetting />
     </Stack>
   );

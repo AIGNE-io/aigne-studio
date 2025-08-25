@@ -33,8 +33,6 @@ export type ServiceModePermissionMap = {
 };
 
 export interface ImageModelInfo extends ModelInfoBase {
-  brand: string;
-  model: string;
   nMin?: number;
   nMax?: number;
   nDefault?: number;

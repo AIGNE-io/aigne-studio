@@ -31,7 +31,7 @@ interface PricingTableProps {
   billingCycle?: BillingCycle;
 }
 
-function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: BillingCycle }) {
+function PricingTablePlan({ plan, billingCycle = undefined }: { plan: Plan; billingCycle?: BillingCycle }) {
   const { t } = useLocaleContext();
   const renderFeature = (feature: Feature) => {
     if (typeof feature === 'string') {
@@ -188,7 +188,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
               sx={{
                 width: 1,
                 py: 0.75,
-                ...(!plan.isFeatured && { bgcolor: '#fff' }),
+                ...(!plan.isFeatured && { bgcolor: 'background.default' }),
               }}
               onClick={() => {
                 window.open(link, '_blank');
@@ -227,7 +227,7 @@ function PricingTablePlan({ plan, billingCycle }: { plan: Plan; billingCycle?: B
 /**
  * TODO: 暂时仅考虑 plan 为 3 个的情况
  */
-export function PricingTable({ plans, sx, billingCycle, ...rest }: PricingTableProps) {
+export function PricingTable({ plans, sx = undefined, billingCycle = undefined, ...rest }: PricingTableProps) {
   return (
     <Box sx={sx} {...rest}>
       <Box

@@ -49,3 +49,5 @@ lerna-debug.log*
 
 *storybook.log
 .data
+stats.html
+node-compile-cache

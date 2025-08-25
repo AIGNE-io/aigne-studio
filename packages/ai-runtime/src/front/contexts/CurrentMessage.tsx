@@ -9,7 +9,13 @@ export interface CurrentMessageContextValue {
 
 const currentMessageContext = createContext<CurrentMessageContextValue | undefined>(undefined);
 
-export function CurrentMessageProvider({ message, children }: { message: MessageItem; children?: ReactNode }) {
+export function CurrentMessageProvider({
+  message,
+  children = undefined,
+}: {
+  message: MessageItem;
+  children?: ReactNode;
+}) {
   const state = useMemo(() => ({ message }), [message]);
 
   return <currentMessageContext.Provider value={state}>{children}</currentMessageContext.Provider>;
@@ -36,7 +42,7 @@ const currentMessageOutputContext = createContext<CurrentMessageOutputContextVal
 export function CurrentMessageOutputProvider({
   output,
   outputValue,
-  children,
+  children = undefined,
 }: {
   output: OutputVariable;
   outputValue: any;

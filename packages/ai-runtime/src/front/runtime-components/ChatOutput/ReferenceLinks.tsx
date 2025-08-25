@@ -5,7 +5,9 @@ import { RuntimeOutputVariablesSchema } from '../../../types';
 export default function ReferenceLinks({ links }: { links: RuntimeOutputVariablesSchema['$reference.links'] }) {
   return (
     <Stack sx={{ wordBreak: 'break-word' }}>
-      {links?.map((item) => <ReferenceLinkItemView key={item.url} link={item} />)}
+      {links?.map((item) => (
+        <ReferenceLinkItemView key={item.url} link={item} />
+      ))}
     </Stack>
   );
 }

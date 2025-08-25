@@ -3,6 +3,7 @@ import { join } from 'path';
 /* eslint-disable import/no-extraneous-dependencies */
 import replace from '@rollup/plugin-replace';
 import react from '@vitejs/plugin-react';
+import { codeInspectorPlugin } from 'code-inspector-plugin';
 import { defineConfig } from 'vite';
 import { createBlockletPlugin } from 'vite-plugin-blocklet';
 import svgr from 'vite-plugin-svgr';
@@ -10,7 +11,11 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 const arcblockUxBasePath = process.env.ARCBLOCK_UX_BASE_PATH;
 const exclude: string[] = [];
-const alias: Record<string, string> = {};
+const alias: Record<string, string> = {
+  'js-tiktoken': join(__dirname, '../../node_modules/js-tiktoken/dist/index.js'),
+  typescript: join(__dirname, '../../node_modules/typescript/lib/typescript.js'),
+  '@arcblock/did-connect': '@arcblock/did-connect-react',
+};
 const excludeLibs: string[] = [
   // 排除 ux repo 中其他的包
   '@arcblock/bridge',
@@ -31,7 +36,7 @@ const excludeLibs: string[] = [
 ];
 if (arcblockUxBasePath) {
   alias['@arcblock/ux/lib'] = `${arcblockUxBasePath}/packages/ux/src`;
-  alias['@arcblock/did-connect/lib'] = `${arcblockUxBasePath}/packages/did-connect/src`;
+  alias['@arcblock/did-connect-react/lib'] = `${arcblockUxBasePath}/packages/did-connect/src`;
   alias['@blocklet/ui-react/lib'] = `${arcblockUxBasePath}/packages/blocklet-ui-react/src`;
   alias['@blocklet/ui-react'] = `${arcblockUxBasePath}/packages/blocklet-ui-react`;
 
@@ -46,7 +51,35 @@ if (arcblockUxBasePath) {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const plugins = [
+    tsconfigPaths(),
+    react(),
+    createBlockletPlugin({
+      // disableEmbed: true,
+      embeds: {
+        'open-embed/agent-call': 'src/open-embed/agent-call.ts',
+        'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
+      },
+      embedPlugins: [replace({ 'typeof window': JSON.stringify('object') })],
+      embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
+      // 并发打包 embed 的数量
+      embedBuildConcurrency: 3,
+    }),
+    svgr(),
+    codeInspectorPlugin({
+      bundler: 'vite',
+    }),
+  ];
+
+  if (mode === 'development') {
+    plugins.push(
+      codeInspectorPlugin({
+        bundler: 'vite',
+      })
+    );
+  }
+
   return {
     optimizeDeps: {
       // force: true,
@@ -56,32 +89,28 @@ export default defineConfig(() => {
         ...exclude,
       ],
     },
-    resolve: {
-      alias,
-    },
-    plugins: [
-      tsconfigPaths(),
-      react(),
-      createBlockletPlugin({
-        // disableEmbed: true,
-        embeds: {
-          'open-embed/agent-call': 'src/open-embed/agent-call.ts',
-          'open-embed/agent-view': 'src/open-embed/agent-view.tsx',
+    resolve: { alias },
+    plugins,
+    server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('typescript/lib/typescript.js')) {
+              return 'vendor-typescript';
+            }
+            if (id.includes('@excalidraw/mermaid-to-excalidraw')) {
+              return 'vendor-excalidraw-mermaid-to-excalidraw';
+            }
+            if (id.includes('@excalidraw/excalidraw')) {
+              return 'vendor-excalidraw-core';
+            }
+            if (id.includes('js-tiktoken')) {
+              return 'vendor-js-tiktoken';
+            }
+            return undefined;
+          },
         },
-        embedPlugins: [
-          replace({
-            'typeof window': JSON.stringify('object'),
-          }),
-        ],
-        embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect/lib/Session'],
-        // 并发打包 embed 的数量
-        embedBuildConcurrency: 3,
-      }),
-      svgr(),
-    ],
-    server: {
-      fs: {
-        allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')],
       },
     },
   };

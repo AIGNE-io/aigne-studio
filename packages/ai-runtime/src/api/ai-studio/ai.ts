@@ -1,7 +1,7 @@
 import type { IncomingMessage } from 'http';
 import { ReadableStream, TextDecoderStream } from 'stream/web';
 
-import { EventSourceParserStream, readableToWeb } from '@blocklet/ai-kit/api/utils/event-stream';
+import { EventSourceParserStream, readableToWeb } from '@blocklet/aigne-hub/api/utils/event-stream';
 import { call } from '@blocklet/sdk/lib/component';
 import { AxiosResponse } from 'axios';
 

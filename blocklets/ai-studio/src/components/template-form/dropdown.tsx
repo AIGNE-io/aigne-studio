@@ -15,7 +15,7 @@ export default function Dropdown({
   dropdown,
   ...props
 }: {
-  children: ReactElement;
+  children: ReactElement<any>;
   dropdown: ReactNode;
 } & Pick<TooltipProps, 'PopperProps' | 'placement' | 'sx'>) {
   const [open, setOpen] = useState(false);

@@ -3,55 +3,33 @@ import { useCurrentGitStore } from '@app/store/current-git-store';
 import { RuntimeError, RuntimeErrorType } from '@blocklet/ai-runtime/types/runtime/error';
 import { Quotas } from '@blocklet/aigne-sdk/quotas';
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { atom, useRecoilState } from 'recoil';
 
 import * as api from '../libs/project';
+import { ProjectsState, useProjectsStore } from '../store/projects-store';
 import { useIsPromptAdmin, useSessionContext } from './session';
-
-export type ProjectsSection = 'templates' | 'projects' | 'examples';
-
-export interface ProjectsState {
-  templates: api.ProjectWithUserInfo[];
-  projects: api.ProjectWithUserInfo[];
-  examples: api.ProjectWithUserInfo[];
-  loading: boolean;
-  error?: Error;
-  selected?: { section: ProjectsSection; id: string; blockletDid?: string };
-  menuAnchor?: ProjectsState['selected'] & { anchor: HTMLElement };
-}
-
-const projectsState = atom<ProjectsState>({
-  key: 'projectsState',
-  default: {
-    templates: [],
-    projects: [],
-    examples: [],
-    loading: false,
-  },
-});
 
 const quotas = new Quotas(window.blocklet?.preferences);
 
 export const useProjectsState = () => {
-  const [state, setState] = useRecoilState(projectsState);
   const { session } = useSessionContext();
-  const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
   const isPromptAdmin = useIsPromptAdmin();
+  const setProjectGitSettings = useCurrentGitStore((i) => i.setProjectGitSettings);
+  const store = useProjectsStore();
 
   const refetch = useCallback(async () => {
-    setState((v) => ({ ...v, loading: true }));
+    store.setState((v) => ({ ...v, loading: true }));
     try {
       const { templates, projects, examples } = await api.getProjects();
       setProjectGitSettings(projects);
-      setState((v) => ({ ...v, templates, projects, examples, error: undefined }));
+      store.setState((v) => ({ ...v, templates, projects, examples, error: undefined }));
       return { projects, templates, examples };
     } catch (error) {
-      setState((v) => ({ ...v, error }));
+      store.setState((v) => ({ ...v, error }));
       throw error;
     } finally {
-      setState((v) => ({ ...v, loading: false }));
+      store.setState((v) => ({ ...v, loading: false }));
     }
-  }, [setProjectGitSettings, setState]);
+  }, [setProjectGitSettings, store.setState]);
 
   const createProject: typeof api.createProject = useCallback(
     async (...args) => {
@@ -109,16 +87,16 @@ export const useProjectsState = () => {
 
   const setSelected = useCallback(
     (selected: ProjectsState['selected']) => {
-      setState((v) => ({ ...v, selected }));
+      store.setSelected(selected);
     },
-    [setState]
+    [store.setSelected]
   );
 
   const setMenuAnchor = useCallback(
     (menuAnchor: ProjectsState['menuAnchor']) => {
-      setState((v) => ({ ...v, menuAnchor }));
+      store.setMenuAnchor(menuAnchor);
     },
-    [setState]
+    [store.setMenuAnchor]
   );
 
   const createLimitDialog = () => {
@@ -128,7 +106,7 @@ export const useProjectsState = () => {
   const checkProjectLimit = () => {
     if (window.blocklet?.tenantMode === 'multiple') {
       // check project count limit
-      const count = state.projects.length;
+      const count = store.projects.length;
       const passports = session?.user?.passports?.map((x: any) => x.name);
       if (!quotas.checkProjectLimit(count + 1, passports) && !isPromptAdmin) {
         createLimitDialog();
@@ -141,12 +119,7 @@ export const useProjectsState = () => {
   };
 
   const clearState = () => {
-    setState({
-      templates: [],
-      projects: [],
-      examples: [],
-      loading: false,
-    });
+    store.clearState();
   };
 
   useEffect(() => {
@@ -156,7 +129,7 @@ export const useProjectsState = () => {
   }, [session.user?.did]);
 
   return {
-    state,
+    state: store,
     refetch,
     createProject,
     importProject,

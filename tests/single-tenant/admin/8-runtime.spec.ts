@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-
+import { expect } from '@playwright/test';
+import test from '../../utils/base';
 import { installBlocklet } from '../../utils/uninstall';
 
 const secretKey = 'f712dac84b4f84c3c2fa079896572ed19e2738e23baf025f2c8764d5d8598deb';
@@ -33,7 +33,7 @@ test.describe.serial('resource blocklet', () => {
       //   const loginParams = {
       //     page,
       //     wallet: ensureWallet({ name: 'owner' }),
-      //     appWallet: ensureWallet({ name: 'single-tenant-mode-app', onlyFromCache: true }),
+      //     appWallet: ensureWallet({ name: 'single-tenant-mode-app', onlyFromCache: false }),
       //     passport: { name: 'owner', title: 'owner' },
       //     popup: false,
       //   };

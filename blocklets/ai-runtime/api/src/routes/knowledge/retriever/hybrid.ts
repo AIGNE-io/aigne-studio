@@ -28,7 +28,7 @@ export default class HybridRetriever extends BaseRetriever {
       this.vectorRetriever = vectorStore.asRetriever(this.getTopK().k);
 
       if (vectorStore.getMapping() && !Object.keys(vectorStore.getMapping()).length) {
-        logger.error('store get mapping is empty');
+        logger.error('HybridRetriever store get mapping is empty');
         return [];
       }
 

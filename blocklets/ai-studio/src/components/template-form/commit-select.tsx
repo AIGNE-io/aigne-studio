@@ -30,7 +30,11 @@ export default function CommitSelect({
   );
 
   return (
-    <Box height="50vh" overflow="auto">
+    <Box
+      sx={{
+        height: '50vh',
+        overflow: 'auto',
+      }}>
       <Box sx={{ mb: 2, position: 'sticky', top: 0, pt: 1, zIndex: 1, bgcolor: 'background.paper' }}>
         <FormControl fullWidth>
           <InputLabel>{t('branch')}</InputLabel>
@@ -43,9 +47,7 @@ export default function CommitSelect({
           </Select>
         </FormControl>
       </Box>
-
       {error && <Alert color="error">{error.message}</Alert>}
-
       <CommitListView loading={loading} commits={value?.commits} onClick={(commit) => onSelect(commit)} />
     </Box>
   );

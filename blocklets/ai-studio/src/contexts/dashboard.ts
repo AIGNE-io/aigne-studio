@@ -1,32 +1,9 @@
-import { produce } from 'immer';
-import { ReactNode, useCallback, useEffect } from 'react';
-import { atom, useRecoilState } from 'recoil';
+import { ReactNode, useEffect } from 'react';
 
-export interface AddonsState {
-  addons: { [key: string]: { element: ReactNode; order?: number } };
-}
-
-const addonsState = atom<AddonsState>({
-  key: 'addonsState',
-  default: { addons: {} },
-});
-
-export const useAddonsState = () => useRecoilState(addonsState);
+import { useAddonsStore } from '../store/addons-store';
 
 export const useAddon = (key: string, element: ReactNode, order?: number) => {
-  const [, setState] = useAddonsState();
-
-  const setAddon = useCallback(
-    (key: string, element?: ReactNode | null, order?: number) => {
-      setState((state) =>
-        produce(state, (state) => {
-          if (element) state.addons[key] = { element, order };
-          else delete state.addons[key];
-        })
-      );
-    },
-    [setState]
-  );
+  const setAddon = useAddonsStore((state) => state.setAddon);
 
   useEffect(() => {
     setAddon(key, element, order);

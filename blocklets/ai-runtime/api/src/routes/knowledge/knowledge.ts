@@ -300,7 +300,6 @@ router.post('/', middlewares.session({ componentCall: true }), ensureComponentCa
     const map: { [oldKnowledgeBaseId: string]: string } = {};
 
     for (const oldKnowledge of knowledge) {
-      // eslint-disable-next-line no-await-in-loop
       const newKnowledgeId = await copyKnowledgeBase({
         oldKnowledgeBaseId: oldKnowledge.id,
         oldProjectId: copyFromProjectId,

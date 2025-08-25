@@ -1,8 +1,8 @@
 import Slider from '@mui/material/Slider';
 import { styled } from '@mui/material/styles';
 
-const PrettoSlider = styled(Slider)({
-  color: '#3B82F6',
+const PrettoSlider = styled(Slider)(({ theme }) => ({
+  color: theme.palette.info.main,
   height: 6,
   '& .MuiSlider-track': {
     border: 'none',
@@ -10,8 +10,8 @@ const PrettoSlider = styled(Slider)({
   '& .MuiSlider-thumb': {
     height: 16,
     width: 16,
-    border: '2px solid #fff',
-    background: '#3B82F6',
+    border: `2px solid ${theme.palette.divider}`,
+    background: theme.palette.info.main,
     '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
       boxShadow: 'inherit',
     },
@@ -27,7 +27,7 @@ const PrettoSlider = styled(Slider)({
     width: 32,
     height: 32,
     borderRadius: '50% 50% 50% 0',
-    backgroundColor: '#3B82F6',
+    backgroundColor: theme.palette.info.main,
     transformOrigin: 'bottom left',
     transform: 'translate(50%, -100%) rotate(-45deg) scale(0)',
     '&::before': { display: 'none' },
@@ -38,6 +38,6 @@ const PrettoSlider = styled(Slider)({
       transform: 'rotate(45deg)',
     },
   },
-});
+}));
 
 export default PrettoSlider;

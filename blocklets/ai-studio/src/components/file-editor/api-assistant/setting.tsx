@@ -7,11 +7,11 @@ import { useAssistantCompare } from 'src/pages/project/state';
 
 export default function ApiAssistantSetting({
   value,
-  readOnly,
+  readOnly = undefined,
   projectId,
   gitRef,
-  compareValue,
-  isRemoteCompare,
+  compareValue = undefined,
+  isRemoteCompare = undefined,
 }: {
   value: ApiAssistantYjs;
   projectId: string;
@@ -27,9 +27,24 @@ export default function ApiAssistantSetting({
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], []);
 
   return (
-    <Box sx={{ border: '1px solid #3B82F6', p: '8px 16px', borderRadius: 1, bgcolor: 'background.paper' }}>
-      <Stack py={1} gap={1}>
-        <Stack direction="row" gap={1}>
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'info.main',
+        p: '8px 16px',
+        borderRadius: 1,
+        bgcolor: 'background.paper',
+      }}>
+      <Stack
+        sx={{
+          py: 1,
+          gap: 1,
+        }}>
+        <Stack
+          direction="row"
+          sx={{
+            gap: 1,
+          }}>
           <IndicatorTextField
             projectId={projectId}
             gitRef={gitRef}
@@ -54,7 +69,10 @@ export default function ApiAssistantSetting({
               )),
             }}
           />
-          <Box flex={1}>
+          <Box
+            sx={{
+              flex: 1,
+            }}>
             <IndicatorTextField
               projectId={projectId}
               gitRef={gitRef}

@@ -12,8 +12,8 @@ import { getProjectIconUrl } from '../../libs/project';
 import { PlanUpgradeButton } from '../multi-tenant-restriction';
 
 export default function ApplicationHeader({
-  application,
-  meta,
+  application = undefined,
+  meta = undefined,
 }: {
   application?: Agent & { deployment: Deployment };
   meta?: any;

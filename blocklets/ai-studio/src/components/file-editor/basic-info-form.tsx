@@ -12,8 +12,8 @@ export default function BasicInfoForm({
   projectId,
   gitRef,
   value,
-  compareValue,
-  disabled,
+  compareValue = undefined,
+  disabled = undefined,
 }: {
   projectId: string;
   gitRef: string;
@@ -28,9 +28,16 @@ export default function BasicInfoForm({
 
   return (
     <Stack>
-      <Box position="relative">
+      <Box
+        sx={{
+          position: 'relative',
+        }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'name']}>
-          <Stack display="flex" flexDirection="row">
+          <Stack
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+            }}>
             <HoverBackgroundTextField
               hiddenLabel
               fullWidth
@@ -47,7 +54,7 @@ export default function BasicInfoForm({
                   fontSize: 18,
                   fontWeight: 600,
                   lineHeight: '28px',
-                  color: '#030712',
+                  color: 'text.primary',
                   ...getDiffBackground('name'),
                 },
               }}
@@ -62,8 +69,10 @@ export default function BasicInfoForm({
           sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
-
-      <Box position="relative">
+      <Box
+        sx={{
+          position: 'relative',
+        }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'description']}>
           <HoverBackgroundTextField
             hiddenLabel
@@ -80,7 +89,7 @@ export default function BasicInfoForm({
                 fontSize: 14,
                 fontWeight: 400,
                 lineHeight: '24px',
-                color: '#9CA3AF',
+                color: 'text.secondary',
                 ...getDiffBackground('description'),
               },
             }}
@@ -94,8 +103,10 @@ export default function BasicInfoForm({
           sx={{ position: 'absolute', right: 0, top: 0 }}
         />
       </Box>
-
-      <Box position="relative">
+      <Box
+        sx={{
+          position: 'relative',
+        }}>
         <WithAwareness indicator={false} projectId={projectId} gitRef={gitRef} path={[value.id, 'tag']}>
           <TagsAutoComplete
             readOnly={readOnly}

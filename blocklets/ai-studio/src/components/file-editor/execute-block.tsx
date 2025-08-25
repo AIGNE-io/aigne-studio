@@ -59,7 +59,7 @@ import { useRequest } from 'ahooks';
 import axios from 'axios';
 import { cloneDeep, isNil, sortBy } from 'lodash';
 import { bindDialog, bindPopper, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
-import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Controller, UseFormReturn, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAssistantCompare } from 'src/pages/project/state';
@@ -84,11 +84,11 @@ export default function ExecuteBlockForm({
   gitRef,
   assistant,
   value,
-  readOnly,
+  readOnly = undefined,
   path,
-  compareAssistant,
-  isRemoteCompare,
-  from,
+  compareAssistant = undefined,
+  isRemoteCompare = undefined,
+  from = undefined,
   ...props
 }: {
   projectId: string;
@@ -104,7 +104,7 @@ export default function ExecuteBlockForm({
   const { t } = useLocaleContext();
   const dialogState = usePopupState({ variant: 'dialog' });
   const toolForm = useRef<ToolDialogImperative>(null);
-  const selectedTool = useRef<string>();
+  const selectedTool = useRef<string>(undefined);
 
   const { store } = useProjectStore(projectId, gitRef);
   const popperState = usePopupState({ variant: 'popper', popupId: 'settings' });
@@ -134,14 +134,14 @@ export default function ExecuteBlockForm({
         isRemoteCompare={isRemoteCompare}
         openApis={openApis}
         {...props}
-        sx={{ borderColor: '#7C3AED' }}
+        sx={{ borderColor: 'primary.main' }}
       />
     );
   }
 
   const prefixOrSuffix = value.role !== 'none' && value.formatResultType !== 'asHistory' && assistant.type === 'prompt';
   return (
-    <Stack {...props} sx={{ border: 2, borderRadius: 1, ...props.sx, borderColor: '#7C3AED' }}>
+    <Stack {...props} sx={{ border: 2, borderRadius: 1, ...props.sx, borderColor: 'primary.main' }}>
       <Stack px={1.5} py={1} gap={1.25}>
         <Box className="between">
           <Typography noWrap variant="subtitle4">
@@ -150,12 +150,20 @@ export default function ExecuteBlockForm({
 
           <>
             <IconButton {...bindTrigger(popperState)}>
-              <Box component={Icon} icon={PlusIcon} color="#3B82F6" fontSize={16} />
+              <Box component={Icon} icon={PlusIcon} color="info.main" fontSize={16} />
             </IconButton>
             <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
               {({ TransitionProps }) => (
                 <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
-                  <Paper sx={{ border: '1px solid #ddd', maxWidth: 450, maxHeight: '80vh', overflow: 'auto', mt: 1 }}>
+                  <Paper
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      maxWidth: 450,
+                      maxHeight: '80vh',
+                      overflow: 'auto',
+                      mt: 1,
+                    }}>
                     <ClickAwayListener
                       onClickAway={(e) => (e.target as HTMLElement)?.localName !== 'body' && popperState.close()}>
                       <Box>
@@ -549,7 +557,7 @@ export default function ExecuteBlockForm({
         )}
       </Stack>
 
-      <Divider sx={{ borderColor: '#DDD6FE' }} />
+      <Divider />
 
       <Accordion
         sx={{
@@ -661,7 +669,7 @@ function ToolItemView({
   projectRef,
   tool,
   executeBlock,
-  readOnly,
+  readOnly = undefined,
   openApis,
   datasets,
   ...props
@@ -698,7 +706,7 @@ function ToolItemView({
       direction="row"
       {...props}
       sx={{
-        background: '#F9FAFB',
+        bgcolor: 'grey.50',
         py: 1,
         px: 1.5,
         minHeight: 40,
@@ -723,7 +731,7 @@ function ToolItemView({
           color={
             executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
               ? 'primary.main'
-              : '#030712'
+              : 'text.primary'
           }>
           {name || t('unnamed')}
         </Typography>
@@ -736,7 +744,7 @@ function ToolItemView({
         color={
           executeBlock.selectType === 'selectByPrompt' && executeBlock.defaultToolId === tool.id
             ? 'primary.main'
-            : '#030712'
+            : 'text.primary'
         }
         sx={{
           opacity: (theme) => theme.palette.action.disabledOpacity,
@@ -786,7 +794,7 @@ function ToolItemView({
                 }
               });
             }}>
-            <Trash sx={{ fontSize: 18, color: '#E11D48' }} />
+            <Trash sx={{ fontSize: 18, color: 'error.main' }} />
           </Button>
         )}
 
@@ -834,19 +842,28 @@ export interface ToolDialogImperative {
   form: UseFormReturn<ToolDialogForm>;
 }
 
-export const ToolDialog = forwardRef<
-  ToolDialogImperative,
-  {
-    executeBlock?: ExecuteBlockYjs;
-    projectId: string;
-    gitRef: string;
-    onSubmit: (value: ToolDialogForm) => any;
-    DialogProps?: DialogProps;
-    assistant: AssistantYjs;
-    openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-    datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
-  }
->(({ openApis, datasets, executeBlock, assistant, projectId, gitRef, onSubmit, DialogProps }, ref) => {
+export const ToolDialog = ({
+  ref,
+  openApis,
+  datasets,
+  executeBlock = undefined,
+  assistant,
+  projectId,
+  gitRef,
+  onSubmit,
+  DialogProps = undefined,
+}: {
+  executeBlock?: ExecuteBlockYjs;
+  projectId: string;
+  gitRef: string;
+  onSubmit: (value: ToolDialogForm) => any;
+  DialogProps?: DialogProps;
+  assistant: AssistantYjs;
+  openApis: (DatasetObject & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+  datasets: (Knowledge['dataValues'] & { from?: NonNullable<ExecuteBlock['tools']>[number]['from'] })[];
+} & {
+  ref: React.RefObject<ToolDialogImperative | null>;
+}) => {
   const { t, locale } = useLocaleContext();
   const { store } = useProjectStore(projectId, gitRef);
   const assistantId = assistant.id;
@@ -1008,7 +1025,7 @@ export const ToolDialog = forwardRef<
                   render={({ field }) => {
                     if (parameter['x-parameter-type'] === 'select') {
                       return (
-                        <AsyncSelect
+                        <MemoAsyncSelect
                           label={getOpenApiTextFromI18n(parameter, 'name', locale)}
                           remoteAPI={parameter['x-options-api']}
                           remoteOptions={parameter['x-options-value'] || []}
@@ -1131,7 +1148,6 @@ export const ToolDialog = forwardRef<
       component="form"
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('selectTool')}</DialogTitle>
-
       <DialogContent>
         <Stack gap={2}>
           <Stack gap={1}>
@@ -1241,21 +1257,23 @@ export const ToolDialog = forwardRef<
                     hiddenLabel
                     fullWidth
                     variant="standard"
-                    InputProps={{
-                      startAdornment: (
-                        <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
-                          <LoadingIconButton
-                            size="small"
-                            icon={<Translate sx={{ fontSize: 18 }} />}
-                            onClick={translateTool}
-                          />
-                        </Tooltip>
-                      ),
-                    }}
                     placeholder={t('translate')}
                     value={field.value || ''}
                     onChange={(e) => {
                       field.onChange({ target: { value: e.target.value } });
+                    }}
+                    slotProps={{
+                      input: {
+                        startAdornment: (
+                          <Tooltip title={t('functionName')} placement="top-start" disableInteractive>
+                            <LoadingIconButton
+                              size="small"
+                              icon={<Translate sx={{ fontSize: 18 }} />}
+                              onClick={translateTool}
+                            />
+                          </Tooltip>
+                        ),
+                      },
                     }}
                   />
                 )}
@@ -1284,7 +1302,6 @@ export const ToolDialog = forwardRef<
           {renderParameters()}
         </Stack>
       </DialogContent>
-
       <DialogActions>
         {DialogProps?.onClose && (
           <Button onClick={(e) => DialogProps?.onClose?.(e, 'escapeKeyDown')} variant="outlined">
@@ -1298,7 +1315,7 @@ export const ToolDialog = forwardRef<
       </DialogActions>
     </Dialog>
   );
-});
+};
 
 interface OptionType {
   id: string | number;
@@ -1317,68 +1334,68 @@ interface AsyncSelectProps {
   queryParams: { [key: string]: string };
 }
 
-const AsyncSelect: React.FC<AsyncSelectProps> = memo(
-  ({
-    remoteAPI,
-    remoteOptions = [],
-    remoteKey = 'id',
-    remoteTitle = 'name',
-    label,
-    value,
-    onChange,
-    queryParams,
-  }: AsyncSelectProps) => {
-    const [open, setOpen] = useState(false);
-    const [options, setOptions] = useState<OptionType[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+function AsyncSelect({
+  remoteAPI = undefined,
+  remoteOptions = [],
+  remoteKey = 'id',
+  remoteTitle = 'name',
+  label,
+  value,
+  onChange,
+  queryParams,
+}: AsyncSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<OptionType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    const fetchOptions = useCallback(async () => {
-      setLoading(true);
-      setError('');
+  const fetchOptions = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-      try {
-        if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
-          setOptions(remoteOptions);
-        } else if (remoteAPI) {
-          const query = new URLSearchParams(queryParams).toString();
-          const url = `${remoteAPI}?${query}`;
-          const { data } = await axios(url);
-          setOptions(data);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load options');
-        setOptions([]);
-      } finally {
-        setLoading(false);
+    try {
+      if (remoteOptions && Array.isArray(remoteOptions) && remoteOptions.length > 0) {
+        setOptions(remoteOptions);
+      } else if (remoteAPI) {
+        const query = new URLSearchParams(queryParams).toString();
+        const url = `${remoteAPI}?${query}`;
+        const { data } = await axios(url);
+        setOptions(data);
       }
-    }, [remoteAPI, remoteOptions, queryParams]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load options');
+      setOptions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [remoteAPI, remoteOptions, queryParams]);
 
-    useEffect(() => {
-      fetchOptions();
-    }, [fetchOptions]);
+  useEffect(() => {
+    fetchOptions();
+  }, [fetchOptions]);
 
-    const currentValue = options.find((x) => x[remoteKey] === value);
-    return (
-      <Autocomplete
-        key={Boolean(currentValue).toString() || ''}
-        open={open}
-        value={currentValue}
-        onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
-        onOpen={() => setOpen(true)}
-        onClose={() => setOpen(false)}
-        isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
-        getOptionLabel={(option) => option[remoteTitle]}
-        options={options}
-        loading={loading}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={label}
-            error={!!error}
-            helperText={error || ''}
-            InputProps={{
+  const currentValue = options.find((x) => x[remoteKey] === value);
+  return (
+    <Autocomplete
+      key={Boolean(currentValue).toString() || ''}
+      open={open}
+      value={currentValue}
+      onChange={(_, newValue) => onChange({ target: { value: newValue?.[remoteKey] } })}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
+      isOptionEqualToValue={(option, val) => option[remoteKey] === val[remoteKey]}
+      getOptionLabel={(option) => option[remoteTitle]}
+      options={options}
+      loading={loading}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label={label}
+          error={!!error}
+          helperText={error || ''}
+          slotProps={{
+            input: {
               ...params.InputProps,
               endAdornment: (
                 <>
@@ -1386,15 +1403,17 @@ const AsyncSelect: React.FC<AsyncSelectProps> = memo(
                   {params.InputProps.endAdornment}
                 </>
               ),
-            }}
-          />
-        )}
-        renderOption={(props, option) => (
-          <MenuItem {...props} key={option[remoteKey]}>
-            {option[remoteTitle]}
-          </MenuItem>
-        )}
-      />
-    );
-  }
-);
+            },
+          }}
+        />
+      )}
+      renderOption={(props, option) => (
+        <MenuItem {...props} key={option[remoteKey]}>
+          {option[remoteTitle]}
+        </MenuItem>
+      )}
+    />
+  );
+}
+
+const MemoAsyncSelect: React.FC<AsyncSelectProps> = memo(AsyncSelect);

@@ -1,6 +1,6 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { Icon } from '@iconify/react';
-import { Box, Stack, styled } from '@mui/material';
+import { Box, BoxProps, Stack, styled } from '@mui/material';
 import React, { ComponentProps, ReactElement, ReactNode, Suspense } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,22 +9,26 @@ import ActionButton from '../ActionButton';
 
 const ReactSyntaxHighlighter = React.lazy(() => import('react-syntax-highlighter').then((m) => ({ default: m.Prism })));
 
-const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
-  <Markdown
-    {...props}
-    remarkPlugins={[remarkGfm]}
-    components={{
-      pre: MarkdownPre,
-      table: ({ className, children }) => {
-        return (
-          <Box sx={{ overflow: 'auto', my: 1 }}>
-            <table className={className}>{children}</table>
-          </Box>
-        );
-      },
-    }}
-  />
-))`
+const MarkdownRenderer = styled(
+  ({ sx, className, ...props }: Pick<BoxProps, 'sx' | 'className'> & ComponentProps<typeof Markdown>) => (
+    <Box className={className} sx={sx}>
+      <Markdown
+        {...props}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          pre: MarkdownPre,
+          table: ({ className, children }) => {
+            return (
+              <Box sx={{ overflow: 'auto', my: 1 }}>
+                <table className={className}>{children}</table>
+              </Box>
+            );
+          },
+        }}
+      />
+    </Box>
+  )
+)`
   width: 100%;
   overflow: hidden;
   word-break: break-word;
@@ -101,10 +105,10 @@ const MarkdownRenderer = styled((props: ComponentProps<typeof Markdown>) => (
 
 export default MarkdownRenderer;
 
-function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
+function MarkdownPre({ children = undefined, ...props }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
 
-  const childrenProps = (children as ReactElement)?.props;
+  const childrenProps = (children as ReactElement<any>)?.props;
 
   if (!childrenProps?.children) return null;
 
@@ -117,13 +121,25 @@ function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
       sx={{
         fontSize: 14,
         borderRadius: 1,
-        bgcolor: 'rgb(245, 242, 240)',
+        bgcolor: 'background.default',
         '> pre': { mt: '0 !important' },
       }}>
-      <Stack direction="row" alignItems="center" p={0.5} pl={1.5} borderBottom={1} borderColor="grey.200">
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          p: 0.5,
+          pl: 1.5,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}>
         <Box>{language}</Box>
 
-        <Box flex={1} />
+        <Box
+          sx={{
+            flex: 1,
+          }}
+        />
 
         <ActionButton
           autoReset
@@ -137,13 +153,12 @@ function MarkdownPre({ children, ...props }: { children?: ReactNode }) {
           }}
         />
       </Stack>
-
       <Suspense>
         <Box
           component={ReactSyntaxHighlighter}
           language={match?.[1]}
           {...props}
-          sx={{ borderRadius: 1, bgcolor: 'red' }}>
+          sx={{ borderRadius: 1, bgcolor: 'error.main' }}>
           {String(childrenProps.children).replace(/\n$/, '')}
         </Box>
       </Suspense>

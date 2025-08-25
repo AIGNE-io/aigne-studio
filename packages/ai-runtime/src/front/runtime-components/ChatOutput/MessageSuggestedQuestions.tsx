@@ -4,7 +4,7 @@ import { RuntimeOutputVariable, RuntimeOutputVariablesSchema } from '../../../ty
 
 export default function MessageSuggestedQuestions({
   dataSource,
-  onClick,
+  onClick = undefined,
 }: {
   dataSource: RuntimeOutputVariablesSchema[RuntimeOutputVariable.suggestedQuestions];
   onClick?: (item: NonNullable<typeof dataSource>[number]) => void;
@@ -13,7 +13,10 @@ export default function MessageSuggestedQuestions({
 
   if (suggestedQuestions?.length) {
     return (
-      <Stack gap={1}>
+      <Stack
+        sx={{
+          gap: 1,
+        }}>
         {suggestedQuestions.map((item) => {
           return (
             <MessageSuggestedQuestion key={item.question} onClick={() => onClick?.(item)}>
@@ -36,7 +39,7 @@ export function MessageSuggestedQuestion({ ...props }: TypographyProps) {
       sx={{
         display: 'inline-block',
         border: 1,
-        borderColor: 'rgba(229, 231, 235, 1)',
+        borderColor: 'divider',
         borderRadius: 1,
         py: 1,
         px: 2,
@@ -44,7 +47,7 @@ export function MessageSuggestedQuestion({ ...props }: TypographyProps) {
         maxWidth: 'calc(100% - 20px)',
         cursor: 'pointer',
         '&:hover': {
-          backgroundColor: 'rgba(239, 246, 255, 1)',
+          backgroundColor: 'grey.50',
         },
         ...props.sx,
       }}

@@ -8,7 +8,7 @@ export async function copyFile(
 ): Promise<void> {
   if (skip?.(src)) return;
 
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     const readStream = fs.createReadStream(src);
     const writeStream = fs.createWriteStream(dest);
 

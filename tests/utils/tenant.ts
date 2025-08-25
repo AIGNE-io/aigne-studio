@@ -9,8 +9,16 @@ export const checkTenantMode = async ({
   isSingle?: boolean;
   openPricePlan?: boolean;
 }) => {
-  await page.goto('/.well-known/service/admin/configuration');
+  await page.goto('/.well-known/service/admin/website/branding');
   await page.waitForLoadState('networkidle');
+
+  const setupLaterButton = page
+    .locator('iframe[title="Setup Wizard"]')
+    .contentFrame()
+    .getByRole('button', { name: 'Setup Later' });
+  if ((await setupLaterButton.count()) > 0) {
+    await setupLaterButton.click();
+  }
 
   const configItem = await page.locator('.config-item', {
     has: page.locator('.config-label', { hasText: 'Multiple Tenant Mode' }),

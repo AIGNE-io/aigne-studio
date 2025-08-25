@@ -1,3 +1,85 @@
+## 0.5.13 (2025-8-25)
+
+- fix: improve explore list/detail page layout
+
+## 0.5.12 (2025-8-22)
+
+- fix: should pass default props scroller
+
+## 0.5.11 (2025-8-21)
+
+- fix: incorrect image file extension after download
+
+## 0.5.10 (2025-8-21)
+
+- fix: e2e test is broken
+
+## 0.5.9 (2025-8-21)
+
+- chore: improve aigne studio logo and page layout
+
+## 0.5.8 (2025-8-20)
+
+- chore: update deps
+
+## 0.5.7 (2025-8-19)
+
+- feat: support dark mode
+
+## 0.5.6 (2025-8-13)
+
+- chore: update deps
+
+## 0.5.5 (2025-8-11)
+
+- chore: update deps
+
+## 0.5.4 (2025-8-7)
+
+- fix: update readme
+
+## 0.5.3 (2025-8-7)
+
+- fix: fix agent call error and add cache support
+
+## 0.5.2 (2025-8-6)
+
+- fix: extract supported models to shared module for frontend and backend usage
+
+## 0.5.1 (2025-8-6)
+
+- chore: update package deps
+
+## 0.5.0 (2025-8-2)
+
+- chore: upgrade react19, mui7, vite7
+- chore: upgrade react-markdown to v10
+- chore: upgrade react-resizable-panels to v3
+- chore: upgrade react-querybuilder to v8
+- chore: upgrade react-markdown to v10
+- chore: upgrade react-infinite-scroll-hook to v6
+- chore: upgrade @monaco-editor/react
+- chore: upgrade lexical to v0.30.1
+- chore: rm @aigne/runtime
+- chore: replace recoil with zustand
+- chore: replace react-transition-group to react-transitioning
+
+## 0.4.279 (2025-8-4)
+
+- chore: update logo and readme
+
+## 0.4.278 (2025-8-2)
+
+- fix: correct model integration with aigne-hub
+
+## 0.4.277 (2025-7-30)
+
+- fix: update ai-kit to aigne-hub
+
+## 0.4.276 (2025-7-4)
+
+- fix: remove recoil dependency
+
 ## 0.4.275 (2025-6-30)
 
 - fix: add backoff time to websocket to reduce retry frequency

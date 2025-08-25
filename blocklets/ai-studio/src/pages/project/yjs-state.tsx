@@ -16,7 +16,6 @@ import {
   nextAssistantId,
 } from '@blocklet/ai-runtime/types';
 import {
-  Doc,
   Map,
   UndoManager,
   createEncoder,
@@ -26,18 +25,18 @@ import {
   useSyncedStore,
   writeVarUint,
 } from '@blocklet/co-git/yjs';
+import { useMemoizedFn } from 'ahooks';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import pick from 'lodash/pick';
 import { customAlphabet, nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RecoilState, atom, useRecoilState } from 'recoil';
 import { joinURL } from 'ufo';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { writeSyncStep1 } from 'y-protocols/sync';
 import { WebsocketProvider, messageSync } from 'y-websocket';
 
-import { PREFIX } from '../../libs/api';
+import { useYjsProjectStore } from '../../store/yjs-project-store';
 
 export const PROMPTS_FOLDER_NAME = 'prompts';
 
@@ -76,39 +75,17 @@ export interface StoreContext {
   indexeddb: IndexeddbPersistence;
 }
 
-const stores: Record<string, RecoilState<StoreContext>> = {};
-
 const projectStore = (projectId: string, gitRef: string) => {
   const key = `projectStore-${projectId}-${gitRef}`;
-  stores[key] ??= atom<StoreContext>({
-    key,
-    dangerouslyAllowMutability: true,
-    default: (() => {
-      const url = (() => {
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const wsUrl = new URL(`${wsProtocol}://${window.location.host}`);
-        wsUrl.pathname = joinURL(PREFIX, 'api/ws', projectId);
-        return wsUrl.toString();
-      })();
+  const { getStore, createStore, setStore } = useYjsProjectStore.getState();
 
-      const doc = new Doc();
+  let store = getStore(key);
+  if (!store) {
+    store = createStore(projectId, gitRef);
+    setStore(key, store);
+  }
 
-      const provider = new WebsocketProvider(url, gitRef, doc, { connect: false, maxBackoffTime: 10 * 60e3 });
-
-      const store = syncedStore<State>({ files: {}, tree: {} }, doc);
-
-      const indexeddb = new IndexeddbPersistence(`${projectId}-${gitRef}`, doc);
-
-      return {
-        store,
-        awareness: { clients: {}, files: {} },
-        provider,
-        synced: provider.synced,
-        indexeddb,
-      };
-    })(),
-  });
-  return stores[key]!;
+  return store;
 };
 
 export const useWebSocketStatus = (projectId: string, gitRef: string) => {
@@ -155,7 +132,11 @@ export const useWebSocketStatus = (projectId: string, gitRef: string) => {
 };
 
 export const useProjectStore = (projectId: string, gitRef: string, connect?: boolean) => {
-  const [store, setStore] = useRecoilState(projectStore(projectId, gitRef));
+  const key = `projectStore-${projectId}-${gitRef}`;
+  const { getStore, updateStore } = useYjsProjectStore();
+  const store = getStore(key) || projectStore(projectId, gitRef);
+
+  const setStore = useMemoizedFn((updater: (store: StoreContext) => StoreContext) => updateStore(key, updater));
 
   useEffect(() => {
     if (!connect) return undefined;
@@ -204,18 +185,19 @@ export const useProjectStore = (projectId: string, gitRef: string, connect?: boo
       }
 
       setStore((v) => {
-        return { ...v, awareness };
+        v.awareness = awareness;
+        return v;
       });
     };
 
-    provider.on('synced', onSynced);
+    provider.on('sync', onSynced);
     provider.awareness.on('change', onAwarenessChange);
     provider.connect();
 
     return () => {
       clearInterval(interval);
       provider.disconnect();
-      provider.off('synced', onSynced);
+      provider.off('sync', onSynced);
       provider.awareness.off('change', onAwarenessChange);
     };
   }, [projectId, gitRef]);
@@ -289,7 +271,7 @@ export function createFolder({
         i?.startsWith(parentPath) ? i.replace(parentPath, '').split('/')[0] : undefined
       )
     );
-
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const n = index ? `${name} ${index}` : name;
       index++;
@@ -326,7 +308,7 @@ export function createFileName({
         .map((i: any) => i.name)
         .filter((i) => i)
     );
-
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const n = index ? `${defaultName} ${index}` : defaultName;
       index++;
