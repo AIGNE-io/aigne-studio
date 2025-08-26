@@ -27,7 +27,7 @@ export interface MenusProps extends ListProps {
   menus: MenuItemConfig[];
 }
 
-export default function Menus({ collapsed, menus, ...props }: MenusProps) {
+export default function Menus({ collapsed = undefined, menus, ...props }: MenusProps) {
   return (
     <StyledList {...props} className={collapsed ? 'collapsed' : undefined} dense={collapsed}>
       {menus.map((menu, index) => (
@@ -44,7 +44,7 @@ export type MenuItemConfig = {
   children?: MenuItemConfig[];
 };
 
-export function MenuItem({ menu, collapsed }: { menu: MenuItemConfig; collapsed?: boolean }) {
+export function MenuItem({ menu, collapsed = undefined }: { menu: MenuItemConfig; collapsed?: boolean }) {
   const pathname = useLocation().pathname.toLowerCase();
   const toPathname = menu.url.toLowerCase();
 

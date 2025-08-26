@@ -4,16 +4,18 @@ export interface LoadingProps extends BoxProps {
   fixed?: boolean;
 }
 
-export default function Loading({ fixed, ...props }: LoadingProps) {
+export default function Loading({ fixed = undefined, sx, ...props }: LoadingProps) {
   return (
     <Box
-      display="flex"
-      flex={1}
-      height="100%"
-      alignItems="center"
-      justifyContent="center"
       {...props}
-      sx={
+      sx={[
+        {
+          display: 'flex',
+          flex: 1,
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
         fixed
           ? {
               position: 'fixed',
@@ -22,8 +24,9 @@ export default function Loading({ fixed, ...props }: LoadingProps) {
               right: 0,
               bottom: 0,
             }
-          : undefined
-      }>
+          : {},
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}>
       <CircularProgress size={30} />
     </Box>
   );

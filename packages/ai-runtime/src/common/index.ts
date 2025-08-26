@@ -1,233 +1,64 @@
+import { joinURL, withQuery } from 'ufo';
+
 import { ImageModelInfo, ServiceMode, ServiceModePermissionMap, TextModelInfo } from '../types/common';
+import { formatSupportedImagesModels, formatSupportedModels } from './model';
 
 export const defaultTextModel = 'gpt-4o-mini';
 
+const AIGNE_RUNTIME_DID = 'z2qaBP9SahqU2L2YA3ip7NecwKACMByTFuiJ2';
+
+const CACHE_DURATION = 1 * 60 * 1000;
+
+function setCache(key: string, data: any) {
+  const payload = {
+    data,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(key, JSON.stringify(payload));
+}
+
+function getCache(key: string) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+
+  const { data, timestamp } = JSON.parse(raw);
+  if (Date.now() - timestamp > CACHE_DURATION) {
+    localStorage.removeItem(key);
+    return null;
+  }
+
+  return data;
+}
+
+const fetchAigneHubModelsFromWindow = async (type: 'chatCompletion' | 'image') => {
+  const f = (blocklet?.componentMountPoints || []).find((m: { did: string }) => m.did === AIGNE_RUNTIME_DID);
+  const url = withQuery(joinURL(window.location.origin, f?.mountPoint || '', '/api/models'), { type });
+
+  const cached = getCache(url);
+  if (cached) {
+    return cached;
+  }
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (data?.length) {
+    setCache(url, data);
+  }
+
+  return data;
+};
+
 export async function getSupportedModels(): Promise<TextModelInfo[]> {
-  return [
-    {
-      brand: 'OpenAI',
-      model: 'gpt-4o',
-      name: 'GPT4o',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 128000,
-      maxTokensDefault: 128000,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-4o-mini',
-      name: 'GPT4o mini',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 128000,
-      maxTokensDefault: 128000,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-3.5-turbo',
-      name: 'GPT3.5 turbo',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 4096,
-      maxTokensDefault: 4096,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-3.5-turbo-16k',
-      name: 'GPT3.5 turbo 16k',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 16385,
-      maxTokensDefault: 16385,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-4',
-      name: 'GPT4',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 8192,
-      maxTokensDefault: 8192,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-4-32k',
-      name: 'GPT4 32k',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      presencePenaltyMin: -2,
-      presencePenaltyMax: 2,
-      presencePenaltyDefault: 0,
-      frequencyPenaltyMin: -2,
-      frequencyPenaltyMax: 2,
-      frequencyPenaltyDefault: 0,
-      maxTokensMin: 1,
-      maxTokensMax: 32768,
-      maxTokensDefault: 32768,
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'Google',
-      model: 'gemini-pro',
-      name: 'Gemini Pro',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0.1,
-      topPMax: 1,
-      topPDefault: 1,
-      maxTokensMin: 1,
-      maxTokensMax: 2048,
-      maxTokensDefault: 2048,
-      tags: ['Google'],
-    },
-    {
-      brand: 'Mistral AI',
-      model: 'openRouter/mistralai/mistral-7b-instruct',
-      name: 'Mistral 7B Instruct',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      maxTokensMin: 1,
-      maxTokensMax: 8192,
-      maxTokensDefault: 8192,
-      tags: ['Mistral AI'],
-    },
-    {
-      brand: 'Mistral AI',
-      model: 'openRouter/mistralai/mixtral-8x7b-instruct',
-      name: 'Mixtral 8x7B Instruct (beta)',
-      temperatureMin: 0,
-      temperatureMax: 2,
-      temperatureDefault: 1,
-      topPMin: 0,
-      topPMax: 1,
-      topPDefault: 1,
-      maxTokensMin: 1,
-      maxTokensMax: 32768,
-      maxTokensDefault: 32768,
-      tags: ['Mistral AI'],
-    },
-  ];
+  const models = await fetchAigneHubModelsFromWindow('chatCompletion');
+  return formatSupportedModels(models);
 }
 
 export const defaultImageModel = 'dall-e-2';
 
 export async function getSupportedImagesModels(): Promise<ImageModelInfo[]> {
-  return [
-    {
-      brand: 'OpenAI',
-      model: 'dall-e-2',
-      nMin: 1,
-      nMax: 10,
-      nDefault: 1,
-      size: ['256x256', '512x512', '1024x1024'],
-      sizeDefault: '256x256',
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'dall-e-3',
-      nMin: 1,
-      nMax: 1,
-      nDefault: 1,
-      quality: ['standard', 'hd'],
-      qualityDefault: 'standard',
-      size: ['1024x1024', '1792x1024', '1024x1792'],
-      sizeDefault: '1024x1024',
-      style: ['vivid', 'natural'],
-      styleDefault: 'vivid',
-      tags: ['OpenAI'],
-    },
-    {
-      brand: 'OpenAI',
-      model: 'gpt-image-1',
-      nMin: 1,
-      nMax: 10,
-      nDefault: 1,
-      quality: ['high', 'medium', 'low', 'auto'],
-      qualityDefault: 'auto',
-      size: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
-      sizeDefault: 'auto',
-      moderation: ['low', 'auto'],
-      moderationDefault: 'auto',
-      background: ['transparent', 'opaque', 'auto'],
-      backgroundDefault: 'auto',
-      outputFormat: ['jpeg', 'png', 'webp'],
-      outputFormatDefault: 'jpeg',
-      outputCompressionMin: 0,
-      outputCompressionMax: 100,
-      outputCompressionDefault: 100,
-      tags: ['OpenAI'],
-    },
-  ];
+  const models = await fetchAigneHubModelsFromWindow('image');
+  return formatSupportedImagesModels(models);
 }
 
 export async function getModelBrand(model: string) {

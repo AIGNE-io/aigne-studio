@@ -77,17 +77,44 @@ export default function OutputSettings({
   }, [value]);
 
   return (
-    <Box sx={{ background: '#F9FAFB', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <Box component={AigneLogoOutput} fontSize={14} />
-          <Typography variant="subtitle2" mb={0}>
+    <Box sx={{ bgcolor: 'grey.50', py: 1.5, px: 2, pb: 2, borderRadius: 1 }}>
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 1,
+        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+          }}>
+          <Box
+            component={AigneLogoOutput}
+            sx={{
+              fontSize: 14,
+            }}
+          />
+          <Typography
+            variant="subtitle2"
+            sx={{
+              mb: 0,
+            }}>
             {t('outputs')}
           </Typography>
         </Box>
       </Stack>
-
-      <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, overflow: 'auto' }}>
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRadius: 1,
+          py: 1,
+          overflow: 'auto',
+        }}>
         <Box
           sx={{
             whiteSpace: 'nowrap',
@@ -103,7 +130,7 @@ export default function OutputSettings({
                 borderTop: 1,
                 borderColor: 'divider',
               },
-              'tr:not(.group-header):hover td': { bgcolor: 'rgba(0, 0, 0, 0.02)' },
+              'tr:not(.group-header):hover td': { bgcolor: 'action.hover' },
               'th,td': {
                 borderBottom: 0,
                 py: 0,
@@ -118,19 +145,28 @@ export default function OutputSettings({
           <Table size="small">
             <TableHead>
               <TableRow>
-                <Box component={TableCell} width="30%">
+                <TableCell
+                  sx={{
+                    width: '30%',
+                  }}>
                   {t('name')}
-                </Box>
-                <Box component={TableCell}>{t('from')}</Box>
-                <Box component={TableCell}>{t('description')}</Box>
-                <Box component={TableCell}>{t('format')}</Box>
-                <Box component={TableCell} width={74}>
+                </TableCell>
+                <TableCell>{t('from')}</TableCell>
+                <TableCell>{t('description')}</TableCell>
+                <TableCell>{t('format')}</TableCell>
+                <TableCell
+                  sx={{
+                    width: 74,
+                  }}>
                   {t('required')}
-                </Box>
-                <Box component={TableCell} width={74}>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    width: 74,
+                  }}>
                   {t('appearance')}
-                </Box>
-                <Box component={TableCell} align="right" />
+                </TableCell>
+                <TableCell align="right" />
               </TableRow>
             </TableHead>
 
@@ -145,11 +181,15 @@ export default function OutputSettings({
                     <VariableRow
                       className="output-variable-row"
                       key={item.id}
-                      rowRef={(ref) => params.drop(params.preview(ref))}
+                      rowRef={(ref) => {
+                        params.drop(params.preview(ref));
+                      }}
                       firstColumnChildren={
                         <Stack
                           className="hover-visible"
-                          ref={params.drag}
+                          ref={(v) => {
+                            params.drag(v);
+                          }}
                           sx={{
                             display: 'none',
                             p: 0.5,
@@ -159,7 +199,7 @@ export default function OutputSettings({
                             top: '50%',
                             transform: 'translateY(-50%)',
                           }}>
-                          <Box component={Icon} icon={GripVertical} sx={{ color: '#9CA3AF', fontSize: 14 }} />
+                          <Box component={Icon} icon={GripVertical} sx={{ color: 'grey.400', fontSize: 14 }} />
                         </Stack>
                       }
                       sx={{

@@ -19,7 +19,13 @@ interface InternalModelSelectLiteProps {
   onAddMoreModel?: () => void;
 }
 
-function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...rest }: InternalModelSelectLiteProps) {
+function InternalModelSelectLite({
+  options,
+  value = undefined,
+  onChange,
+  onAddMoreModel = undefined,
+  ...rest
+}: InternalModelSelectLiteProps) {
   const { t } = useLocaleContext();
   const popperState = usePopupState({ variant: 'popper', popupId: 'model-select-lite' });
   const selectedOption = options.find((option) => option.model === value);
@@ -32,13 +38,13 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
         )}
         <span>{selectedOption?.name || 'Select a model'}</span>
       </Button>
-
       <Popper {...bindPopper(popperState)} sx={{ zIndex: 1101 }} transition placement="bottom-end">
         {({ TransitionProps }) => (
           <Grow style={{ transformOrigin: 'right top' }} {...TransitionProps}>
             <Paper
               sx={{
-                border: '1px solid #ddd',
+                border: '1px solid',
+                borderColor: 'divider',
                 height: '100%',
                 overflow: 'auto',
                 mt: 1,
@@ -53,8 +59,6 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                         <Stack
                           data-testid={option.model}
                           direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
                           spacing={1}
                           key={option.model}
                           onClick={() => {
@@ -62,15 +66,23 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                             popperState.close();
                           }}
                           sx={{
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
                             width: '100%',
                             height: 48,
                             px: 1,
                             cursor: 'pointer',
                             borderRadius: 0.5,
                             ...(isSelected && { bgcolor: 'action.selected' }),
-                            ...(!isSelected && { '&:hover': { bgcolor: '#f0f0f0' } }),
+                            ...(!isSelected && { '&:hover': { bgcolor: 'grey.100' } }),
                           }}>
-                          <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: '0 0 auto' }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{
+                              alignItems: 'center',
+                              flex: '0 0 auto',
+                            }}>
                             <ModelBrandIcon model={option.model} url={option.icon} />
                             <Box>{option.name}</Box>
                             {'maxTokensMax' in option && option.maxTokensMax && (
@@ -90,9 +102,13 @@ function InternalModelSelectLite({ options, value, onChange, onAddMoreModel, ...
                           </Stack>
                           <Stack
                             direction="row"
-                            alignItems="center"
-                            justifyContent="flex-end"
-                            sx={{ flex: '0 0 auto', width: 64, pr: 1 }}>
+                            sx={{
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              flex: '0 0 auto',
+                              width: 64,
+                              pr: 1,
+                            }}>
                             <Box
                               component={Icon}
                               icon={CheckIcon}

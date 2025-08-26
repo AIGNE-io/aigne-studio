@@ -28,7 +28,12 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     'react-hooks/exhaustive-deps': 'warn',
-    'react/require-default-props': 'off',
+    'react/require-default-props': [
+      'error',
+      {
+        functions: 'defaultArguments',
+      },
+    ],
     'react/no-unstable-nested-components': 'off',
     'react/no-array-index-key': 'warn',
     'no-return-assign': 'off',

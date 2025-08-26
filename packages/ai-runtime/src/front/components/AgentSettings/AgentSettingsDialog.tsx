@@ -1,6 +1,5 @@
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
-import { LoadingButton } from '@mui/lab';
 import {
   Button,
   Dialog,
@@ -9,6 +8,7 @@ import {
   DialogProps,
   DialogTitle,
   Link,
+  Button as LoadingButton,
   Stack,
   TextField,
   Typography,
@@ -89,9 +89,16 @@ export default function AgentSettingsDialog({ ...props }: Omit<DialogProps, 'ope
       onSubmit={form.handleSubmit(onSubmit)}>
       <DialogTitle>{t('settings')}</DialogTitle>
       <DialogContent>
-        <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           {agent.config.secrets.map(({ targetInput, hasValue }, index) => (
-            <Stack key={targetInput.id} gap={0.5}>
+            <Stack
+              key={targetInput.id}
+              sx={{
+                gap: 0.5,
+              }}>
               <Typography variant="caption">
                 {targetInput.label || targetInput.key}{' '}
                 {targetInput.docLink && (
@@ -107,9 +114,11 @@ export default function AgentSettingsDialog({ ...props }: Omit<DialogProps, 'ope
                 fullWidth
                 hiddenLabel
                 size="small"
-                inputProps={{ maxLength: 100 }}
                 placeholder={hasValue ? '******' : targetInput.placeholder}
                 {...form.register(`secrets.${index}.secret`, { required: true })}
+                slotProps={{
+                  htmlInput: { maxLength: 100 },
+                }}
               />
             </Stack>
           ))}
@@ -117,7 +126,7 @@ export default function AgentSettingsDialog({ ...props }: Omit<DialogProps, 'ope
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('cancel')}</Button>
-        <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+        <LoadingButton loadingPosition="start" type="submit" variant="contained" loading={form.formState.isSubmitting}>
           {t('save')}
         </LoadingButton>
       </DialogActions>

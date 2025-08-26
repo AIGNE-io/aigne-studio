@@ -87,20 +87,25 @@ export function HeaderActions() {
 
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
-      <Box gap={1} className="center" sx={{ button: { whiteSpace: 'nowrap' } }}>
+      <Box
+        className="center"
+        sx={{
+          gap: 1,
+          button: { whiteSpace: 'nowrap' },
+        }}>
         <WsStatus projectId={projectId} gitRef={gitRef} />
 
         <AgentTokenUsage />
 
         <Button
-          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+          sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}
           onClick={() => {
             window.open(
               joinURL(window.location.origin, window.blocklet.prefix, `projects/${projectId}/logs/main`),
               '_blank'
             );
           }}>
-          <Box component={Icon} icon={LogIcon} sx={{ fontSize: 20, color: '#030712' }} />
+          <Box component={Icon} icon={LogIcon} sx={{ fontSize: 20, color: 'text.primary' }} />
         </Button>
 
         <CommitsTip
@@ -112,8 +117,9 @@ export function HeaderActions() {
           }}>
           <span>
             <Tooltip disableInteractive title={t('alert.history')}>
-              <Button sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}>
-                <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: '#030712' }} />
+              <Button
+                sx={{ minWidth: 0, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}>
+                <Box component={Icon} icon={HistoryToggleIcon} sx={{ fontSize: 20, color: 'text.primary' }} />
               </Button>
             </Tooltip>
           </span>
@@ -125,9 +131,9 @@ export function HeaderActions() {
           <Tooltip disableInteractive title={t('setting')}>
             <Button
               data-testid="header-actions-setting"
-              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid #E5E7EB' }}
+              sx={{ minWidth: 32, minHeight: 0, width: 32, height: 32, border: '1px solid', borderColor: 'divider' }}
               onClick={toggleDrawer}>
-              <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: '#030712' }} />
+              <Box component={Icon} icon={SettingsIcon} sx={{ fontSize: 18, color: 'text.primary' }} />
             </Button>
           </Tooltip>
 
@@ -151,14 +157,10 @@ export function MobileHeaderActions() {
   return (
     <CurrentProjectProvider projectId={projectId} projectRef={gitRef}>
       <Divider sx={{ m: 0, p: 0 }} />
-
       <HistoryAction />
-
       <SaveAction />
-
       <Box
         className="center"
-        justifyContent="flex-start"
         key="history"
         onClick={() => {
           window.open(
@@ -166,19 +168,33 @@ export function MobileHeaderActions() {
             '_blank'
           );
         }}
-        sx={{ cursor: 'pointer' }}>
+        sx={{
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
+        }}>
         <Box className="center">
-          <Box component={Icon} icon={LogIcon} mr={1} sx={{ fontSize: '15px !important' }} />
+          <Box
+            component={Icon}
+            icon={LogIcon}
+            sx={{
+              mr: 1,
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
-        <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+        <Typography
+          className="center"
+          sx={{
+            fontWeight: 500,
+            fontSize: 16,
+            lineHeight: '28px',
+            color: 'text.primary',
+          }}>
           {t('log')}
         </Typography>
       </Box>
-
       <SettingsAction />
-
       <Divider sx={{ m: 0, p: 0 }} />
-
       {projectId && gitRef && fileId && <DeploymentAction />}
     </CurrentProjectProvider>
   );
@@ -198,21 +214,46 @@ function HistoryAction() {
     <>
       <Box
         className="center"
-        justifyContent="flex-start"
         key="history"
         onClick={dialogState.open}
-        sx={{ cursor: 'pointer' }}>
+        sx={{
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
+        }}>
         <Box className="center">
-          <Box component={Icon} icon={HistoryToggleIcon} mr={1} sx={{ fontSize: '15px !important' }} />
+          <Box
+            component={Icon}
+            icon={HistoryToggleIcon}
+            sx={{
+              mr: 1,
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
-        <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+        <Typography
+          className="center"
+          sx={{
+            fontWeight: 500,
+            fontSize: 16,
+            lineHeight: '28px',
+            color: 'text.primary',
+          }}>
           {t('alert.history')}
         </Typography>
       </Box>
-
-      <Dialog {...bindDialog(dialogState)} fullScreen hideBackdrop sx={{ mt: '65px' }} PaperProps={{ elevation: 0 }}>
+      <Dialog
+        {...bindDialog(dialogState)}
+        fullScreen
+        hideBackdrop
+        sx={{ mt: '65px' }}
+        slotProps={{
+          paper: { elevation: 0 },
+        }}>
         <DialogContent sx={{ p: '16px !important' }}>
-          <Stack gap={2}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Box>
               <Button
                 sx={{ p: 0 }}
@@ -254,7 +295,11 @@ function SaveAction() {
 
   return (
     <>
-      <Box className="center" justifyContent="flex-start">
+      <Box
+        className="center"
+        sx={{
+          justifyContent: 'flex-start',
+        }}>
         <IconButton
           {...bindTrigger(dialogState)}
           disabled={submitting || disabled}
@@ -274,9 +319,23 @@ function SaveAction() {
             justifyContent: 'flex-start',
           }}>
           <Box className="center">
-            <Box component={Icon} icon={FloppyIcon} mr={1} sx={{ fontSize: '15px !important' }} />
+            <Box
+              component={Icon}
+              icon={FloppyIcon}
+              sx={{
+                mr: 1,
+                fontSize: '15px !important',
+              }}
+            />
           </Box>
-          <Typography className="center text" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+          <Typography
+            className="center text"
+            sx={{
+              fontWeight: 500,
+              fontSize: 16,
+              lineHeight: '28px',
+              color: 'text.primary',
+            }}>
             {t('save')}
           </Typography>
           {submitting && (
@@ -296,7 +355,6 @@ function SaveAction() {
           )}
         </IconButton>
       </Box>
-
       <SaveButtonDialog
         projectId={projectId}
         gitRef={gitRef}
@@ -348,27 +406,47 @@ function SettingsAction() {
     <>
       <Box
         className="center"
-        justifyContent="flex-start"
         key="history"
         onClick={dialogState.open}
-        sx={{ cursor: 'pointer' }}>
+        sx={{
+          justifyContent: 'flex-start',
+          cursor: 'pointer',
+        }}>
         <Box className="center">
-          <Box component={Icon} icon={SettingsIcon} mr={1} sx={{ fontSize: '15px !important' }} />
+          <Box
+            component={Icon}
+            icon={SettingsIcon}
+            sx={{
+              mr: 1,
+              fontSize: '15px !important',
+            }}
+          />
         </Box>
-        <Typography className="center" fontWeight={500} fontSize={16} lineHeight="28px" color="#030712">
+        <Typography
+          className="center"
+          sx={{
+            fontWeight: 500,
+            fontSize: 16,
+            lineHeight: '28px',
+            color: 'text.primary',
+          }}>
           {t('setting')}
         </Typography>
       </Box>
-
       <Dialog
         {...bindDialog(dialogState)}
         fullScreen
         hideBackdrop
         sx={{ mt: '65px' }}
-        PaperProps={{ elevation: 0 }}
-        disableEnforceFocus>
+        disableEnforceFocus
+        slotProps={{
+          paper: { elevation: 0 },
+        }}>
         <DialogContent sx={{ p: '16px !important' }}>
-          <Stack gap={2}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Box>
               <Button
                 sx={{ p: 0 }}

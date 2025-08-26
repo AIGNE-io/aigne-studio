@@ -2,7 +2,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import { UploaderProps } from '@blocklet/uploader';
 import UploadIcon from '@mui/icons-material/Upload';
 import { IconButton, IconButtonProps } from '@mui/material';
-import { ReactNode, createContext, forwardRef, lazy, useContext, useImperativeHandle, useRef } from 'react';
+import { ReactNode, createContext, lazy, useContext, useImperativeHandle, useRef } from 'react';
 // @ts-ignore
 const UploaderComponent = lazy(() => import('@blocklet/uploader').then((res) => ({ default: res.Uploader })));
 const defaultAllowedFileTypes = ['image/png', 'image/jpeg', 'image/gif'];
@@ -25,7 +25,7 @@ export function useUploader() {
 }
 
 export function UploaderButton({
-  onChange,
+  onChange = undefined,
   allowedFileTypes = defaultAllowedFileTypes,
   ...props
 }: { onChange?: Function; allowedFileTypes?: string[] } & Omit<IconButtonProps, 'onChange'>) {
@@ -51,13 +51,18 @@ export function UploaderButton({
       size="small"
       onClick={handleOpen}
       {...props}
-      sx={{ borderRadius: 0.5, bgcolor: 'rgba(0, 0, 0, 0.06)', ...props.sx }}>
+      sx={{ borderRadius: 0.5, bgcolor: 'grey.100', ...props.sx }}>
       <UploadIcon />
     </IconButton>
   );
 }
 
-const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((props, ref) => {
+const UploaderProvider = ({
+  ref = undefined,
+  ...props
+}: UploaderProviderProps & {
+  ref?: React.Ref<HTMLDivElement>;
+}) => {
   const {
     children,
     restrictions,
@@ -113,7 +118,7 @@ const UploaderProvider = forwardRef<HTMLDivElement, UploaderProviderProps>((prop
       />
     </UploaderContext.Provider>
   );
-});
+};
 
 export default UploaderProvider;
 

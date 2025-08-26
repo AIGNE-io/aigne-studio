@@ -28,17 +28,17 @@ const textStyle = `
 `;
 
 export default function PromptEditorField({
-  placeholder,
+  placeholder = undefined,
   projectId,
   gitRef,
   path,
-  assistant,
-  value,
+  assistant = undefined,
+  value = undefined,
   onChange,
-  readOnly,
-  includeOutputVariables,
-  role,
-  CallAssistantIndex,
+  readOnly = undefined,
+  includeOutputVariables = undefined,
+  role = undefined,
+  CallAssistantIndex = undefined,
   ...props
 }: {
   placeholder?: string;
@@ -164,8 +164,8 @@ export default function PromptEditorField({
             return (
               <Paper>
                 <Stack
-                  gap={0.5}
                   sx={{
+                    gap: 0.5,
                     p: 1,
                     minWidth: '100px',
                     fontSize: (theme) => theme.typography.caption.fontSize,
@@ -182,7 +182,10 @@ export default function PromptEditorField({
 
           return (
             <Paper sx={{ p: 1 }}>
-              <Stack gap={1}>
+              <Stack
+                sx={{
+                  gap: 1,
+                }}>
                 <Box
                   sx={{
                     p: 1,
@@ -193,7 +196,12 @@ export default function PromptEditorField({
                   {t('nonExistentVariable', { data: variable })}
                 </Box>
 
-                <Stack direction="row" gap={1} justifyContent="flex-end">
+                <Stack
+                  direction="row"
+                  sx={{
+                    gap: 1,
+                    justifyContent: 'flex-end',
+                  }}>
                   <Button
                     sx={{ p: 0 }}
                     onClick={() => {
@@ -276,7 +284,7 @@ export function usePromptEditorState({
   onChange: (value: string, editorState: EditorState) => any;
   readOnly?: boolean;
 }) {
-  const cache = useRef<string>();
+  const cache = useRef<string>(undefined);
   const [state, setState] = useState<EditorState>();
 
   const emitChange = useDebounceFn(

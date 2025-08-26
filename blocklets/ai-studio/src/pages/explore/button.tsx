@@ -75,7 +75,7 @@ export function MakeYoursButton({
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const { session } = useSessionContext();
-  const [dialog, setDialog] = useState<ReactElement | null>(null);
+  const [dialog, setDialog] = useState<ReactElement<any> | null>(null);
   const { checkProjectLimitAsync } = useProjectLimiting();
 
   const onDialogClose = () => {
@@ -131,6 +131,7 @@ export function MakeYoursButton({
           color="primary"
           variant="contained"
           startIcon={<Box component={Icon} icon={ArrowsShuffleIcon} sx={{ fontSize: 14 }} />}
+          loadingPosition="start"
           {...props}>
           {t('makeYours')}
         </LoadingButton>
@@ -176,10 +177,11 @@ export function ShareButton({ deployment, project }: { deployment: Deployment; p
       text: t('shareOnTwitter'),
       icon: <Box component={Icon} icon={twitterIcon} sx={{ fontSize: 20 }} />,
       handle: () => {
+        const description = project.description || '';
         window.open(
           generateTwitterShareUrl({
             title: project.name || '',
-            description: project.description || '',
+            description: description?.length > 100 ? `${description.slice(0, 100)}...` : description,
             url: shareUrl,
             hashtags: ['Arcblock', 'AIGNE', 'AI'],
             via: 'ArcBlock_io',

@@ -43,11 +43,26 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
   }, [selectedColor]);
 
   return (
-    <Stack gap={2} data-testid="primary-color">
-      <Stack direction="row" gap={1} alignItems="center">
+    <Stack
+      data-testid="primary-color"
+      sx={{
+        gap: 2,
+      }}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: 1,
+          alignItems: 'center',
+        }}>
         {defaultColors?.map((color) => (
-          <Box key={color} border={color === selectedColor ? '1px solid #030712' : ''} borderRadius="4px">
-            <ColorBox bgcolor={color || '#ffffff'} onClick={() => handleClick(color)} />
+          <Box
+            key={color}
+            sx={{
+              border: color === selectedColor ? '1px solid' : '',
+              borderColor: 'divider',
+              borderRadius: '4px',
+            }}>
+            <ColorBox bgcolor={color || 'background.default'} onClick={() => handleClick(color)} />
           </Box>
         ))}
 
@@ -58,7 +73,10 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
               <ChromePickerBox bgcolor={selectedColor} data-testid="chrome-picker-box" />
             </Box>
             <Popper open={open} anchorEl={anchorEl} sx={{ zIndex: 10000 }} placement="bottom-end">
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2,
+                }}>
                 <ChromePicker onChangeComplete={handleChangeComplete} color={selectedColor} disableAlpha />
               </Box>
             </Popper>
@@ -69,20 +87,22 @@ export default function ColorSetting({ type }: { type: 'primaryColor' | 'seconda
   );
 }
 
-const ColorBox = styled(Box)({
+const ColorBox = styled(Box)(({ theme }) => ({
   boxSizing: 'border-box',
   width: 20,
   height: 20,
   borderRadius: 4,
   margin: 2,
-  border: '1px solid #d6d6d6',
-});
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+}));
 
-const ChromePickerBox = styled(Box)({
+const ChromePickerBox = styled(Box)(({ theme }) => ({
   boxSizing: 'border-box',
   width: 24,
   height: 24,
   borderRadius: 4,
   margin: 2,
-  border: '1px solid #d6d6d6',
-});
+  border: '1px solid',
+  borderColor: theme.palette.divider,
+}));

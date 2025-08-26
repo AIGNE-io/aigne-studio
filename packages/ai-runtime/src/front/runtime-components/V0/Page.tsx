@@ -15,6 +15,7 @@ import {
   ThemeProvider,
   Tooltip,
   Typography,
+  alpha,
   createTheme,
   useTheme,
 } from '@mui/material';
@@ -54,10 +55,7 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
     }
 
     return createTheme(inheritedTheme, {
-      palette: { primary, textColor, background: { block: '#f6f6f6' } },
-      shape: {
-        borderRadius: 8,
-      },
+      palette: { primary, textColor, background: { block: inheritedTheme.palette.grey[50] } },
     });
   }, [inheritedTheme, primaryColor, textColor]);
 
@@ -71,7 +69,10 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
   return (
     <ThemeProvider theme={theme}>
       <CurrentAgentProvider aid={activeAid}>
-        <Box flex={1}>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
           <Container
             sx={{
               height: '100%',
@@ -97,7 +98,7 @@ function V0Page({ textColor = '#333', primaryColor = '#333' }: { textColor?: str
               sx={{
                 position: 'sticky',
                 bottom: 0,
-                backgroundColor: 'white',
+                backgroundColor: 'background.default',
                 py: 2,
                 pt: currentSessionId ? 0 : 2,
                 zIndex: 1100,
@@ -120,7 +121,7 @@ export default function Page() {
 }
 
 function V0ListRender() {
-  const ConfirmDialogRef = useRef<any>();
+  const ConfirmDialogRef = useRef<any>(undefined);
   const { sessions: sessionsList, loading } = useSessions((s) => s);
 
   const { isMobile } = useV0RuntimeContext();
@@ -128,7 +129,11 @@ function V0ListRender() {
   const { t } = useLocaleContext();
 
   return (
-    <Box key="list-render" flex={1}>
+    <Box
+      key="list-render"
+      sx={{
+        flex: 1,
+      }}>
       <Typography variant="h2" color="textColor" sx={{ fontWeight: 'bold', mt: isMobile ? 3 : 6 }}>
         {agent?.project?.name || t('v0.title')}
       </Typography>
@@ -141,7 +146,6 @@ function V0ListRender() {
         }}>
         {agent?.project?.description || t('v0.description')}
       </Typography>
-
       {loading ? (
         <Loading
           sx={{
@@ -164,7 +168,12 @@ function V0ListRender() {
                 <Suspense
                   key={item.id}
                   fallback={
-                    <Stack alignItems="center" justifyContent="center" my={4}>
+                    <Stack
+                      sx={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        my: 4,
+                      }}>
                       <CircularProgress size={24} />
                     </Stack>
                   }>
@@ -190,7 +199,7 @@ function V0ListRender() {
   );
 }
 
-function ItemView({ ConfirmDialogRef }: { ConfirmDialogRef: RefObject<{ open?: Function }> }) {
+function ItemView({ ConfirmDialogRef }: { ConfirmDialogRef: RefObject<{ open?: Function } | null> }) {
   const { t } = useLocaleContext();
   const { setCurrentSessionId, deleteSession } = useSessions((s) => pick(s, 'setCurrentSessionId', 'deleteSession'));
   const { session, latestMessage } = useSession((s) => ({ session: s.session, latestMessage: s.messages?.at(0) }));
@@ -313,8 +322,8 @@ function V0DetailRender() {
 
   return (
     <Box
-      flex={1}
       sx={{
+        flex: 1,
         display: 'flex',
         gap: 2,
         height: '100%',
@@ -371,10 +380,10 @@ function V0DetailRender() {
                 right: 0,
                 bottom: 0,
                 margin: 'auto',
-                background: 'rgba(255, 255, 255, 0.8)',
+                background: (theme) => alpha(theme.palette.background.default, 0.8),
                 opacity: 0.8,
                 borderRadius: 1,
-                boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+                boxShadow: 5,
                 ...(isMobile
                   ? {
                       width: '40px',
@@ -464,18 +473,6 @@ function V0DetailRender() {
                       key={taskId}
                       placement="right"
                       arrow
-                      PopperProps={
-                        {
-                          // disablePortal: true,
-                        }
-                      }
-                      TransitionProps={{
-                        timeout: {
-                          appear: 500,
-                          enter: 500,
-                          exit: 0,
-                        },
-                      }}
                       title={
                         <Box>
                           <Typography
@@ -496,7 +493,20 @@ function V0DetailRender() {
                             <RelativeTime value={updatedAt} />
                           </Box>
                         </Box>
-                      }>
+                      }
+                      slotProps={{
+                        popper: {
+                          // disablePortal: true,
+                        },
+
+                        transition: {
+                          timeout: {
+                            appear: 500,
+                            enter: 500,
+                            exit: 0,
+                          },
+                        },
+                      }}>
                       <Chip
                         label={`V${messagesList.length - i - 1}`}
                         size="small"
@@ -522,7 +532,6 @@ function V0DetailRender() {
           </Stack>
         )}
       </Box>
-
       <Box
         sx={{
           borderRadius: 1,

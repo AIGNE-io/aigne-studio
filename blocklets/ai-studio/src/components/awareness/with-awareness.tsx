@@ -1,5 +1,6 @@
 import { useSessionContext } from '@app/contexts/session';
 import { Box, SxProps, Theme } from '@mui/material';
+import { useMemoizedFn } from 'ahooks';
 import { pick } from 'lodash';
 import { FocusEventHandler, ReactElement, cloneElement, useEffect } from 'react';
 
@@ -10,9 +11,9 @@ export default function WithAwareness({
   projectId,
   gitRef,
   path,
-  onMount,
+  onMount = undefined,
   children,
-  sx,
+  sx = undefined,
   indicator = true,
 }: {
   projectId: string;
@@ -25,19 +26,22 @@ export default function WithAwareness({
 }) {
   const { provider } = useProjectStore(projectId, gitRef);
   const { session } = useSessionContext();
-  const setState = () => {
+  const setState = useMemoizedFn(() => {
     provider.awareness.setLocalStateField('focus', {
       path,
       user: pick(session.user, 'did', 'fullName', 'avatar'),
     });
-  };
+  });
 
   useEffect(() => {
     if (onMount) setState();
   }, [onMount, path.join('.')]);
 
   return (
-    <Box position="relative">
+    <Box
+      sx={{
+        position: 'relative',
+      }}>
       {cloneElement(children, {
         onFocus: (e: any) => {
           setState();

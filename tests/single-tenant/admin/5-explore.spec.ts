@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
-
+import { expect } from '@playwright/test';
+import test from '../../utils/base';
 import { createProjectDialog } from '../../utils/project';
 
 test.describe.serial('explore', () => {

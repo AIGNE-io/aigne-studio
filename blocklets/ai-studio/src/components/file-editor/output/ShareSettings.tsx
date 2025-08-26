@@ -49,7 +49,9 @@ export default function ShareSettings({ output }: { output: OutputVariableYjs })
   };
 
   return (
-    <Stack gap={2}>
+    <Stack sx={{
+      gap: 2
+    }}>
       <Stack>
         <Typography variant="subtitle2">{t('share')}</Typography>
         <FormControl sx={{ mt: 2, mx: 2 }} component="fieldset" variant="standard">

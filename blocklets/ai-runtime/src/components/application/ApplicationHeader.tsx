@@ -6,7 +6,7 @@ import Header from '@blocklet/ui-react/lib/Header';
 import { Avatar, Box, Stack, Theme, Typography, useMediaQuery } from '@mui/material';
 import { useMemo } from 'react';
 
-export default function ApplicationHeader({ application }: { application?: Agent }) {
+export default function ApplicationHeader({ application = undefined }: { application?: Agent }) {
   const { addons } = useHeaderState();
 
   const isMobile = useMediaQuery<Theme>((theme) => theme.breakpoints.down('sm'));
@@ -30,7 +30,14 @@ export default function ApplicationHeader({ application }: { application?: Agent
       );
       if (application.project.createdBy) {
         props.description = (
-          <Stack direction="row" alignItems="center" maxWidth={200} fontSize={12} gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              maxWidth: 200,
+              fontSize: 12,
+              gap: 1,
+            }}>
             <Typography variant="caption">By</Typography>
             {/* @ts-ignore */}
             <Box component={DID} did={application.project.createdBy} copyable={false} sx={{ flex: 1, width: 1 }} />

@@ -46,13 +46,14 @@ export default function SimpleOutput() {
   if (!outputs?.length) return null;
 
   return (
-    <Stack gap={2}>
+    <Stack
+      sx={{
+        gap: 2,
+      }}>
       {outputs.map((output) => {
         return <MessageOutputRenderer key={output.id} output={output} message={message} />;
       })}
-
       {message.error && <AgentErrorView error={message.error} />}
-
       {CustomComponentActionsComponent && (
         <AgentErrorBoundary>
           <Suspense>

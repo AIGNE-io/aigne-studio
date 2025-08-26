@@ -9,7 +9,7 @@ import { Box, alpha, styled } from '@mui/material';
 import Divider from '@mui/material/Divider';
 import Stack, { StackProps } from '@mui/material/Stack';
 import { LexicalEditor, TextNode } from 'lexical';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { JSX, useCallback, useMemo, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 
 function useBasicTypeaheadTriggerMatch(
@@ -94,18 +94,26 @@ function VariablePickerMenuItem({
       onMouseEnter={onMouseEnter}
       onClick={onClick}>
       {!!option.icon && (
-        <Box px={0.5} display="flex">
+        <Box
+          sx={{
+            px: 0.5,
+            display: 'flex',
+          }}>
           {option.icon}
         </Box>
       )}
-      <Box className="text" display="flex">
+      <Box
+        className="text"
+        sx={{
+          display: 'flex',
+        }}>
         {option.title}
       </Box>
     </Item>
   );
 }
 
-export default function VariablePickerPlugin({ options }: { options?: VariablePickerOption[] }) {
+export default function VariablePickerPlugin({ options = undefined }: { options?: VariablePickerOption[] }) {
   const [editor] = useLexicalComposerContext();
   const [queryString, setQueryString] = useState<string | null>(null);
 
@@ -179,7 +187,13 @@ export default function VariablePickerPlugin({ options }: { options?: VariablePi
                         option={option}
                       />
 
-                      {!option.disabled && filteredOptions[i + 1]?.disabled && <Divider light />}
+                      {!option.disabled && filteredOptions[i + 1]?.disabled && (
+                        <Divider
+                          sx={{
+                            opacity: '0.6',
+                          }}
+                        />
+                      )}
                     </React.Fragment>
                   ))}
                 </Box>

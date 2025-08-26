@@ -52,12 +52,17 @@ function ObjectLazyDocxViewer({ url }: { url: string }) {
       ref={containerRef}
       sx={{
         '.docx-wrapper': {
-          background: 'rgb(251, 251, 251)',
+          bgcolor: 'grey.50',
         },
       }}>
       <Suspense fallback={null}>
         {loading ? (
-          <Box width={1} height={1} className="center">
+          <Box
+            className="center"
+            sx={{
+              width: 1,
+              height: 1,
+            }}>
             <CircularProgress />
           </Box>
         ) : (

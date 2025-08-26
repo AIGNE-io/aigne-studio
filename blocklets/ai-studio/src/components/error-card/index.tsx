@@ -1,7 +1,7 @@
-import { SubscriptionErrorType } from '@blocklet/ai-kit/api';
-import { SubscribeErrorAlert } from '@blocklet/ai-kit/components';
+import { SubscriptionErrorType } from '@blocklet/aigne-hub/api';
+import { SubscribeErrorAlert } from '@blocklet/aigne-hub/components';
 import { ErrorRounded } from '@mui/icons-material';
-import { Alert } from '@mui/material';
+import { Alert, Typography } from '@mui/material';
 import { memo } from 'react';
 
 interface CustomAlertProps {
@@ -13,6 +13,10 @@ function ErrorCard({ error }: CustomAlertProps) {
     return <SubscribeErrorAlert error={error} />;
   }
 
+  const clickable = error.message.replace(
+    /(https?:\/\/[^\s]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+  );
   return (
     <Alert
       variant="standard"
@@ -26,7 +30,7 @@ function ErrorCard({ error }: CustomAlertProps) {
           mr: 0.5,
         },
       }}>
-      {error.message}
+      <Typography dangerouslySetInnerHTML={{ __html: clickable }} />
     </Alert>
   );
 }

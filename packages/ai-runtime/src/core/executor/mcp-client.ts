@@ -1,4 +1,4 @@
-import { isChatCompletionChunk } from '@blocklet/ai-kit/api/types/chat';
+import { isChatCompletionChunk } from '@blocklet/aigne-hub/api/types/chat';
 import { getComponentWebEndpoint } from '@blocklet/sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse';

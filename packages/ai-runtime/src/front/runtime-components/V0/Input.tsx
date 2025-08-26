@@ -31,8 +31,8 @@ import { isValidInput } from '../../utils/agent-inputs';
 import { useV0RuntimeContext } from './contexts/V0Runtime';
 
 export default function V0Input({
-  submitText,
-  inlineLabel,
+  submitText = '',
+  inlineLabel = false,
   autoFillLastForm = false,
   submitInQuestionField = true,
   chatMode = true,
@@ -190,6 +190,7 @@ export default function V0Input({
                                 endAdornment: (
                                   <InputAdornment position="end" sx={{ py: 3, mr: -0.75, alignSelf: 'flex-end' }}>
                                     <LoadingButton
+                                      loadingPosition="start"
                                       type="submit"
                                       variant="contained"
                                       loading={running}
@@ -250,9 +251,6 @@ function useFormTheme() {
   const theme = useTheme();
   return useMemo(() => {
     const themeOptions: ThemeOptions = {
-      shape: {
-        borderRadius: 8,
-      },
       components: {
         MuiTextField: {
           styleOverrides: {

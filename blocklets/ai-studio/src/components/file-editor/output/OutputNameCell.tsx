@@ -33,14 +33,20 @@ export default function OutputNameCell({
   const render = () => {
     if (output.from?.type === 'output') {
       return (
-        <Typography lineHeight="32px">
+        <Typography sx={{
+          lineHeight: "32px"
+        }}>
           {getOutputI18nName(getRefOutputData(output?.from?.id || '')?.name || '')}
         </Typography>
       );
     }
 
     if (runtimeVariable) {
-      return <Typography lineHeight="32px">{t(runtimeVariable.i18nKey)}</Typography>;
+      return (
+        <Typography sx={{
+          lineHeight: "32px"
+        }}>{t(runtimeVariable.i18nKey)}</Typography>
+      );
     }
 
     return (
@@ -61,15 +67,14 @@ export default function OutputNameCell({
   return (
     <Stack
       direction="row"
-      alignItems="center"
       sx={{
+        alignItems: "center",
         gap: 1,
         border: 0,
         borderRadius: 1,
-        whiteSpace: 'nowrap',
+        whiteSpace: 'nowrap'
       }}>
       {runtimeVariable?.icon || (depth === 0 ? <Icon icon={VariableIcon} /> : undefined)}
-
       {render()}
     </Stack>
   );

@@ -22,6 +22,6 @@ declare module 'express-xss-sanitizer';
 
 namespace Express {
   interface Request {
-    user?: import('@blocklet/sdk/lib/util/login').SessionUser;
+    user?: import('@blocklet/sdk/lib/util/login').SessionUser
   }
 }

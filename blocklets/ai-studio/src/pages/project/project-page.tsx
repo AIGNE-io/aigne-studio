@@ -155,13 +155,17 @@ function ProjectPageView() {
             sx={{
               position: 'sticky',
               top: 0,
-              bgcolor: 'background.paper',
+              bgcolor: 'background.default',
               zIndex: 10,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>
               <PanelToggleButton placement="left" collapsed={false} onClick={() => layout.current?.collapseLeft()} />
 
-              <Box flex={1} />
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              />
 
               {project?.homePageUrl && (
                 <Button
@@ -169,7 +173,14 @@ function ProjectPageView() {
                   sx={{ minWidth: 0 }}
                   color="secondary"
                   onClick={() => window.open(project.homePageUrl)}>
-                  <Box component={Icon} icon={PlayerPlayIcon} fontSize={20} color="#3B82F6" />
+                  <Box
+                    component={Icon}
+                    icon={PlayerPlayIcon}
+                    sx={{
+                      fontSize: 20,
+                      color: 'info.main',
+                    }}
+                  />
                 </Button>
               )}
 
@@ -180,7 +191,14 @@ function ProjectPageView() {
                     disabled={readOnly}
                     sx={{ minWidth: 0 }}
                     onClick={() => fileTree.current?.importFrom()}>
-                    <Box component={Icon} icon={TableImportIcon} fontSize={20} color="#3B82F6" />
+                    <Box
+                      component={Icon}
+                      icon={TableImportIcon}
+                      sx={{
+                        fontSize: 20,
+                        color: 'primary.main',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -195,7 +213,14 @@ function ProjectPageView() {
                       const dir = dirname(filepath);
                       fileTree.current?.newFolder({ parent: dir.length ? dir : [PROMPTS_FOLDER_NAME] });
                     }}>
-                    <Box component={Icon} icon={FolderPlusIcon} fontSize={20} color="#3B82F6" />
+                    <Box
+                      component={Icon}
+                      icon={FolderPlusIcon}
+                      sx={{
+                        fontSize: 20,
+                        color: 'primary.main',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -214,7 +239,14 @@ function ProjectPageView() {
                         meta: newDefaultPrompt(),
                       });
                     }}>
-                    <Box component={Icon} icon={PlusIcon} fontSize={20} color="#3B82F6" />
+                    <Box
+                      component={Icon}
+                      icon={PlusIcon}
+                      sx={{
+                        fontSize: 20,
+                        color: 'primary.main',
+                      }}
+                    />
                   </Button>
                 </span>
               </Tooltip>
@@ -237,7 +269,8 @@ function ProjectPageView() {
           <Box
             sx={{
               bgcolor: 'background.paper',
-              borderBottom: '1px solid #E5E7EB',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
               zIndex: 10,
             }}>
             <Box
@@ -251,13 +284,13 @@ function ProjectPageView() {
                   fontSize: 14,
 
                   '&.Mui-selected': {
-                    color: '#3B82F6',
+                    color: 'primary.main',
                   },
                 },
 
                 '.MuiTabs-indicator': {
                   span: {
-                    background: '#3B82F6 !important',
+                    background: (theme) => `${theme.palette.primary.main} !important`,
                   },
                 },
               }}>
@@ -268,7 +301,6 @@ function ProjectPageView() {
                 onChange={(_, tab) => {
                   setCurrentTab(tab);
                 }}
-                TabIndicatorProps={{ children: <Box component="span" /> }}
                 sx={{
                   ml: -1,
                   minHeight: 32,
@@ -289,6 +321,9 @@ function ProjectPageView() {
                       height: '100%',
                     },
                   },
+                }}
+                slotProps={{
+                  indicator: { children: <Box component="span" /> },
                 }}>
                 <Tab value="preview" label={t('preview')} data-testid="debug-preview-view" />
                 <Tab value="debug" label={t('debug')} data-testid="debug-view-debug" />
@@ -296,7 +331,11 @@ function ProjectPageView() {
                 <Tab value="discuss" label={t('discuss')} data-testid="debug-view-collaboration" />
               </Tabs>
 
-              <Box flex={1} />
+              <Box
+                sx={{
+                  flex: 1,
+                }}
+              />
 
               <PanelToggleButton placement="right" collapsed={false} onClick={() => layout.current?.collapseRight()} />
             </Box>
@@ -336,7 +375,11 @@ function ProjectPageView() {
                   />
                 )}
 
-                <Box flex={1} />
+                <Box
+                  sx={{
+                    flex: 1,
+                  }}
+                />
 
                 {!rightOpen && (
                   <PanelToggleButton
@@ -349,7 +392,10 @@ function ProjectPageView() {
             )}
           </Box>
 
-          <Box flexGrow={1}>
+          <Box
+            sx={{
+              flexGrow: 1,
+            }}>
             {!synced ? (
               <Box sx={{ textAlign: 'center', mt: 10 }}>
                 <CircularProgress size={32} />
@@ -372,7 +418,7 @@ function ProjectPageView() {
 
 function PanelToggleButton({
   placement,
-  collapsed,
+  collapsed = undefined,
   ...props
 }: ButtonProps & { placement: 'left' | 'right'; collapsed?: boolean }) {
   const { t } = useLocaleContext();
@@ -380,7 +426,14 @@ function PanelToggleButton({
   return (
     <Tooltip title={collapsed ? t('showSidebar') : t('hideSidebar')}>
       <Button {...props} sx={{ minWidth: 0, flexShrink: 0, ...props.sx }}>
-        <Box component={Icon} icon={placement === 'left' ? SidebarLeft : SidebarRight} fontSize={20} color="#3B82F6" />
+        <Box
+          component={Icon}
+          icon={placement === 'left' ? SidebarLeft : SidebarRight}
+          sx={{
+            fontSize: 20,
+            color: 'primary.main',
+          }}
+        />
       </Button>
     </Tooltip>
   );
@@ -390,9 +443,20 @@ function EmptyView() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack color="text.disabled" alignItems="center" my={13} gap={3}>
+    <Stack
+      sx={{
+        color: 'text.disabled',
+        alignItems: 'center',
+        my: 13,
+        gap: 3,
+      }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography px={2} width="100%" textAlign="center">
+      <Typography
+        sx={{
+          px: 2,
+          width: '100%',
+          textAlign: 'center',
+        }}>
         <Balancer>{t('notOpenFile')}</Balancer>
       </Typography>
     </Stack>
@@ -403,9 +467,20 @@ function DebugEmptyView() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack color="text.disabled" alignItems="center" my={8} gap={3}>
+    <Stack
+      sx={{
+        color: 'text.disabled',
+        alignItems: 'center',
+        my: 8,
+        gap: 3,
+      }}>
       <DeveloperTools sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography width="100%" px={2} textAlign="center">
+      <Typography
+        sx={{
+          width: '100%',
+          px: 2,
+          textAlign: 'center',
+        }}>
         <Balancer>{t('notOpenFile')}</Balancer>
       </Typography>
     </Stack>

@@ -1,9 +1,8 @@
-import './index.css';
-
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import PromptEditor from './app';
+import AppStyles from './app-styles';
 
 // Handle runtime errors
 const showErrorOverlay = (err: Event) => {
@@ -23,6 +22,7 @@ window.addEventListener('unhandledrejection', ({ reason }) => showErrorOverlay(r
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
+    <AppStyles />
     <PromptEditor isDebug onChange={() => {}} />
   </React.StrictMode>
 );

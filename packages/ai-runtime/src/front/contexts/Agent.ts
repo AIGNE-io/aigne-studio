@@ -59,6 +59,7 @@ export function useAgent<U>({ aid }: { aid: string }, selector?: (state: AgentSt
 
     const key = `agent-loading-${apiUniqueKey}-${aid}`;
     LOADING_TASKS[key] ??= state.getState().load();
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw LOADING_TASKS[key]!;
   }
 

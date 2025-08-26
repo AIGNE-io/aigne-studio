@@ -7,7 +7,6 @@ import { Icon } from '@iconify-icon/react';
 import MinusIcon from '@iconify-icons/tabler/minus';
 import PlusIcon from '@iconify-icons/tabler/plus';
 import { Close } from '@mui/icons-material';
-import { LoadingButton } from '@mui/lab';
 import {
   Box,
   Button,
@@ -18,6 +17,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Button as LoadingButton,
   MenuItem,
   Stack,
   Table,
@@ -47,13 +47,28 @@ function CustomNoRowsOverlay({ onAdd }: { onAdd: () => void }) {
   const { t } = useLocaleContext();
 
   return (
-    <Stack width={1} textAlign="center" py={2.5}>
-      <Box lineHeight="28px">🔢</Box>
-
-      <Typography variant="caption" color="#030712" fontSize={13} lineHeight="22px" fontWeight={500}>
+    <Stack
+      sx={{
+        width: 1,
+        textAlign: 'center',
+        py: 2.5,
+      }}>
+      <Box
+        sx={{
+          lineHeight: '28px',
+        }}>
+        🔢
+      </Box>
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'text.primary',
+          fontSize: 13,
+          lineHeight: '22px',
+          fontWeight: 500,
+        }}>
         {t('memory.empty')}
       </Typography>
-
       <Button onClick={onAdd} data-testid="add-new-memory">
         {t('memory.add')}
       </Button>
@@ -186,7 +201,11 @@ function VariableList() {
         headerName: t('variables.useAssistant'),
         renderCell: (params: any) => {
           return (
-            <Box>
+            <Box
+              sx={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
               {(params.assistants || [])
                 .map((id: string) => getFileById(id)?.name)
                 .filter((x: any) => x)
@@ -197,11 +216,16 @@ function VariableList() {
       },
       {
         field: 'action',
-        headerName: <Box mr={2.5}>{t('actions')}</Box>,
+        headerName: <Box sx={{ mr: 2.5 }}>{t('actions')}</Box>,
         align: 'right',
         renderCell: (params: any) => {
           return (
-            <Stack direction="row" gap={1} justifyContent="flex-end">
+            <Stack
+              direction="row"
+              sx={{
+                gap: 1,
+                justifyContent: 'flex-end',
+              }}>
               <Button
                 size="small"
                 onClick={() => {
@@ -231,7 +255,7 @@ function VariableList() {
                           border: 0,
                         },
                         '.save': {
-                          background: '#d32f2f',
+                          bgcolor: 'error.main',
                         },
                       },
                       maxWidth: 'sm',
@@ -239,7 +263,13 @@ function VariableList() {
                       title: <Box sx={{ wordWrap: 'break-word' }}>{t('删除Memory')}</Box>,
                       content: (
                         <Box>
-                          <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                          <Typography
+                            sx={{
+                              fontWeight: 500,
+                              fontSize: 16,
+                              lineHeight: '28px',
+                              color: 'text.secondary',
+                            }}>
                             {t('deleteMemoryTip', { agents: agents.join(', ') })}
                           </Typography>
                         </Box>
@@ -301,8 +331,13 @@ function VariableList() {
   const watch = form.watch('type');
   return (
     <Container>
-      <Box className="between" mt={2.5} mb={1.5}>
-        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: '#030712' }}>{t('memory.title')}</Box>
+      <Box
+        className="between"
+        sx={{
+          mt: 2.5,
+          mb: 1.5,
+        }}>
+        <Box sx={{ fontWeight: 700, fontSize: 24, lineHeight: '32px', color: 'text.primary' }}>{t('memory.title')}</Box>
         <SegmentedControl
           value={scope}
           options={[
@@ -315,13 +350,19 @@ function VariableList() {
           }}
         />
       </Box>
-
       <Box
         data-testid="variable-list"
-        sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5 }}>
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.default',
+          borderRadius: 1,
+          py: 1,
+          px: 1.5,
+        }}>
         <Box
           sx={{
-            borderBottom: () => (list?.length ? '1px solid rgba(224, 224, 224, 1)' : 0),
+            borderBottom: (theme) => (list?.length ? `1px solid ${theme.palette.divider}` : 0),
             whiteSpace: 'nowrap',
             maxWidth: '100%',
             table: {
@@ -339,7 +380,7 @@ function VariableList() {
                   <TableCell
                     key={column.field}
                     align={column?.align}
-                    sx={{ px: 0, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
+                    sx={{ px: 0.5, py: 1, fontWeight: 500, fontSize: 13, lineHeight: '22px' }}>
                     {column.headerName}
                   </TableCell>
                 ))}
@@ -352,7 +393,7 @@ function VariableList() {
                   <TableRow key={`${x.scope}_${x.key}`}>
                     {columns.map((column: any) => {
                       return (
-                        <TableCell key={column.field} align={column?.align} sx={{ px: 0, height: 36 }}>
+                        <TableCell key={column.field} align={column?.align} sx={{ px: 0.5, height: 36 }}>
                           {column.renderCell(x)}
                         </TableCell>
                       );
@@ -371,7 +412,6 @@ function VariableList() {
           </Button>
         )}
       </Box>
-
       <Dialog
         {...bindDialog(dialogState)}
         fullWidth
@@ -430,7 +470,10 @@ function VariableList() {
         </DialogTitle>
 
         <DialogContent>
-          <Stack gap={2}>
+          <Stack
+            sx={{
+              gap: 2,
+            }}>
             <Controller
               control={form.control}
               name="key"
@@ -549,8 +592,12 @@ function VariableList() {
                 return (
                   <Box>
                     <Typography variant="subtitle2">{t('memory.type')}</Typography>
-
-                    <Box display="flex" gap={2} alignItems="center">
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        alignItems: 'center',
+                      }}>
                       <VariableTypeField
                         key={Boolean(value).toString()}
                         value={value?.type}
@@ -585,7 +632,6 @@ function VariableList() {
                         </Button>
                       )}
                     </Box>
-
                     {((value && value?.type === 'object') || value?.type === 'array') && (
                       <VariableTable
                         key={Boolean(value).toString()}
@@ -593,9 +639,12 @@ function VariableList() {
                         onChange={(_value) => field.onChange({ target: { value: _value } })}
                       />
                     )}
-
                     {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
+                      <Typography
+                        variant="subtitle5"
+                        sx={{
+                          color: 'warning.main',
+                        }}>
                         {fieldState.error?.message}
                       </Typography>
                     )}
@@ -613,7 +662,11 @@ function VariableList() {
                     <Typography variant="subtitle2">{t('variableParameter.reset')}</Typography>
                     <BaseSwitch {...field} />
                     {Boolean(fieldState.error) && (
-                      <Typography variant="subtitle5" color="warning.main">
+                      <Typography
+                        variant="subtitle5"
+                        sx={{
+                          color: 'warning.main',
+                        }}>
                         {fieldState.error?.message}
                       </Typography>
                     )}
@@ -657,12 +710,15 @@ function VariableList() {
             {t('cancel')}
           </Button>
 
-          <LoadingButton type="submit" variant="contained" loading={form.formState.isSubmitting}>
+          <LoadingButton
+            loadingPosition="start"
+            type="submit"
+            variant="contained"
+            loading={form.formState.isSubmitting}>
             {t('save')}
           </LoadingButton>
         </DialogActions>
       </Dialog>
-
       {dialog}
     </Container>
   );
@@ -672,7 +728,14 @@ function VariableTypeField({ ...props }: TextFieldProps) {
   const { t } = useLocaleContext();
 
   return (
-    <TextField hiddenLabel placeholder={t('format')} select SelectProps={{ autoWidth: true }} {...props}>
+    <TextField
+      hiddenLabel
+      placeholder={t('format')}
+      select
+      {...props}
+      slotProps={{
+        select: { autoWidth: true },
+      }}>
       <MenuItem value="string" disabled={props.disabled}>
         {t('text')}
       </MenuItem>
@@ -696,7 +759,16 @@ function VariableTable({ value, onChange }: { value: OutputVariableYjs; onChange
   const { t } = useLocaleContext();
 
   return (
-    <Box sx={{ border: '1px solid #E5E7EB', bgcolor: '#fff', borderRadius: 1, py: 1, px: 1.5, mt: 1 }}>
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        bgcolor: 'background.default',
+        borderRadius: 1,
+        py: 1,
+        px: 1.5,
+        mt: 1,
+      }}>
       <Box
         component="table"
         sx={{
@@ -735,7 +807,7 @@ function VariableRow({
   onRemove = () => {},
   onChange,
 }: {
-  depth: number;
+  depth?: number;
   variable: OutputVariableYjs;
   onRemove?: () => void;
   onChange: (data: OutputVariableYjs) => void;
@@ -821,7 +893,12 @@ function VariableRow({
             ) : null}
           </Box>
           <td align="right">
-            <Stack direction="row" gap={1} justifyContent="flex-end">
+            <Stack
+              direction="row"
+              sx={{
+                gap: 1,
+                justifyContent: 'flex-end',
+              }}>
               {variable.type === 'object' && (
                 <Button
                   sx={{ minWidth: 24, minHeight: 24, p: 0 }}
@@ -849,7 +926,6 @@ function VariableRow({
           </td>
         </tr>
       )}
-
       {variable.type === 'object' &&
         variable.properties &&
         sortBy(Object.values(variable.properties), 'index').map((property) => (
@@ -868,7 +944,6 @@ function VariableRow({
             }}
           />
         ))}
-
       {variable.type === 'array' && variable.element && (
         <VariableRow
           variable={variable.element}

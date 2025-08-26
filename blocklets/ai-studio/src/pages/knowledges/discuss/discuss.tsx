@@ -4,7 +4,7 @@ import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Toast from '@arcblock/ux/lib/Toast';
 import { isNonNullable } from '@blocklet/ai-runtime/utils/is-non-nullable';
 import { Box, TextField } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRowId } from '@mui/x-data-grid';
 import { useThrottle } from 'ahooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
@@ -41,19 +41,26 @@ function DiscussionTable({
     }
   }, [error]);
 
-  const selection = useMemo(() => value.map((i) => i!.id).filter(isNonNullable), [value]);
+  const selection = useMemo(
+    () => ({
+      type: 'include' as const,
+      ids: new Set(value.map((i) => i!.id).filter(isNonNullable)),
+    }),
+    [value]
+  );
 
   const onRowSelectionModelChange = useCallback(
-    (ids: readonly any[]) => {
+    (rowSelectionModel: { type: 'include' | 'exclude'; ids: Set<GridRowId> }) => {
+      const ids = Array.from(rowSelectionModel.ids);
       onChange([
         ...ids.map(
-          (i: any) =>
-            value.find((item) => item?.id === i) ?? {
-              id: i,
-              title: (res?.data || []).find((x) => x.id === i)?.title || '',
+          (i: GridRowId) =>
+            value.find((item) => item?.id === String(i)) ?? {
+              id: String(i),
+              title: (res?.data || []).find((x) => x.id === String(i))?.title || '',
               type,
               from: 'discussion' as const,
-              boardId: (res?.data || []).find((x) => x.id === i)?.boardId || '',
+              boardId: (res?.data || []).find((x) => x.id === String(i))?.boardId || '',
             }
         ),
       ]);
@@ -68,7 +75,10 @@ function DiscussionTable({
   return (
     <>
       {meilisearch && (
-        <Box my={1}>
+        <Box
+          sx={{
+            my: 1,
+          }}>
           <TextField
             sx={{ width: 1 }}
             label={t('alert.search')}
@@ -78,7 +88,6 @@ function DiscussionTable({
           />
         </Box>
       )}
-
       <DataGrid
         rowHeight={44}
         loading={loading}

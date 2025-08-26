@@ -8,7 +8,7 @@ import { extractBracketContent } from './utils/util';
 import { VariableTextNode } from './variable-text-node';
 
 export default function VariablePopover({
-  popperElement,
+  popperElement = undefined,
 }: {
   popperElement?: ({
     text,

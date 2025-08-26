@@ -1,4 +1,4 @@
-import ImagePreview from '@blocklet/ai-kit/components/image-preview';
+import ImagePreview from '@blocklet/aigne-hub/components/image-preview';
 import { Stack } from '@mui/material';
 import { useMemo } from 'react';
 
@@ -22,9 +22,11 @@ export default function MessageMetadataRenderer({ object }: { object: RuntimeOut
   return (
     <>
       {Array.isArray(referenceLinks) && referenceLinks.length ? <ReferenceLinks links={referenceLinks} /> : undefined}
-
       {formattedObject?.images && (
-        <Stack gap={1}>
+        <Stack
+          sx={{
+            gap: 1,
+          }}>
           <ImagePreview dataSource={formattedObject.images} itemWidth={100} />
         </Stack>
       )}

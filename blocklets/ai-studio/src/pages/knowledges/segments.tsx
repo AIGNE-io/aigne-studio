@@ -79,8 +79,16 @@ export default function KnowledgeSegments() {
 
   if (state.loading || dataState.loading) {
     return (
-      <Stack overflow="hidden" height={1}>
-        <Box flex={1} className="center">
+      <Stack
+        sx={{
+          overflow: 'hidden',
+          height: 1,
+        }}>
+        <Box
+          className="center"
+          sx={{
+            flex: 1,
+          }}>
           <CircularProgress size={20} />
         </Box>
       </Stack>
@@ -89,14 +97,27 @@ export default function KnowledgeSegments() {
 
   return (
     <>
-      <Stack overflow="hidden" height={1} bgcolor="#fff">
-        <Box py={2} px={2.5} className="between">
-          <Stack gap={1}>
-            <Breadcrumbs sx={{ color: '#9CA3AF' }}>
+      <Stack
+        sx={{
+          overflow: 'hidden',
+          height: 1,
+          bgcolor: 'background.default',
+        }}>
+        <Box
+          className="between"
+          sx={{
+            py: 2,
+            px: 2.5,
+          }}>
+          <Stack
+            sx={{
+              gap: 1,
+            }}>
+            <Breadcrumbs sx={{ color: 'text.secondary' }}>
               <Typography sx={{ cursor: 'pointer' }} onClick={() => navigate(`../${knowledgeId}`)}>
                 {state?.dataset?.name || t('unnamed')}
               </Typography>
-              <Typography sx={{ color: '#030712' }}>{state.document?.name}</Typography>
+              <Typography sx={{ color: 'text.primary' }}>{state.document?.name}</Typography>
             </Breadcrumbs>
           </Stack>
 
@@ -115,10 +136,17 @@ export default function KnowledgeSegments() {
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: '#eff1f5' }} />
+        <Divider />
 
         {viewType === 'ContentView' && (
-          <Stack px={2.5} flex={1} height={0} overflow="hidden" py={2}>
+          <Stack
+            sx={{
+              px: 2.5,
+              flex: 1,
+              height: 0,
+              overflow: 'hidden',
+              py: 2,
+            }}>
             {!loading && filename && (
               <Container sx={{ height: 1 }}>
                 <Viewer knowledgeId={knowledgeId} filename={filename} />
@@ -126,8 +154,18 @@ export default function KnowledgeSegments() {
             )}
 
             {loading && (
-              <Stack flex={1} height={0} py={2}>
-                <Box width={1} height={1} className="center">
+              <Stack
+                sx={{
+                  flex: 1,
+                  height: 0,
+                  py: 2,
+                }}>
+                <Box
+                  className="center"
+                  sx={{
+                    width: 1,
+                    height: 1,
+                  }}>
                   <CircularProgress size={20} />
                 </Box>
               </Stack>
@@ -136,8 +174,18 @@ export default function KnowledgeSegments() {
         )}
 
         {viewType === 'SegmentsView' && (
-          <Stack px={2.5} flex={1} height={0} overflow="auto" py={2}>
-            <Stack flex={1}>
+          <Stack
+            sx={{
+              px: 2.5,
+              flex: 1,
+              height: 0,
+              overflow: 'auto',
+              py: 2,
+            }}>
+            <Stack
+              sx={{
+                flex: 1,
+              }}>
               {!segments?.length && <EmptyDocument />}
 
               {segments?.length && (
@@ -167,8 +215,18 @@ export default function KnowledgeSegments() {
                   </ListContainer>
 
                   {(dataState.loadingMore || dataState?.data?.next) && (
-                    <Box width={1} height={60} className="center" ref={loadingRef}>
-                      <Box display="flex" justifyContent="center">
+                    <Box
+                      className="center"
+                      ref={loadingRef}
+                      sx={{
+                        width: 1,
+                        height: 60,
+                      }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                        }}>
                         <CircularProgress size={14} />
                       </Box>
                     </Box>
@@ -179,7 +237,6 @@ export default function KnowledgeSegments() {
           </Stack>
         )}
       </Stack>
-
       <Dialog {...bindDialog(segmentDialogState)} maxWidth="md" fullWidth component="form">
         <DialogTitle className="between">
           <Box>{t('knowledge.segments.content')}</Box>
@@ -202,10 +259,12 @@ export default function KnowledgeSegments() {
                   sx={{ width: 1 }}
                   multiline
                   rows={10}
-                  InputProps={{ readOnly: true }}
                   {...field}
                   error={Boolean(fieldState.error)}
                   helperText={fieldState.error?.message}
+                  slotProps={{
+                    input: { readOnly: true },
+                  }}
                 />
               );
             }}
@@ -220,9 +279,20 @@ function EmptyDocument() {
   const { t } = useLocaleContext();
 
   return (
-    <Stack flex={1} justifyContent="center" alignItems="center" gap={1}>
+    <Stack
+      sx={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 1,
+      }}>
       <Empty sx={{ fontSize: 54, color: 'grey.300' }} />
-      <Typography color="text.disabled" sx={{ whiteSpace: 'break-spaces', textAlign: 'center' }}>
+      <Typography
+        sx={{
+          color: 'text.disabled',
+          whiteSpace: 'break-spaces',
+          textAlign: 'center',
+        }}>
         {t('knowledge.segments.empty')}
       </Typography>
     </Stack>
@@ -235,8 +305,8 @@ function Tag({ children }: { children: any }) {
       sx={{
         borderRadius: '6px',
         fontWeight: 500,
-        background: 'rgba(139,139,149,0.15)',
-        color: 'rgba(75,74,88,1)',
+        bgcolor: 'grey.50',
+        color: 'text.secondary',
         padding: '2px 8px',
         fontSize: '12px',
         height: '20px',
@@ -248,8 +318,8 @@ function Tag({ children }: { children: any }) {
 }
 
 export function SegmentsItem({
-  index,
-  content,
+  index = undefined,
+  content = undefined,
   ...props
 }: {
   index?: number;
@@ -292,11 +362,12 @@ export function SegmentsItem({
           </IconButton>
         </Box> */}
       </Box>
-
-      <Box height={90}>
+      <Box
+        sx={{
+          height: 90,
+        }}>
         <Box className="itemDescription">{result || ''}</Box>
       </Box>
-
       <Box className="itemFooter">
         <Box className="itemStats">
           <Tag>{`${result?.length} ${t('knowledge.segments.bits')}`}</Tag>
@@ -313,32 +384,29 @@ const SegmentRoot = styled(Stack)`
   flex-direction: column;
   border-radius: 0.5rem;
   border: 1px solid transparent;
-  background: rgb(255, 255, 255);
-  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  background: ${({ theme }) => theme.palette.background.default};
+  box-shadow: ${({ theme }) => theme.shadows[1]};
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.newItemCard {
-    outline: 1px solid #e5e7eb;
+    outline: 1px solid;
+    outline-color: ${({ theme }) => theme.palette.divider};
     outline-offset: -1px;
-    background: rgba(229, 231, 235, 0.5);
+    background: ${({ theme }) => theme.palette.grey[100]};
     border-width: 0;
 
     &:hover {
-      background: rgb(255, 255, 255);
-      box-shadow:
-        0px 1px 2px rgba(16, 24, 40, 0.06),
-        0px 1px 3px rgba(16, 24, 40, 0.1);
+      background: ${({ theme }) => theme.palette.background.default};
+      box-shadow: ${({ theme }) => theme.shadows[2]};
     }
   }
 
   &.listItem {
-    border-color: rgba(0, 0, 0, 0.12);
-    background: rgb(249 250 251);
+    border-color: ${({ theme }) => theme.palette.divider};
+    background: ${({ theme }) => theme.palette.grey[50]};
 
     &:hover {
-      box-shadow:
-        0px 4px 6px -2px rgba(16, 24, 40, 0.03),
-        0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+      box-shadow: ${({ theme }) => theme.shadows[2]};
 
       .deleteIcon {
         display: flex;
@@ -400,7 +468,7 @@ const SegmentRoot = styled(Stack)`
     padding: 14px;
     font-size: 0.75rem;
     line-height: 1.5;
-    color: rgb(107, 114, 128);
+    color: ${({ theme }) => theme.palette.text.secondary};
     word-wrap: break-word;
   }
 
@@ -410,7 +478,7 @@ const SegmentRoot = styled(Stack)`
     gap: 1rem;
     font-size: 0.75rem;
     line-height: 1rem;
-    color: rgb(107, 114, 128);
+    color: ${({ theme }) => theme.palette.text.secondary};
     min-height: 42px;
     flex-wrap: wrap;
     padding: 0.5rem 14px 10px;

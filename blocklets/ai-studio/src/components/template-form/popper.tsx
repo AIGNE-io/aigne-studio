@@ -2,10 +2,10 @@ import { ClickAwayListener, Popper as MuiPopper, PopperProps } from '@mui/materi
 import { ReactElement } from 'react';
 
 export default function Popper({
-  onClose,
+  onClose = undefined,
   children,
   ...props
-}: { onClose?: () => void; children: ReactElement } & Omit<PopperProps, 'open' | 'children'>) {
+}: { onClose?: () => void; children: ReactElement<any> } & Omit<PopperProps, 'open' | 'children'>) {
   return (
     <MuiPopper
       open={Boolean(props.anchorEl)}

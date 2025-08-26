@@ -2,6 +2,7 @@ import MdViewer from '@app/components/md-viewer';
 import { getErrorMessage } from '@app/libs/api';
 import { User, getProjectIconUrl } from '@app/libs/project';
 import { useTabFromQuery } from '@app/utils/use-tab-from-query';
+// @ts-ignore
 import useBrowser from '@arcblock/react-hooks/lib/useBrowser';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
 import Result from '@arcblock/ux/lib/Result';
@@ -45,7 +46,15 @@ export default function CategoryDetail() {
 
   if (loading) {
     return (
-      <Stack p={2.5} width={1} height={1} overflow="hidden" gap={2.5} className="center">
+      <Stack
+        className="center"
+        sx={{
+          p: 2.5,
+          width: 1,
+          height: 1,
+          overflow: 'hidden',
+          gap: 2.5,
+        }}>
         <CircularProgress size={24} />
       </Stack>
     );
@@ -63,7 +72,12 @@ export default function CategoryDetail() {
   }
 
   return (
-    <Stack height={1} overflow="hidden" gap={1.5}>
+    <Stack
+      sx={{
+        height: 1,
+        overflow: 'hidden',
+        gap: 1.5,
+      }}>
       <Agent
         deployment={data?.deployment!}
         project={data?.project!}
@@ -96,12 +110,16 @@ function Agent({
   const isArcSphere = browser?.arcSphere ?? false;
 
   return (
-    <Stack flex={1} height={0}>
+    <Stack
+      sx={{
+        flex: 1,
+        height: 0,
+      }}>
       <TabContext value={tab}>
         <Box
           sx={{
             borderBottom: 1,
-            borderColor: '#EFF1F5',
+            borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
             px: isMobile ? 1.5 : 3,
@@ -110,11 +128,18 @@ function Agent({
           {!isArcSphere && (
             <Stack
               direction="row"
-              gap={1}
               onClick={() => navigate(`/explore/${categorySlug}`)}
-              sx={{ cursor: 'pointer', mr: 0 }}
-              className="center">
-              <Box component={Icon} icon={ChevronLeft} sx={{ width: 20, height: 20, fontSize: 20, color: '#9CA3AF' }} />
+              className="center"
+              sx={{
+                gap: 1,
+                cursor: 'pointer',
+                mr: 0,
+              }}>
+              <Box
+                component={Icon}
+                icon={ChevronLeft}
+                sx={{ width: 20, height: 20, fontSize: 20, color: 'grey.400' }}
+              />
             </Stack>
           )}
 
@@ -122,15 +147,15 @@ function Agent({
             onChange={(_, tab) => setTab(tab)}
             sx={{
               '.MuiTab-root': {
-                color: '#9CA3AF',
+                color: 'grey.400',
               },
 
               '& .MuiTabs-indicator': {
-                backgroundColor: '#303030',
+                backgroundColor: 'text.primary',
                 height: '2px',
               },
               '& .Mui-selected': {
-                color: '#303030 !important',
+                color: (theme) => `${theme.palette.text.primary} !important`,
               },
             }}>
             <Tab label={t('readme')} value="readme" data-testid="readme-tab" />
@@ -163,8 +188,16 @@ function ReadmePage({
   const totalRuns = stats?.totalRuns || 0;
 
   return (
-    <Stack gap={3} data-testid="readme-page">
-      <Stack direction="row" gap={2}>
+    <Stack
+      data-testid="readme-page"
+      sx={{
+        gap: 3,
+      }}>
+      <Stack
+        direction="row"
+        sx={{
+          gap: 2,
+        }}>
         <Box
           component="img"
           alt=""
@@ -177,13 +210,16 @@ function ReadmePage({
           }}
         />
 
-        <Stack gap={2}>
+        <Stack
+          sx={{
+            gap: 2,
+          }}>
           <Box>
-            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: '#030712' }} gutterBottom>
+            <Typography sx={{ fontSize: 24, fontWeight: 700, lineHeight: '32px', color: 'text.primary' }} gutterBottom>
               {project.name}
             </Typography>
 
-            <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: '#757575' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 400, lineHeight: '24px', color: 'text.secondary' }}>
               {project.description}
             </Typography>
           </Box>
@@ -219,14 +255,23 @@ function ReadmePage({
             </Box>
           </Box>
 
-          <Box display="flex" gap={1} alignItems="stretch">
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'stretch',
+            }}>
             <Button
               variant="contained"
               href={shareUrl}
               target="_blank"
               sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
               data-testid="run-button">
-              <Box component={Icon} icon={PlayFilledIcon} sx={{ width: 14, height: 14, fontSize: 14, color: '#fff' }} />
+              <Box
+                component={Icon}
+                icon={PlayFilledIcon}
+                sx={{ width: 14, height: 14, fontSize: 14, color: 'primary.contrastText' }}
+              />
               {t('run')}
             </Button>
 
@@ -244,9 +289,7 @@ function ReadmePage({
           )}
         </Stack>
       </Stack>
-
-      <Divider sx={{ borderColor: '#EFF1F5' }} />
-
+      <Divider />
       <Stack>{project.readme && <MdViewer content={project.readme} sx={{ img: { maxWidth: '100%' } }} />}</Stack>
     </Stack>
   );

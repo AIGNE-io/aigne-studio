@@ -1,157 +1,94 @@
-# Getting Started with Create Blocklet
+# AIGNE Studio  
+**No-Code Generative AI App Engine for Everyone**
 
-This project was bootstrapped with [Create Blocklet](https://github.com/blocklet/create-blocklet).
+[AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB) is a no-code platform for creating powerful LLM workflows and AI agents
 
-This blocklet is a dapp project, which means this is a full-stack application. It's contained both `server` and `client` code.
+Whether you're a developer accelerating your workflow or a non-technical creator turning ideas into reality, AIGNE Studio empowers you to build, iterate, and launch with ease.
 
-## Launch on Blocklet Server
+> 🛠️ We make building apps so easy—**anyone** can do it.
 
-[![Launch on Blocklet Server](https://assets.arcblock.io/icons/launch_on_blocklet_server.svg)](https://install.arcblock.io/launch?action=blocklet-install&meta_url=https%3A%2F%2Fgithub.com%2Fblocklet%2Fpages-kit%2Freleases%2Fdownload%2Fv0.1.33%2Fblocklet.json)
+## AIGNE Ecosystem
 
-## File Structure
+AIGNE Studio  is part of the [AIGNE](https://www.aigne.io) ecosystem, a comprehensive AI application development platform. Here's the architecture overview:
 
-- public/ - static files
-  - favicon.ico - favicon
-  - favicon.svg - favicon
-  - index.html - main html file, template for react
-- screenshots/ - Screenshots
-- api/
-  - src/ - Api side code
-    - hooks/ - blocklet lifecycle hooks
-    - libs/ - Api side libraries
-    - middlewares/ - Api side middlewares
-    - routes/ - Api side routes
-    - index.ts - Api side entry point
-- src/ - Client side code (A standard react app structure)
-- .env - Environment variables
-- .env.local - Local environment variables
-- .eslintrc.js - ESLint configuration
-- .gitignore - Git ignore file
-- .prettierrc - Prettier configuration
-- blocklet.md - Blocklet README
-- blocklet.yml - Blocklet configuration
-- LICENSE - License file
-- logo.png - Blocklet logo file
-- package.json - Npm package file
-- README.md - A guide for this blocklet
-- version - Version file
+<picture>
+  <source srcset="https://www.aigne.io/image-bin/uploads/87fa9f628010bb012615c476ae8ed28f.png" media="(prefers-color-scheme: dark)">
+  <source srcset="https://www.aigne.io/image-bin/uploads/7c46ebd2f6fdf857485f0bf5da9312b3.png" media="(prefers-color-scheme: light)">
+  <img src="https://www.aigne.io/image-bin/uploads/7c46ebd2f6fdf857485f0bf5da9312b3.png" alt="AIGNE Studio" />
+</picture>
 
-## Development
+---
 
-1. Make sure you have [@blocklet/cli](https://www.npmjs.com/package/@blocklet/cli) installed
+## ✨ Why AIGNE Studio?
 
-   Blocklet needs blocklet server as a dependency. So you need to install it first.
-   `npm install -g @blocklet/cli`
-   See details in [https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#use-the-binary-distribution](https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#use-the-binary-distribution)
+- **No Code? No Problem.**  
+  No programming knowledge needed, use your own language to let AI help.
 
-2. Init blocklet server & start blocklet server
+- **No UI Designer.**  
+  Simply instruct or draw a sketch, and AI will build it for you.
 
-   Before starting an blocklet server, you need to init blocklet server.
-   `blocklet server init --mode=debug`
-   `blocklet server start`
-   See details in [https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#configure-abt-node](https://docs.arcblock.io/abtnode/en/introduction/abtnode-setup#configure-abt-node)
+- **No dependency.**  
+  Build complete apps that run on web or mobile, installable anywhere, without 3rd-party dependencies
 
-3. Go to the project directory `cd [name]`
-4. Install dependencies: `pnpm install`
-5. Start development server: `blocklet dev`
+---
 
-## Bundle
+## 🧩 Core Capabilities
 
-After developing a blocklet, you may need to bundle it. Use `npm run bundle` command.
+AIGNE Studio is an all-in-one platform for the entire lifecycle of LLM-based apps—infused with modern software engineering best practices:
 
-## Deploy
+- 🧠 **Prompt Engineering** – Best Practice Prompt Engineering with Advanced AI Orchestration can help streamline your development process and improve efficiency.
+- 🔁 **Version Control** – Git-based version control simplifies prompts and configurations management by tracking all modifications.
+- 🧪 **Test Automation** – Build and Deploy LLM Apps with Confidence Using Test Cases and Automation.
+- 🚀 **Deployment** – Fully automate LLM app delivery pipelines to respond to market demands faster with high-quality solutions.
+- 📊 **Monitoring & Analytics** – Empower your team by using monitoring and analytics to automate menial tasks, saving precious time and money in service operations.
+- 🧪 **A/B Experiments** – Test efficiency through A/B Experiment and grayscale testing with real users and test groups using optimized prompts and LLM models.
+- 💬 **Feedback Management** – Automatically manage user feedback for future LLM fine-tuning and improvements.
+- 🤝 **Team Collaboration** – Collaborate and Improve Products and Services Together.
 
-- If you want to deploy this blocklet to local blocklet server, you can use `blocklet deploy .blocklet/bundle` command(Make sure the blocklet is bundled before deployment).
-  > Or you can simply use `npm run deploy` command.
-- If you want to deploy this blocklet to remote blocklet server, you can use the command below.
+---
 
-  ```shell
-  blocklet deploy .blocklet/bundle --endpoint {your blocklet server url} --access-key {blocklet server access key} --access-secret {blocklet server access secret}
-  ```
+## 🚀 Get Started in Minutes
 
-  > Make sure the blocklet is bundled before deployment.
+1. **Launch AIGNE Studio**  
+   Click “Launch” to start the installation process.
 
-## Upload to blocklet store
+2. **Get a Blocklet Server**  
+   If you don’t already have a Blocklet Server, you’ll need to purchase and set one up.
 
-- If you want to upload the blocklet to any store for other users to download and use, you can following the following instructions.
+3. **Follow the Installation Wizard**  
+   The guided setup will walk you through installing AIGNE Studio on your server.
 
-  Bump version at first.
+4. **Start the App**  
+   Launch the app from the Blocklet Server console and wait for deployment to complete.
 
-  ```shell
-  npm run bump-version
-  ```
+5. **Access the App**  
+   Open your browser and navigate to the generated public address to start building!
 
-  Then config blocklet store url.
-  You can use those store url in below.
+---
 
-  1. [https://store.blocklet.dev/](https://store.blocklet.dev/)
-  2. [https://dev.store.blocklet.dev/](https://dev.store.blocklet.dev/)
-  3. A blocklet store started by yourself.
-     > Make sure you have installed a `blocklet store` on your own blocklet server. Check it on here: [https://store.blocklet.dev/blocklet/z8ia29UsENBg6tLZUKi2HABj38Cw1LmHZocbQ](https://store.blocklet.dev/blocklet/z8ia29UsENBg6tLZUKi2HABj38Cw1LmHZocbQ)
+## 💡 Use Cases
 
-  ```shell
-  blocklet config set store {store url}
-  ```
+- Internal tools and automation  
+- AI-powered customer assistants  
+- Educational and content-generation apps  
+- Multimodal UI prototyping  
+- Rapid AI app prototyping and validation
 
-  Get a `accessToken` by using this command.
+---
 
-  > Why we need a `accessToken`?
-  > A `accessToken` is generate by blocklet store, which help us upload our blocklet to any store.
+## 🧑‍💻 Developer & User Resources
 
-  Set `accessToken` to blocklet config
+- [📦 AIGNE Studio on Blocklet Store](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB)  
+- [💬 Join the ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)  
+- [📘 AIGNE Studio Docs](https://www.arcblock.io/docs/ai-studio/en/ai-studio)
 
-  ```shell
-  blocklet config set accessToken {accessToken}
-  ```
+---
 
-  Upload a new version to a store.
+## 🙌 Need Help?
 
-  > Make sure the blocklet is bundled before upload.
+We're committed to providing you with the best experience using [AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB). If you encounter any issues or have suggestions, don’t hesitate to reach out.
 
-  ```shell
-  blocklet upload
-  ```
+Join the community to get help, share ideas, and connect with other users:  
+👉 [ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)
 
-  Or you can simply use `npm run upload` command.
-
-- You also can upload a new version to a store by Github CI.
-  Bump version at first.
-
-  ```shell
-  npm run bump-version
-  ```
-
-  Push your code to Github main/master branch, or make a pull request to the main/master branch.
-  The CI workflow will automatically upload a new version to a store.
-
-## Q & A
-
-1. Q: How to change a blocklet's name?
-
-   A: Change the `name` field in the `package.json` file, change the `name` field in the `blocklet.yml` file.
-
-   You can also change the `title` field and `description` field in the `blocklet.yml` file.
-
-   Run `blocklet meta` command, you will get a `did` config, copy the `did` value.
-
-   Replace this command `"bundle:client": "PUBLIC_URL='/.blocklet/proxy/{did}' npm run build",` in `package.json`
-
-   Replace `did` field in the `blocklet.yml`
-
-2. Q: How to change a blocklet's logo?
-
-   Change the `logo.png` file root folder.
-
-   Or you can change the `logo` field in the `blocklet.yml` file.
-
-   > Make sure you have added the logo path to the `blocklet.yml` file `files` field.
-
-## Learn More
-
-- Full specification of `blocklet.yml`: [https://github.com/blocklet/blocklet-specification/blob/main/docs/meta.md](https://github.com/blocklet/blocklet-specification/blob/main/docs/meta.md)
-- Full document of Blocklet Server & blocklet development: [https://docs.arcblock.io/abtnode/en/introduction](https://docs.arcblock.io/abtnode/en/introduction)
-
-## License
-
-The code is licensed under the Apache 2.0 license found in the
-[LICENSE](LICENSE) file.
+---

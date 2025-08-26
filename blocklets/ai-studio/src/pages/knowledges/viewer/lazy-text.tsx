@@ -1,15 +1,21 @@
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, useTheme } from '@mui/material';
 import CodeMirror from '@uiw/react-codemirror';
 import { useRequest } from 'ahooks';
 
 function ObjectLazyTextViewer({ url }: { url: string }) {
+  const theme = useTheme();
   const { loading, data } = useRequest(() => {
     return fetch(url).then((res) => res.text());
   });
 
   if (loading) {
     return (
-      <Box width={1} height={1} className="center">
+      <Box
+        className="center"
+        sx={{
+          width: 1,
+          height: 1,
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -18,8 +24,12 @@ function ObjectLazyTextViewer({ url }: { url: string }) {
   // if (data) return <iframe id="id12321" title="dummy" width="100%" height="800" frameBorder="0" src={url} />;
 
   return (
-    <Box height={1} overflow="auto">
-      <CodeMirror value={String(data)} editable={false} height="100%" />
+    <Box
+      sx={{
+        height: 1,
+        overflow: 'auto',
+      }}>
+      <CodeMirror theme={theme.palette.mode} value={String(data)} editable={false} height="100%" />
     </Box>
   );
 }

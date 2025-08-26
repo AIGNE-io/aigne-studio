@@ -94,7 +94,6 @@ export function SelectAgentOutputDialog({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>{t('selectCustomOutput')}</DialogTitle>
-
       <DialogContent>
         <FormControl fullWidth>
           <Select
@@ -116,8 +115,12 @@ export function SelectAgentOutputDialog({
           </Select>
         </FormControl>
 
-        <Box mt={2}>
-          <Typography variant="subtitle5" mb={0.5}>
+        <Box sx={{
+          mt: 2
+        }}>
+          <Typography variant="subtitle5" sx={{
+            mb: 0.5
+          }}>
             {t('selectCustomOutputTip')}
           </Typography>
           <Table sx={{ td: { p: '4px !important' } }}>
@@ -125,7 +128,13 @@ export function SelectAgentOutputDialog({
               <Box component="tbody">
                 {outputs.map((output) => {
                   return (
-                    <Stack key={output.id} direction="row" alignItems="center" gap={1}>
+                    <Stack
+                      key={output.id}
+                      direction="row"
+                      sx={{
+                        alignItems: "center",
+                        gap: 1
+                      }}>
                       <Box>
                         <Radio
                           id={`output-${output.id}`}
@@ -133,8 +142,9 @@ export function SelectAgentOutputDialog({
                           onChange={() => setSelectedOutputs(output.id)}
                         />
                       </Box>
-
-                      <Box flex={1} component="label" htmlFor={`output-${output.id}`}>
+                      <Box component="label" htmlFor={`output-${output.id}`} sx={{
+                        flex: 1
+                      }}>
                         {output.name || output.id}
                       </Box>
                     </Stack>

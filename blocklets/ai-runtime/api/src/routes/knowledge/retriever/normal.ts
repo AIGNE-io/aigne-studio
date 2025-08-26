@@ -15,7 +15,7 @@ export default class NormalRetriever extends BaseRetriever {
       const vectorStore = this.vectorStore!;
 
       if (vectorStore.getMapping() && !Object.keys(vectorStore.getMapping()).length) {
-        logger.error('store get mapping is empty');
+        logger.error('NormalRetriever store get mapping is empty');
         return [];
       }
 

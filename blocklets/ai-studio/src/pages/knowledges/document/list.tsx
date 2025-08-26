@@ -87,9 +87,21 @@ const KnowledgeDocuments = ({
         sortable: false,
         renderCell: (params) => {
           return (
-            <Stack width={1} flexDirection="row" alignItems="center" height={1} gap={1}>
+            <Stack
+              sx={{
+                width: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                height: 1,
+                gap: 1,
+              }}>
               <DocumentIcon document={params.row} />
-              <Box flexGrow={1} color="#030712" className="ellipsis">
+              <Box
+                className="ellipsis"
+                sx={{
+                  flexGrow: 1,
+                  color: 'text.primary',
+                }}>
                 {params.row.name}
               </Box>
             </Stack>
@@ -118,10 +130,10 @@ const KnowledgeDocuments = ({
           headerAlign: 'center',
           renderCell: (params) => {
             const colors: any = {
-              idle: '#D97706',
-              uploading: '#D97706',
-              success: '#059669',
-              error: '#E11D48',
+              idle: 'warning.main',
+              uploading: 'warning.main',
+              success: 'success.main',
+              error: 'error.main',
             };
 
             function isSymmetricAroundSlash(str: string = '') {
@@ -135,19 +147,37 @@ const KnowledgeDocuments = ({
 
             if (!params.row.embeddingStatus) {
               return (
-                <Stack className="center" height="100%">
+                <Stack
+                  className="center"
+                  sx={{
+                    height: '100%',
+                  }}>
                   <Box
-                    borderRadius={20}
-                    border="1px solid #E5E7EB"
-                    p="4px 12px"
-                    color="#030712"
-                    fontSize={13}
-                    display="flex"
-                    alignItems="center"
-                    lineHeight={1}
-                    gap={1}>
-                    <Box width={6} height={6} borderRadius={6} bgcolor={colors.idle} />
-                    <Box display="flex" alignItems="center">
+                    sx={{
+                      borderRadius: 20,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      p: '4px 12px',
+                      color: 'text.primary',
+                      fontSize: 13,
+                      display: 'flex',
+                      alignItems: 'center',
+                      lineHeight: 1,
+                      gap: 1,
+                    }}>
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 6,
+                        bgcolor: colors.idle,
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}>
                       {t('embeddingStatus_idle')}
                     </Box>
                   </Box>
@@ -157,22 +187,39 @@ const KnowledgeDocuments = ({
 
             if (['idle', 'uploading', 'success', 'error'].includes(params.row.embeddingStatus)) {
               return (
-                <Stack className="center" height="100%">
+                <Stack
+                  className="center"
+                  sx={{
+                    height: '100%',
+                  }}>
                   <Tooltip title={params.row.error ?? undefined}>
                     <Box
-                      borderRadius={20}
-                      p="4px 12px"
-                      color="#030712"
-                      fontSize={13}
-                      display="flex"
-                      alignItems="center"
-                      lineHeight={1}
-                      gap={1}>
-                      <Box display="flex" alignItems="center">
+                      sx={{
+                        borderRadius: 20,
+                        p: '4px 12px',
+                        color: 'text.primary',
+                        fontSize: 13,
+                        display: 'flex',
+                        alignItems: 'center',
+                        lineHeight: 1,
+                        gap: 1,
+                      }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}>
                         {t(`embeddingStatus_${params.row.embeddingStatus}`)}
                         {params.row.embeddingStatus === 'uploading' && <Pending mt={1} />}
                       </Box>
-                      <Box width={6} height={6} borderRadius={6} bgcolor={colors[params.row.embeddingStatus]} />
+                      <Box
+                        sx={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: 6,
+                          bgcolor: colors[params.row.embeddingStatus],
+                        }}
+                      />
                     </Box>
                   </Tooltip>
                 </Stack>
@@ -180,22 +227,30 @@ const KnowledgeDocuments = ({
             }
 
             return (
-              <Stack className="center" height="100%">
+              <Stack
+                className="center"
+                sx={{
+                  height: '100%',
+                }}>
                 <Box
-                  borderRadius={20}
-                  p="4px 12px"
-                  color="#030712"
-                  fontSize={13}
-                  display="flex"
-                  alignItems="center"
-                  lineHeight={1}
-                  gap={1}>
+                  sx={{
+                    borderRadius: 20,
+                    p: '4px 12px',
+                    color: 'text.primary',
+                    fontSize: 13,
+                    display: 'flex',
+                    alignItems: 'center',
+                    lineHeight: 1,
+                    gap: 1,
+                  }}>
                   {params.row.embeddingStatus}
                   <Box
-                    width={6}
-                    height={6}
-                    borderRadius={6}
-                    bgcolor={isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading}
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: 6,
+                      bgcolor: isSymmetricAroundSlash(params.row.embeddingStatus) ? colors.success : colors.uploading,
+                    }}
                   />
                 </Box>
               </Stack>
@@ -272,7 +327,7 @@ const KnowledgeDocuments = ({
 
 function Actions({
   type,
-  error,
+  error = undefined,
   onRefetch,
   onRemove,
   onEmbedding,
@@ -292,7 +347,13 @@ function Actions({
 
   return (
     <>
-      <Stack flexDirection="row" alignItems="center" justifyContent="center" height={1}>
+      <Stack
+        sx={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: 1,
+        }}>
         {['text', 'file', 'url'].includes(type) ? (
           <>
             {type === 'text' && (
@@ -343,7 +404,7 @@ function Actions({
                   border: 0,
                 },
                 '.save': {
-                  background: '#d32f2f',
+                  bgcolor: 'error.main',
                 },
               },
               maxWidth: 'sm',
@@ -355,7 +416,13 @@ function Actions({
               ),
               content: (
                 <Box>
-                  <Typography fontWeight={500} fontSize={16} lineHeight="28px" color="#4B5563">
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: 16,
+                      lineHeight: '28px',
+                      color: 'text.secondary',
+                    }}>
                     {t('knowledge.deleteDescription')}
                   </Typography>
                 </Box>
@@ -376,56 +443,136 @@ function Actions({
           {t('delete')}
         </Button>
       </Stack>
-
       {dialog}
     </>
   );
 }
 
-export const DocumentIcon = ({ document }: { document?: KnowledgeDocumentCard }) => {
-  if (!document) return <Box component={Unknown} width={20} height={20} />;
+export const DocumentIcon = ({ document = undefined }: { document?: KnowledgeDocumentCard }) => {
+  if (!document)
+    return (
+      <Box
+        component={Unknown}
+        sx={{
+          width: 20,
+          height: 20,
+        }}
+      />
+    );
 
   if (document.type === 'text') {
-    return <Box component={Custom} width={20} height={20} />;
+    return (
+      <Box
+        component={Custom}
+        sx={{
+          width: 20,
+          height: 20,
+        }}
+      />
+    );
   }
 
   if (document.type === 'file') {
     if (document.name) {
       if (document.name.endsWith('.json') || document.name.endsWith('.md')) {
-        return <Box component={JSON} width={20} height={20} />;
+        return (
+          <Box
+            component={JSON}
+            sx={{
+              width: 20,
+              height: 20,
+            }}
+          />
+        );
       }
 
       if (document.name.endsWith('.pdf')) {
-        return <Box component={PDF} width={20} height={20} />;
+        return (
+          <Box
+            component={PDF}
+            sx={{
+              width: 20,
+              height: 20,
+            }}
+          />
+        );
       }
 
       if (document.name.endsWith('.txt')) {
-        return <Box component={TXT} width={20} height={20} />;
+        return (
+          <Box
+            component={TXT}
+            sx={{
+              width: 20,
+              height: 20,
+            }}
+          />
+        );
       }
 
       if (document.name.endsWith('.doc') || document.name.endsWith('.docx')) {
-        return <Box component={Documents} width={20} height={20} />;
+        return (
+          <Box
+            component={Documents}
+            sx={{
+              width: 20,
+              height: 20,
+            }}
+          />
+        );
       }
     }
 
-    return <Box component={Unknown} width={20} height={20} />;
+    return (
+      <Box
+        component={Unknown}
+        sx={{
+          width: 20,
+          height: 20,
+        }}
+      />
+    );
   }
 
   if (document.type === 'discussKit') {
-    return <Box component={Discuss} width={20} height={20} />;
+    return (
+      <Box
+        component={Discuss}
+        sx={{
+          width: 20,
+          height: 20,
+        }}
+      />
+    );
   }
 
   if (document.type === 'url') {
-    return <Box component={Crawl} width={20} height={20} />;
+    return (
+      <Box
+        component={Crawl}
+        sx={{
+          width: 20,
+          height: 20,
+        }}
+      />
+    );
   }
 
-  return <Box component={Unknown} width={20} height={20} />;
+  return (
+    <Box
+      component={Unknown}
+      sx={{
+        width: 20,
+        height: 20,
+      }}
+    />
+  );
 };
 
 export default KnowledgeDocuments;
 
 const Table = styled(DataGrid)`
-  --DataGrid-rowBorderColor: #eff1f5;
+  --DataGrid-rowBorderColor: ${({ theme }) => theme.palette.divider};
 
   .MuiDataGrid-columnSeparator {
     display: none;
@@ -433,7 +580,7 @@ const Table = styled(DataGrid)`
 
   .MuiDataGrid-columnHeader {
     padding: 0;
-    background: #fff;
+    background: ${({ theme }) => theme.palette.background.default};
 
     &:last-child {
       padding-left: 16px;
@@ -449,6 +596,6 @@ const Table = styled(DataGrid)`
   }
 
   .MuiTablePagination-root {
-    color: #030712;
+    color: ${({ theme }) => theme.palette.text.primary};
   }
 `;

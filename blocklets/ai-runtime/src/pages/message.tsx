@@ -71,7 +71,7 @@ export default function MessagePage() {
             <Box
               sx={{
                 position: 'sticky',
-                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                backgroundColor: 'grey.500',
                 backdropFilter: 'blur(5px)',
                 '@supports not ((backdrop-filter: blur(5px)) or (-webkit-backdrop-filter: blur(5px)))': {
                   bgcolor: (theme) => theme.palette.background.paper,
@@ -92,9 +92,9 @@ export default function MessagePage() {
                   href={chatUrl}
                   target="_blank"
                   sx={{
-                    background: agent?.project?.appearance?.primaryColor || '#030712',
+                    background: agent?.project?.appearance?.primaryColor || 'primary.main',
                     '&:hover': {
-                      background: agent?.project?.appearance?.primaryColor || '#030712',
+                      background: agent?.project?.appearance?.primaryColor || 'primary.main',
                     },
                   }}>
                   {`${t('openTheBot')} ${agent?.project.name}`}

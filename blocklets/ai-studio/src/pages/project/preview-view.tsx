@@ -4,6 +4,7 @@ import { useDebugAIGNEApiProps } from '@app/contexts/debug';
 import { useCurrentProject } from '@app/contexts/project';
 import { agentViewTheme } from '@app/theme/agent-view-theme';
 import { useLocaleContext } from '@arcblock/ux/lib/Locale/context';
+import { ThemeProvider } from '@arcblock/ux/lib/Theme';
 import { stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
 import {
   DebugDialogProvider,
@@ -27,11 +28,11 @@ import {
   TabProps,
   Tabs,
   TabsProps,
-  ThemeProvider,
+  createTheme,
 } from '@mui/material';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
-import React, { ComponentProps, ReactNode, useCallback } from 'react';
+import React, { ComponentProps, ReactElement, ReactNode, useCallback } from 'react';
 
 import { useProjectStore } from './yjs-state';
 
@@ -61,7 +62,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
 
   return (
     <DebugDialogProvider>
-      <ThemeProvider theme={agentViewTheme}>
+      <ThemeProvider theme={(parentTheme) => createTheme(parentTheme, agentViewTheme)}>
         <Stack sx={{ overflowY: 'auto', flex: 1 }}>
           <DebugProvider>
             <RuntimeDebug aid={aid} ApiProps={apiProps} />
@@ -78,7 +79,7 @@ export default function PreviewView(props: { projectId: string; gitRef: string; 
   );
 }
 
-function SettingsDialog({ children }: { children?: ReactNode }) {
+function SettingsDialog({ children = undefined }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
   const close = useDebug((s) => s.close);
 
@@ -94,17 +95,23 @@ function SettingsDialog({ children }: { children?: ReactNode }) {
     <Dialog
       open={!!open}
       fullWidth
-      PaperProps={{ sx: { maxWidth: 'none', height: '100%' } }}
       onClose={onClose}
-      disableEnforceFocus>
+      disableEnforceFocus
+      slotProps={{
+        paper: { sx: { maxWidth: 'none', height: '100%' } },
+      }}>
       <DialogTitle sx={{ display: 'flex' }}>
-        <Box flex={1}>{t('appearance')}</Box>
+        <Box
+          sx={{
+            flex: 1,
+          }}>
+          {t('appearance')}
+        </Box>
 
         <IconButton sx={{ p: 0, minWidth: 32, minHeight: 32 }} onClick={onClose}>
           <Icon icon={CloseIcon} />
         </IconButton>
       </DialogTitle>
-
       <DialogContent sx={{ padding: '0 !important' }}>
         <AgentAppearanceSettings>{children}</AgentAppearanceSettings>
       </DialogContent>
@@ -123,7 +130,7 @@ const internalOutputs = new Set([
   RuntimeOutputVariable.openingQuestions,
 ]);
 
-function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
+function AgentAppearanceSettings({ children = undefined }: { children?: ReactNode }) {
   const { t } = useLocaleContext();
   const agentId = useDebug((s) => s.agentId);
   const outputId = useDebug((s) => s.outputId);
@@ -140,8 +147,15 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
     outputId ?? getOrAddOutputByName({ agent: agent!, outputName: RuntimeOutputVariable.appearancePage }).data.id;
 
   return (
-    <Stack direction="row" height="100%">
-      <Box py={2}>
+    <Stack
+      direction="row"
+      sx={{
+        height: '100%',
+      }}>
+      <Box
+        sx={{
+          py: 2,
+        }}>
         <Box sx={{ fontSize: 18, fontWeight: 'bold', mx: 'auto', textAlign: 'center', px: 3, pb: 2 }}>
           {agent?.name || t('unnamed')}
         </Box>
@@ -157,12 +171,21 @@ function AgentAppearanceSettings({ children }: { children?: ReactNode }) {
           onTabMouseLeave={() => setHoverOutputId?.('')}
         />
       </Box>
-
-      <Stack flex={2} height="100%">
+      <Stack
+        sx={{
+          flex: 2,
+          height: '100%',
+        }}>
         {children}
       </Stack>
-
-      <Box flex={1} p={2} height="100%" sx={{ overflow: 'auto', overscrollBehavior: 'contain' }}>
+      <Box
+        sx={{
+          flex: 1,
+          p: 2,
+          height: '100%',
+          overflow: 'auto',
+          overscrollBehavior: 'contain',
+        }}>
         {outputIdWithDefault && <AppearanceSettings agentId={agentId} outputId={outputIdWithDefault} />}
       </Box>
     </Stack>
@@ -175,7 +198,12 @@ interface HoverableTabsProps extends TabsProps {
   TabProps?: Partial<TabProps>;
 }
 
-const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: HoverableTabsProps) => {
+const HoverableTabs = ({
+  onTabHover = undefined,
+  onTabMouseLeave = undefined,
+  TabProps = undefined,
+  ...props
+}: HoverableTabsProps) => {
   const hoveredTabId = useDebug((s) => s.tabId);
 
   return (
@@ -183,14 +211,16 @@ const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: Hove
       {React.Children.map(props.children, (child) => {
         if (!React.isValidElement(child)) return child;
 
-        return React.cloneElement(child, {
+        const childProps = child.props as TabProps;
+
+        return React.cloneElement<TabProps>(child as ReactElement<TabProps>, {
           ...TabProps,
-          onMouseEnter: () => onTabHover?.(child.props.value),
+          onMouseEnter: () => onTabHover?.(childProps.value),
           onMouseLeave: () => onTabMouseLeave?.(),
-          ...child.props,
+          ...childProps,
           sx: {
-            backgroundColor: hoveredTabId === child.props.value ? 'action.hover' : undefined,
-            ...child.props.sx,
+            backgroundColor: hoveredTabId === childProps.value ? 'action.hover' : undefined,
+            ...childProps.sx,
           },
         });
       })}
@@ -200,8 +230,8 @@ const HoverableTabs = ({ onTabHover, onTabMouseLeave, TabProps, ...props }: Hove
 
 function AppearanceSettingTabs({
   agentId,
-  onTabHover,
-  onTabMouseLeave,
+  onTabHover = undefined,
+  onTabMouseLeave = undefined,
   ...props
 }: { agentId: string; onTabHover?: (value: string) => void; onTabMouseLeave?: () => void } & TabsProps) {
   const { t } = useLocaleContext();

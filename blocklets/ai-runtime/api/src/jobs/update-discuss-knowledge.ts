@@ -12,7 +12,6 @@ const updateDiscussKnowledge = async () => {
 
   const list = await Knowledge.findAll({});
   for (const knowledge of list) {
-    // eslint-disable-next-line no-await-in-loop
     const documents = await KnowledgeDocument.findAll({ where: { type: 'discussKit', knowledgeId: knowledge.id } });
     documents.forEach((document) => {
       if (document.id) queue.checkAndPush({ type: 'document', knowledgeId: knowledge.id, documentId: document.id });

@@ -356,7 +356,7 @@ export abstract class AgentExecutorBase<T> {
 
     return hash(
       'md5',
-      jsonStableStringify({ ...i, '$sys.user.did': userRelated ? this.globalContext.$sys.user?.did : undefined }),
+      jsonStableStringify({ ...i, '$sys.user.did': userRelated ? this.globalContext.$sys.user?.did : undefined })!,
       'hex'
     );
   }

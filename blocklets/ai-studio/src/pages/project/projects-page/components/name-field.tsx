@@ -14,7 +14,12 @@ interface NameFieldProps {
   beforeDuplicateProjectNavigate?: () => void;
 }
 
-const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicateProjectNavigate }: NameFieldProps) => {
+const NameField = ({
+  form,
+  projectId = undefined,
+  triggerOnMount = false,
+  beforeDuplicateProjectNavigate = undefined,
+}: NameFieldProps) => {
   const { t } = useLocaleContext();
   const navigate = useNavigate();
   const [duplicateProject, setDuplicateProject] = useState<Project | undefined>();
@@ -51,7 +56,10 @@ const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicatePro
             placeholder={t('newProjectNamePlaceholder')}
             hiddenLabel
             autoFocus
-            sx={{ width: 1, '.MuiInputBase-root': { border: '1px solid #E5E7EB', borderRadius: '8px' } }}
+            sx={{
+              width: 1,
+              '.MuiInputBase-root': { border: '1px solid', borderColor: 'divider', borderRadius: '8px' },
+            }}
             {...field}
             error={!!fieldState.error}
             helperText={
@@ -69,9 +77,9 @@ const NameField = ({ form, projectId, triggerOnMount = false, beforeDuplicatePro
 };
 
 const HelperText = ({
-  message,
-  project,
-  onDuplicateProject,
+  message = undefined,
+  project = undefined,
+  onDuplicateProject = undefined,
 }: {
   message?: string;
   project?: Project;
@@ -93,17 +101,17 @@ const HelperText = ({
       {project && (
         <Box
           component="span"
-          display="flex"
-          alignItems="center"
+          onClick={() => onDuplicateProject?.(project)}
           sx={{
+            display: 'flex',
+            alignItems: 'center',
             gap: 0.2,
             fontWeight: 600,
             cursor: onDuplicateProject ? 'pointer' : 'auto',
             color: 'text.secondary',
             textDecoration: 'underline',
             minWidth: 0,
-          }}
-          onClick={() => onDuplicateProject?.(project)}>
+          }}>
           <Box component="img" alt="" src={getProjectIconUrl(project.id, {})} sx={{ width: 24, height: 24 }} />
           <Box component="span" className="ellipsis">
             {project.name}
