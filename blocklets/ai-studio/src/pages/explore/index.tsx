@@ -29,7 +29,7 @@ export default function ExploreCategoryRoutes() {
         MenusDrawerProps={{ sx: { [`.${backdropClasses.root}`]: { top: 64 } } }}
         showFooter
         sx={{
-          bgcolor: 'background.default',
+          bgcolor: 'background.paper',
 
           '> .dashboard-header': {
             border: 'none',
@@ -41,11 +41,11 @@ export default function ExploreCategoryRoutes() {
             '> .dashboard-aside': {
               [`.${paperClasses.root}`]: {
                 border: 'none',
-                bgcolor: 'background.default',
+                bgcolor: 'background.paper',
               },
             },
             '> .dashboard-content': {
-              bgcolor: 'background.default',
+              bgcolor: 'background.paper',
               overflow: 'hidden',
             },
           },

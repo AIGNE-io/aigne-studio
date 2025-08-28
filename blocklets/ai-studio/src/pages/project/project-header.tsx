@@ -115,7 +115,6 @@ export default function ProjectHeader() {
           <Box
             sx={{
               flex: 1,
-
               maxWidth: {
                 md: '33.3%',
                 xs: 'calc(100% - 64px)',
@@ -149,13 +148,11 @@ export default function ProjectHeader() {
             {drawerOpen ? <Icon icon={CloseIcon} /> : <Icon icon={MenuIcon} />}
           </IconButton>
         </Box>
-
         <Box
           sx={{
             flex: 1,
             height: 0,
             overflow: 'hidden',
-            bgcolor: 'background.default',
           }}>
           <Suspense
             fallback={
