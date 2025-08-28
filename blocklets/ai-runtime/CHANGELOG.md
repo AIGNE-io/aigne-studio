@@ -1,3 +1,7 @@
+## 0.5.14 (2025-8-28)
+
+- fix: use surface token for project page background
+
 ## 0.5.13 (2025-8-25)
 
 - fix: improve explore list/detail page layout
