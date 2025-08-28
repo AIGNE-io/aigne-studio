@@ -48,7 +48,6 @@ export default function PromptPrompts({
       sx={{
         gap: 1,
         borderRadius: 1,
-        bgcolor: 'grey.50',
       }}>
       <>
         {value.prompts && (

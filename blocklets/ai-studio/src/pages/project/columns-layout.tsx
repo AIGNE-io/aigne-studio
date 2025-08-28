@@ -101,7 +101,7 @@ const ColumnsLayout = ({
     <Box
       sx={{
         height: '100%',
-        bgcolor: 'background.default',
+        bgcolor: 'background.paper',
       }}>
       <Box component={PanelGroup} autoSaveId="ai-studio-template-layouts" direction="horizontal">
         {left && (

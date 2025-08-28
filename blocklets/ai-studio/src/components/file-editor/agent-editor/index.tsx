@@ -76,7 +76,7 @@ export default function AgentEditor({
           <ArrowLine sx={{ width: 8, height: 36 }} />
         </Box>
       </Box>
-      <Box sx={{ borderRadius: 1, bgcolor: (theme) => alpha(theme.palette.info.light, 0.1), px: 2, py: 1.5 }}>
+      <Box sx={{ borderRadius: 1, bgcolor: 'grey.50', px: 2, py: 1.5 }}>
         <AgentProcessingView projectId={projectId} gitRef={gitRef} assistant={value}>
           {isPromptAssistant(value) ? (
             <PromptAssistantEditor projectId={projectId} gitRef={gitRef} value={value} disabled={disabled} />

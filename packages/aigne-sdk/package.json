@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/aigne-sdk",
-  "version": "0.5.13",
+  "version": "0.5.14",
   "description": "AIGNE SDK used to interact with AIGNE services",
   "publishConfig": {
     "access": "public"
