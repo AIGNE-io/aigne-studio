@@ -1,3 +1,7 @@
+## 0.5.15 (2025-8-28)
+
+- feat: support google analytics
+
 ## 0.5.14 (2025-8-28)
 
 - fix: use surface token for project page background
