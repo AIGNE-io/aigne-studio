@@ -1,0 +1,56 @@
+id: BLOCK_CHAIN_PAGE_CHAT_ID
+name: Chat
+path: /chat
+
+aigne:
+  agentId: BLOCK_CHAIN_AGENT_ID
+
+sections:
+  - id: CHAT_BOT_PAGE_CHAT_SECTION_ID_1
+    comment: 使用 Hero Component，用于展示一个 Hero Banner
+    name: Header
+    renderer:
+      type: component
+      componentId: HERO_COMPONENT_ID
+      properties:
+        TITLE_PROP_ID:
+          value: Chat Bot
+
+        DESCRIPTION_PROP_ID:
+          value: Ask me anything
+
+  - id: CHAT_BOT_PAGE_CHAT_SECTION_ID_2
+    comment: 使用 Messages Component (AIGNE 提供的组件）展示聊天消息，并设置为 Chat 模式，Chat 模式会显示历史消息。使用 Chat Bot Output 组件来渲染消息
+    name: Output
+    renderer:
+      type: component
+      componentId: AIGNE_DEFAULT_MESSAGES_COMPONENT_ID
+      properties:
+        VARIABLE_PROP_ID:
+          value: chat
+
+        OUTPUT_COMPONENT_PROP_ID:
+          value: CHAT_BOT_OUTPUT_COMPONENT_ID
+
+  - id: CHAT_BOT_PAGE_CHAT_SECTION_ID_3
+    comment: 使用 Input 组件，用于用户输入问题
+    name: Input
+    renderer:
+      type: component
+      componentId: AIGNE_DEFAULT_INPUT_COMPONENT_ID
+      properties:
+        CHAT_MODE_PROP_ID:
+          value: true
+
+        SUBMIT_TITLE_PROP_ID:
+          value: Send
+
+  - id: CHAT_BOT_PAGE_CHAT_SECTION_ID_4
+    comment: 使用 Footer Component，用于展示页脚
+    name: Footer
+    renderer:
+      type: component
+      componentId: FOOTER_COMPONENT_ID
+      properties:
+        CONTENT_PROP_ID:
+          value: © 2021 Chat Bot. All rights reserved.

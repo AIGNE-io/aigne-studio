@@ -1,0 +1,25 @@
+id: BLOCK_CHAIN_PAGE_HOME_ID
+name: Home
+path: /
+
+sections:
+  - id: CHAT_BOT_PAGE_HOME_SECTION_ID_1
+    comment: 使用 Hero Component，用于展示一个 Hero Banner，并提供一个按钮用于跳转到 Chat 页面
+    name: Header
+    renderer:
+      type: component
+      componentId: HERO_COMPONENT_ID
+      properties:
+        TITLE_PROP_ID:
+          value: Chat Bot
+
+        DESCRIPTION_PROP_ID:
+          value: A simple chat bot
+
+        ACTIONS_PROP_ID:
+          value:
+            - type: button
+              label: Start Chat
+              navigation:
+                type: page
+                pageId: BLOCK_CHAIN_PAGE_CHAT_ID

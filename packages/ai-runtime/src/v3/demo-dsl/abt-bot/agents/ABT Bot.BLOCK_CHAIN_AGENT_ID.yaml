@@ -1,0 +1,90 @@
+id: BLOCK_CHAIN_AGENT_ID
+name: Block Chain Assistant
+description: A simple block chain assistant
+
+inputs:
+  - id: BLOCK_CHAIN_AGENT_INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything about ABT
+    required: true
+
+processes:
+  - id: BLOCK_CHAIN_DECISION_ID
+    comment: 判断用户问题类型，分发到不同的处理流程
+    name: Decision
+    type: decision
+    decision:
+      type: classifier
+      cases:
+        - id: PROCESS_QUERY_ABT_CHAIN_ID
+          comment: 查询 ABT Block Chain 信息
+          name: Query ABT Block Chain
+          processes:
+            - id: QUERY_ABT_PROCESS_ID_0
+              comment: 根据用户输入生成 GQL 查询
+              type: call-agent
+              name: Generate GQL Query
+              callAgent:
+                agent:
+                  id: BLOCK_CHAIN_GENERATE_GQL_AGENT_ID
+                inputs:
+                  BLOCK_CHAIN_GENERATE_GQL_AGENT_INPUT_QUESTION_ID:
+                    from: variable
+                    variableId: BLOCK_CHAIN_AGENT_INPUT_QUESTION_ID
+
+            - id: QUERY_ABT_PROCESS_ID_1
+              comment: 调用 ABT Block Chain 查询
+              type: call-agent
+              name: Query ABT Block Chain
+              callAgent:
+                agent:
+                  id: BLOCK_CHAIN_GQL_AGENT_ID
+                inputs:
+                  BLOCK_CHAIN_GQL_AGENT_INPUT_QUERY_ID:
+                    from: variable
+                    variableId: QUERY_ABT_PROCESS_ID_0
+                    path:
+                      - BLOCK_CHAIN_GENERATE_GQL_OUTPUT_QUERY_ID
+
+        - id: PROCESS_TRANSFER_ABT_ID
+          comment: 发起 ABT 转账交易
+          name: Transfer ABT to Another Account
+          processes:
+            - id: BLOCKLET_API_TRANSFER_ABT_PROCESS_ID
+              comment: 调用 Blocklet API 发起 ABT 转账交易
+              name: Transfer ABT
+              type: call-agent
+              callAgent:
+                agent:
+                  id: BLOCKLET_API_TRANSFER_ABT_AGENT_ID
+                inputs:
+                  BLOCKLET_API_TRANSFER_ABT_INPUT_TO_ID:
+                    from: llm
+                  BLOCKLET_API_TRANSFER_ABT_INPUT_AMOUNT_ID:
+                    from: llm
+
+        - id: PROCESS_OTHER_QUESTION_ID
+          comment: 其他问题
+          name: Other Question
+          processes:
+            - id: OTHER_QUESTION_PROCESS_ID_1
+              comment: 调用 Chat Bot 回答其他问题
+              name: Chat bot about ABT
+              type: call-agent
+              callAgent:
+                agent:
+                  id: BLOCK_CHAIN_CHAT_BOT_AGENT_ID
+                inputs:
+                  BLOCK_CHAIN_CHAT_BOT_INPUT_QUESTION_ID:
+                    from: variable
+                    variableId: BLOCK_CHAIN_AGENT_INPUT_QUESTION_ID
+
+outputs:
+  - id: CHAT_BOT_OUTPUT_ANSWER_ID
+    comment: Return LLM answer to user
+    name: Answer
+    value:
+      from: variable
+      variableId: BLOCK_CHAIN_DECISION_ID

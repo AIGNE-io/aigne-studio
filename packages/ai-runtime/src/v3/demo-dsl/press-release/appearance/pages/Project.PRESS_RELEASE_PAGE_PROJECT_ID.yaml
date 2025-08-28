@@ -1,0 +1,57 @@
+id: PRESS_RELEASE_PAGE_PROJECT_ID
+name: Project
+path: /project
+
+# 设置该页面绑定的 Agent Id，允许在该页面中使用 AIGNE 相关组件
+aigne:
+  agentId: PRESS_RELEASE_AGENT_ID
+
+sections:
+  - id: SESSION_MANAGER_SECTION_ID
+    comment: 使用 Session Manager (AIGNE 提供的组件)，用于渲染 Session 管理器
+    name: Session Manager
+    renderer:
+      type: component
+      componentId: AIGNE_SESSION_MANAGER_COMPONENT_ID
+
+  - id: PROJECT_HERO_SECTION_ID
+    comment: 使用 AIGNE Project Hero Component 展示项目信息
+    name: Header
+    renderer:
+      type: component
+      componentId: AIGNE_PROJECT_HERO_COMPONENT_ID
+
+  - id: AGENT_INPUT_SECTION_ID
+    comment: 使用 Input Component (AIGNE 提供的组件）展示输入组件
+    name: Input
+    renderer:
+      type: component
+      componentId: AIGNE_DEFAULT_INPUT_COMPONENT_ID
+      properties:
+        SUBMIT_TITLE_PROP_ID:
+          value: Generate
+
+  - id: AGENT_OUTPUT_SECTION_ID
+    comment: 使用 Messages Component (AIGNE 提供的组件）展示聊天消息
+    name: Output
+    renderer:
+      type: component
+      componentId: AIGNE_DEFAULT_MESSAGES_COMPONENT_ID
+      properties:
+        # 设置为 Form 模式
+        VARIABLE_PROP_ID:
+          value: form
+
+        # 设置 Message 渲染组件
+        OUTPUT_COMPONENT_PROP_ID:
+          value: PRESS_RELEASE_OUTPUT_COMPONENT_ID
+
+  - id: FOOTER_SECTION_ID
+    comment: 使用 Footer Component，用于展示页脚
+    name: Footer
+    renderer:
+      type: component
+      componentId: FOOTER_COMPONENT_ID
+      properties:
+        CONTENT_PROP_ID:
+          value: © 2021 Press Release. All rights reserved.
