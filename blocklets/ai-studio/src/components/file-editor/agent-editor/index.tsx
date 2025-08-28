@@ -12,7 +12,7 @@ import {
 } from '@blocklet/ai-runtime/types';
 import { Icon } from '@iconify-icon/react';
 import ZZZIcon from '@iconify-icons/tabler/zzz';
-import { Box, Stack, alpha } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useRequest } from 'ahooks';
 
 import ArrowLine from '../../../pages/project/icons/line';
