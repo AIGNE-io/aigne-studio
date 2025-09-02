@@ -53,13 +53,13 @@
     }
   },
   "devDependencies": {
-    "@arcblock/did": "^1.23.1",
-    "@arcblock/did-ext": "^1.23.1",
+    "@arcblock/did": "^1.24.7",
+    "@arcblock/did-ext": "^1.24.7",
     "@arcblock/eslint-config": "^0.3.3",
     "@arcblock/eslint-config-ts": "^0.3.3",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/testlab": "^0.0.23",
-    "@ocap/util": "^1.23.1",
+    "@ocap/util": "^1.24.7",
     "@playwright/test": "^1.54.2",
     "bumpp": "^9.5.2",
     "code-inspector-plugin": "^1.2.2",
