@@ -1,3 +1,3 @@
-import AuthService from '@blocklet/sdk/lib/service/auth';
+import AuthService from '@blocklet/sdk/lib/service/blocklet';
 
 export const authService = new AuthService();

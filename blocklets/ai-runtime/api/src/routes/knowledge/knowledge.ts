@@ -11,7 +11,7 @@ import Segment from '@api/store/models/dataset/segment';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import AuthService from '@blocklet/sdk/lib/service/auth';
+import AuthService from '@blocklet/sdk/lib/service/blocklet';
 import archiver from 'archiver';
 import compression from 'compression';
 import express, { Router } from 'express';

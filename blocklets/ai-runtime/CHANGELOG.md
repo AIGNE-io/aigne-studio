@@ -1,3 +1,7 @@
+## 0.5.16 (2025-9-2)
+
+- chore: bump deps to fix csrf token mismatch 
+
 ## 0.5.15 (2025-8-28)
 
 - feat: support google analytics
