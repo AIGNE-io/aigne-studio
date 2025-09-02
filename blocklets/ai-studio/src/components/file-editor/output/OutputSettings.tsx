@@ -110,7 +110,7 @@ export default function OutputSettings({
         sx={{
           border: '1px solid',
           borderColor: 'divider',
-          bgcolor: 'background.default',
+          bgcolor: 'background.paper',
           borderRadius: 1,
           py: 1,
           overflow: 'auto',

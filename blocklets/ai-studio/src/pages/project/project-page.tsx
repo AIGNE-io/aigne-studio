@@ -155,7 +155,6 @@ function ProjectPageView() {
             sx={{
               position: 'sticky',
               top: 0,
-              bgcolor: 'background.default',
               zIndex: 10,
             }}>
             <Toolbar variant="dense" sx={{ px: { xs: 2, gap: 1.5 }, overflow: 'hidden', minHeight: 36 }}>

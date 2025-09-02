@@ -1,3 +1,15 @@
+## 0.5.16 (2025-9-2)
+
+- chore: bump deps to fix csrf token mismatch 
+
+## 0.5.15 (2025-8-28)
+
+- feat: support google analytics
+
+## 0.5.14 (2025-8-28)
+
+- fix: use surface token for project page background
+
 ## 0.5.13 (2025-8-25)
 
 - fix: improve explore list/detail page layout

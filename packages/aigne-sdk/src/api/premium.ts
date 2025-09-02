@@ -1,5 +1,5 @@
 import config from '@blocklet/sdk/lib/config';
-import AuthService from '@blocklet/sdk/lib/service/auth';
+import AuthService from '@blocklet/sdk/lib/service/blocklet';
 
 import { Quotas } from '../quotas';
 
