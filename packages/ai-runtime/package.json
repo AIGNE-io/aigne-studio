@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.5.16",
+  "version": "0.5.17",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -148,17 +148,17 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.48",
-    "@arcblock/did-connect-react": "^3.1.33",
-    "@blocklet/aigne-hub": "^0.4.3",
+    "@arcblock/did-connect-react": "^3.1.34",
+    "@blocklet/aigne-hub": "^0.4.8",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/constant": "^1.16.50",
+    "@blocklet/constant": "^1.16.51",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.16.50",
-    "@blocklet/logger": "^1.16.50",
-    "@blocklet/pages-kit": "^0.6.65",
+    "@blocklet/js-sdk": "^1.16.51",
+    "@blocklet/logger": "^1.16.51",
+    "@blocklet/pages-kit": "^0.6.67",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.16.50",
-    "@blocklet/uploader": "^0.2.7",
+    "@blocklet/sdk": "^1.16.51",
+    "@blocklet/uploader": "^0.2.9",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -223,7 +223,7 @@
     "@blocklet/pages-kit": "^0.6.46"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.1.33",
+    "@arcblock/ux": "^3.1.34",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",
