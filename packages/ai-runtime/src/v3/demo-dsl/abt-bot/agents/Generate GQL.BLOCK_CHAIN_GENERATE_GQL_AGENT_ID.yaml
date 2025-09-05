@@ -1,0 +1,40 @@
+id: BLOCK_CHAIN_GENERATE_GQL_AGENT_ID
+name: Generate GQL Agent
+description: A simple agent for ABT Block Chain
+
+inputs:
+  - id: BLOCK_CHAIN_GENERATE_GQL_AGENT_INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything about ABT Block Chain
+    required: true
+
+processes:
+  - id: BLOCK_CHAIN_GENERATE_GQL_PROCESS_ID
+    comment: 调用 LLM 根据用户输入生成 GQL 查询语句
+    name: Generate GQL
+    type: llm
+    llm:
+      prompt: >-
+        You are a professional chat bot. you can generate any query for ABT
+        Block Chain for user's question {{Question}}
+
+      outputs:
+        fields:
+          - id: BLOCK_CHAIN_GENERATE_GQL_PROCESS_OUTPUT_QUERY_ID
+            name: Query
+            description: Query to ABT Block Chain
+            type: string
+            required: true
+
+outputs:
+  - id: BLOCK_CHAIN_GENERATE_GQL_OUTPUT_QUERY_ID
+    comment: 返回生成的 GQL 查询语句
+    name: Query
+    description: Query to ABT Block Chain
+    value:
+      from: variable
+      variableId: BLOCK_CHAIN_GENERATE_GQL_PROCESS_ID
+      path:
+        - BLOCK_CHAIN_GENERATE_GQL_PROCESS_OUTPUT_QUERY_ID

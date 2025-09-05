@@ -1,0 +1,42 @@
+id: CHAT_BOT_AGENT_ID
+name: Chat Bot
+description: A simple chat bot
+
+inputs:
+  - id: CHAT_BOT_INPUT_QUESTION_ID
+    comment: User input question
+    name: Question
+    type: string
+    placeholder: Ask me anything
+    required: true
+
+knowledge:
+  - id: CHAT_BOT_KNOWLEDGE_ID_1
+    comment: Use ABT Chain knowledge to answer questions
+    knowledge:
+      id: ABT_CHAIN_KNOWLEDGE_ID
+
+processes:
+  - id: CHAT_BOT_PROCESS_LLM_ID
+    comment: Use LLM to answer questions
+    name: LLM
+    type: llm
+    llm:
+      prompt:
+        - id: CHAT_BOT_PROMPT_MESSAGE_ID_1
+          role: system
+          content: You are a professional chat bot.
+
+        - id: CHAT_BOT_PROMPT_MESSAGE_ID_2
+          role: user
+          content: '{{ Question }}'
+
+outputs:
+  - id: CHAT_BOT_OUTPUT_ANSWER_ID
+    comment: Return LLM answer to user
+    name: Answer
+    value:
+      from: variable
+      variableId: CHAT_BOT_PROCESS_LLM_ID
+      path:
+        - $text
