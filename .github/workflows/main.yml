@@ -77,7 +77,7 @@ jobs:
           skip-upload: false
           skip-deploy: false
           skip-readme: true
-          skip-release: false
+          skip-release: true
           working-directory: blocklets/ai-studio
           bundle-command: pnpm bundle
           store-endpoint: ${{ secrets.STORE_ENDPOINT_TEST }}
