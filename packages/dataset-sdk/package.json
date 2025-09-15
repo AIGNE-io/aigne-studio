@@ -1,13 +1,13 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.5.19",
+  "version": "0.5.20",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
   },
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "homepage": "https://github.com/blocklet/ai-studio#readme",
-  "license": "ISC",
+  "license": "Elastic-2.0",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "types": "./lib/types/index.d.js",

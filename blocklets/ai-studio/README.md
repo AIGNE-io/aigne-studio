@@ -92,3 +92,8 @@ Join the community to get help, share ideas, and connect with other users:
 👉 [ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)
 
 ---
+
+## License
+
+The code is licensed under the Elastic License 2.0 license found in the
+[LICENSE](LICENSE) file.
