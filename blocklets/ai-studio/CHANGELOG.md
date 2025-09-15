@@ -1,3 +1,7 @@
+## 0.5.20 (2025-9-15)
+
+- chore: update license
+
 ## 0.5.19 (2025-9-5)
 
 - chore: skip release
