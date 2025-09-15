@@ -1,0 +1,28 @@
+id: PRESS_RELEASE_PAGE_HOME_ID
+name: Home
+path: /
+sections:
+  - id: HERO_SECTION_ID
+    comment: 使用 Hero Component，用于展示一个 Hero Banner
+    name: Header
+    renderer:
+      type: component
+      componentId: HERO_COMPONENT_ID
+      properties:
+        TITLE_PROP_ID:
+          value: Press Release
+
+        DESCRIPTION_PROP_ID:
+          value: Generate press release by AI
+
+  - id: PROJECT_MANAGEMENT_SECTION_ID
+    comment: 使用 Project Management Component 展示项目管理列表
+    name: Project Management
+    renderer:
+      type: component
+      componentId: PROJECT_MANAGEMENT_COMPONENT_ID
+      properties:
+        PROJECT_PAGE:
+          value:
+            type: page
+            pageId: PRESS_RELEASE_PAGE_PROJECT_ID

@@ -1,0 +1,26 @@
+id: PRESS_RELEASE_OUTPUT_COMPONENT_ID
+name: Press Release Output
+renderer:
+  type: sections
+  sections:
+    - id: ANSWER_SECTION_ID
+      name: Answer
+      renderer:
+        type: component
+        componentId: AIGNE_MARKDOWN_COMPONENT_ID
+        properties:
+          CONTENT_PROP_ID:
+            type: variable
+            variableId: OUTPUT_ANSWER_ID
+
+    - id: SHARE_SECTION_ID
+      name: Share
+      renderer:
+        type: component
+        componentId: AIGNE_SHARE_COMPONENT_ID
+
+    - id: FEEDBACK_SECTION_ID
+      name: Feedback
+      renderer:
+        type: component
+        componentId: AIGNE_FEEDBACK_COMPONENT_ID
