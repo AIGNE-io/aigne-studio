@@ -83,7 +83,6 @@ After developing a blocklet, you may need to bundle it. Use `npm run bundle` com
 
   Then config blocklet store url.
   You can use those store url in below.
-
   1. [https://store.blocklet.dev/](https://store.blocklet.dev/)
   2. [https://dev.store.blocklet.dev/](https://dev.store.blocklet.dev/)
   3. A blocklet store started by yourself.
@@ -154,4 +153,4 @@ After developing a blocklet, you may need to bundle it. Use `npm run bundle` com
 ## License
 
 The code is licensed under the Elastic License 2.0 license found in the
-[LICENSE](LICENSE) file.
+[LICENSE](LICENSE.md) file.

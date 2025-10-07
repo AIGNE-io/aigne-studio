@@ -1,4 +1,5 @@
-# AIGNE Studio  
+# AIGNE Studio
+
 **No-Code Generative AI App Engine for Everyone**
 
 [AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB) is a no-code platform for creating powerful LLM workflows and AI agents
@@ -9,7 +10,7 @@ Whether you're a developer accelerating your workflow or a non-technical creator
 
 ## AIGNE Ecosystem
 
-AIGNE Studio  is part of the [AIGNE](https://www.aigne.io) ecosystem, a comprehensive AI application development platform. Here's the architecture overview:
+AIGNE Studio is part of the [AIGNE](https://www.aigne.io) ecosystem, a comprehensive AI application development platform. Here's the architecture overview:
 
 <picture>
   <source srcset="https://www.aigne.io/image-bin/uploads/87fa9f628010bb012615c476ae8ed28f.png" media="(prefers-color-scheme: dark)">
@@ -21,13 +22,13 @@ AIGNE Studio  is part of the [AIGNE](https://www.aigne.io) ecosystem, a comprehe
 
 ## ✨ Why AIGNE Studio?
 
-- **No Code? No Problem.**  
+- **No Code? No Problem.**
   No programming knowledge needed, use your own language to let AI help.
 
-- **No UI Designer.**  
+- **No UI Designer.**
   Simply instruct or draw a sketch, and AI will build it for you.
 
-- **No dependency.**  
+- **No dependency.**
   Build complete apps that run on web or mobile, installable anywhere, without 3rd-party dependencies
 
 ---
@@ -49,37 +50,37 @@ AIGNE Studio is an all-in-one platform for the entire lifecycle of LLM-based app
 
 ## 🚀 Get Started in Minutes
 
-1. **Launch AIGNE Studio**  
+1. **Launch AIGNE Studio**
    Click “Launch” to start the installation process.
 
-2. **Get a Blocklet Server**  
+2. **Get a Blocklet Server**
    If you don’t already have a Blocklet Server, you’ll need to purchase and set one up.
 
-3. **Follow the Installation Wizard**  
+3. **Follow the Installation Wizard**
    The guided setup will walk you through installing AIGNE Studio on your server.
 
-4. **Start the App**  
+4. **Start the App**
    Launch the app from the Blocklet Server console and wait for deployment to complete.
 
-5. **Access the App**  
+5. **Access the App**
    Open your browser and navigate to the generated public address to start building!
 
 ---
 
 ## 💡 Use Cases
 
-- Internal tools and automation  
-- AI-powered customer assistants  
-- Educational and content-generation apps  
-- Multimodal UI prototyping  
+- Internal tools and automation
+- AI-powered customer assistants
+- Educational and content-generation apps
+- Multimodal UI prototyping
 - Rapid AI app prototyping and validation
 
 ---
 
 ## 🧑‍💻 Developer & User Resources
 
-- [📦 AIGNE Studio on Blocklet Store](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB)  
-- [💬 Join the ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)  
+- [📦 AIGNE Studio on Blocklet Store](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB)
+- [💬 Join the ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)
 - [📘 AIGNE Studio Docs](https://www.arcblock.io/docs/ai-studio/en/ai-studio)
 
 ---
@@ -88,7 +89,7 @@ AIGNE Studio is an all-in-one platform for the entire lifecycle of LLM-based app
 
 We're committed to providing you with the best experience using [AIGNE Studio](https://store.blocklet.dev/blocklets/z8iZpog7mcgcgBZzTiXJCWESvmnRrQmnd3XBB). If you encounter any issues or have suggestions, don’t hesitate to reach out.
 
-Join the community to get help, share ideas, and connect with other users:  
+Join the community to get help, share ideas, and connect with other users:
 👉 [ArcBlock Community](https://community.arcblock.io/discussions/boards/aigne)
 
 ---
@@ -96,4 +97,4 @@ Join the community to get help, share ideas, and connect with other users:
 ## License
 
 The code is licensed under the Elastic License 2.0 license found in the
-[LICENSE](LICENSE) file.
+[LICENSE](LICENSE.md) file.
