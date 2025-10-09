@@ -1,3 +1,7 @@
+## 0.5.22 (2025-10-9)
+
+- chore: update deps
+
 ## 0.5.21 (2025-10-1)
 
 - chore: update deps
