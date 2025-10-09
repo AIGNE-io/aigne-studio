@@ -431,7 +431,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
           } as Parameters<typeof getAgent>[0]);
         },
         entryProjectId: projectId,
-        user: userId ? { id: userId, did: userId, ...req.user } : undefined,
+        user: userId ? { ...req.user, id: userId, did: userId } : undefined,
         sessionId,
         messageId: history.id,
         clientTime: input.inputs?.$clientTime || new Date().toISOString(),

@@ -1,3 +1,7 @@
+## 0.5.23 (2025-10-9)
+
+- fix: use userId from query for component call api
+
 ## 0.5.22 (2025-10-9)
 
 - chore: update deps
