@@ -1,3 +1,7 @@
+## 0.5.25 (2025-10-10)
+
+- fix: remove useless code
+
 ## 0.5.23 (2025-10-9)
 
 - fix: use userId from query for component call api
