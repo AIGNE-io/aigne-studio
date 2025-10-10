@@ -961,7 +961,7 @@ function DebugModeForm({
               gap: 1,
             }}>
             <Button variant="outlined" onClick={addToTest} sx={{ borderColor: 'divider', color: 'text.primary' }}>
-              {t('addToTest')} 
+              {t('addToTest')}
             </Button>
             <Box
               sx={{
