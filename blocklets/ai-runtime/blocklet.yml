@@ -15,7 +15,7 @@ repository:
   type: git
   url: git+https://github.com/AIGNE-io/aigne-studio.git
 specVersion: 1.2.8
-version: 0.5.25
+version: 0.5.26
 logo: screenshots/0453ca48c18784b78a0354c9369ad377.png
 files:
   - dist
