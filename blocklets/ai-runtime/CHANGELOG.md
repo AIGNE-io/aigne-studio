@@ -1,3 +1,7 @@
+## 0.5.26 (2025-10-11)
+
+- fix: agent editor crash
+
 ## 0.5.25 (2025-10-11)
 
 - chore: update deps

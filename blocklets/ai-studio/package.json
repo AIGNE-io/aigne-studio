@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.5.25",
+  "version": "0.5.26",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -75,7 +75,7 @@
     "@iconify-icons/material-symbols": "^1.2.58",
     "@iconify-icons/tabler": "^1.2.95",
     "@microsoft/fetch-event-source": "^2.0.1",
-    "@minoru/react-dnd-treeview": "^3.4.4",
+    "@minoru/react-dnd-treeview": "^3.5.3",
     "@monaco-editor/react": "4.7.0-rc.0",
     "@mui/base": "^5.0.0-beta.40",
     "@mui/icons-material": "^7.2.0",
