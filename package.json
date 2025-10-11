@@ -80,5 +80,15 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.4",
     "zx": "^8.1.4"
+  },
+  "resolutions": {
+    "@arcblock/did": "1.25.6",
+    "@arcblock/did-connect-js": "1.25.6",
+    "@arcblock/vc": "1.25.6",
+    "@arcblock/did-ext": "1.25.6",
+    "@ocap/client": "1.25.6",
+    "@ocap/util": "1.25.6",
+    "@ocap/mcrypto": "1.25.6",
+    "@ocap/wallet": "1.25.6"
   }
 }

@@ -30,11 +30,11 @@
   },
   "dependencies": {
     "@abtnode/cron": "^1.16.53-beta-20251011-054719-4ed2f6b7",
-    "@arcblock/did-connect-js": "^1.26.0",
+    "@arcblock/did-connect-js": "^1.25.6",
     "@arcblock/did-connect-react": "^3.1.48",
     "@arcblock/did-connect-storage-nedb": "^1.8.0",
     "@arcblock/ux": "^3.1.48",
-    "@arcblock/vc": "^1.26.0",
+    "@arcblock/vc": "^1.25.6",
     "@blocklet/ai-runtime": "workspace:^",
     "@blocklet/aigne-hub": "^0.4.42",
     "@blocklet/aigne-sdk": "workspace:^",
