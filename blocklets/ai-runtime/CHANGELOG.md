@@ -1,3 +1,7 @@
+## 0.5.25 (2025-10-11)
+
+- chore: update deps
+
 ## 0.5.24 (2025-10-10)
 
 - fix: remove useless code
