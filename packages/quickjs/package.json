@@ -55,7 +55,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/sdk": "^1.16.53-beta-20251011-054719-4ed2f6b7",
+    "@blocklet/sdk": "^1.16.54-beta-20251021-070951-25e3083c",
     "dayjs": "^1.11.13",
     "eventsource-parser": "^2.0.1",
     "generic-pool": "^3.9.0",

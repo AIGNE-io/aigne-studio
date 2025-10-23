@@ -36,7 +36,7 @@ export function treeRoutes(router: Router) {
       rejectOnEmpty: new NotFoundError('Project not found'),
     });
 
-    checkProjectPermission({
+    await checkProjectPermission({
       req,
       project,
     });

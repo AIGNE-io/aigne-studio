@@ -38,12 +38,12 @@ export const isRefReadOnly = ({
 };
 
 export function ensureComponentCallOr(fallback: (req: Request, res: Response, next: NextFunction) => any) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const sig = req.get('x-component-sig');
       if (sig) {
         const { data, sig } = getVerifyData(req);
-        const verified = verify(data, sig);
+        const verified = await verify(data, sig);
         if (verified) {
           next();
         } else {
@@ -73,12 +73,12 @@ export function ensureComponentCallOrPromptsEditor() {
 
 // dynamic permission check, not middleware
 // if component call, check sig, if not, check user role
-export function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) {
+export async function ensureComponentCallOrRolesMatch(req: Request, roles?: string[]) {
   try {
     const sig = req.get('x-component-sig');
     if (sig) {
       const { data, sig } = getVerifyData(req);
-      const verified = verify(data, sig);
+      const verified = await verify(data, sig);
       return verified;
     }
     if (roles) {
