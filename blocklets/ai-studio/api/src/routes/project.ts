@@ -237,7 +237,13 @@ export const getProjectWhereConditions = async (req: Request) => {
   return projectWhereConditions;
 };
 
-export const checkProjectPermission = async ({ req, project }: { req: Request; project: Project | null | undefined }) => {
+export const checkProjectPermission = async ({
+  req,
+  project,
+}: {
+  req: Request;
+  project: Project | null | undefined;
+}) => {
   if (
     project?.createdBy === req.user?.did ||
     (await ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) ||
