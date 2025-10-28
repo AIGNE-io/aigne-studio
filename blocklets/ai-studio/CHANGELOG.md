@@ -1,3 +1,7 @@
+## 0.5.27 (2025-10-28)
+
+- fix: update package
+
 ## 0.5.26 (2025-10-11)
 
 - fix: agent editor crash
