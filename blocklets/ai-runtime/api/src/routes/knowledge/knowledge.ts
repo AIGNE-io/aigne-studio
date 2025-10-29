@@ -11,7 +11,7 @@ import Segment from '@api/store/models/dataset/segment';
 import { copyRecursive } from '@blocklet/ai-runtime/utils/fs';
 import config from '@blocklet/sdk/lib/config';
 import middlewares from '@blocklet/sdk/lib/middlewares';
-import AuthService from '@blocklet/sdk/lib/service/blocklet';
+import { BlockletService } from '@blocklet/sdk/lib/service/blocklet';
 import archiver from 'archiver';
 import compression from 'compression';
 import express, { Router } from 'express';
@@ -32,7 +32,7 @@ import { getResourceAvatarPath, sse } from './util';
 const { initLocalStorageServer } = require('@blocklet/uploader-server');
 
 const router = Router();
-const authClient = new AuthService();
+const authClient = new BlockletService();
 
 const knowledgeSchema = Joi.object<{
   name?: string;

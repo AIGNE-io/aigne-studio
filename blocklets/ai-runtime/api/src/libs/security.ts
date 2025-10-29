@@ -21,12 +21,12 @@ export async function ensureAgentAdmin(req: Request, getOwnerId: () => Promise<s
 }
 
 export function ensureComponentCallOr(fallback: (req: Request, res: Response, next: NextFunction) => any) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const sig = req.get('x-component-sig');
       if (sig) {
         const { data, sig } = getVerifyData(req);
-        const verified = verify(data, sig);
+        const verified = await verify(data, sig);
         if (verified) {
           next();
         } else {

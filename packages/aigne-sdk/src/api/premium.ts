@@ -1,5 +1,5 @@
 import config from '@blocklet/sdk/lib/config';
-import AuthService from '@blocklet/sdk/lib/service/blocklet';
+import { BlockletService } from '@blocklet/sdk/lib/service/blocklet';
 
 import { Quotas } from '../quotas';
 
@@ -25,7 +25,7 @@ export async function getUserPassports(did?: string) {
   return result?.user?.passports?.filter((x) => x.status === 'valid')?.map((x) => x.name) || [];
 }
 
-const authClient = new AuthService();
+const authClient = new BlockletService();
 
 export const quotaChecker = new Quotas(config.env.preferences);
 

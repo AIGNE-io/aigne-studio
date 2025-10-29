@@ -1,4 +1,4 @@
-import Database from '@blocklet/sdk/lib/database';
+import { Database } from '@blocklet/sdk/lib/database';
 
 export interface Tag {
   _id: string;
