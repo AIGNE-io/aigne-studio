@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/code-editor",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Code Editor",
   "publishConfig": {
     "access": "public"
