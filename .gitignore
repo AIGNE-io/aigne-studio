@@ -51,3 +51,6 @@ lerna-debug.log*
 .data
 stats.html
 node-compile-cache
+
+# Breaking changes documentation (local only)
+BREAKING_CHANGE.MD

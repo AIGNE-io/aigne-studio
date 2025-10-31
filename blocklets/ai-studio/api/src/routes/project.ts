@@ -223,25 +223,31 @@ const getAgentQuerySchema = Joi.object<GetTemplateQuery>({
 
 export type SyncTarget = 'github' | 'didSpace';
 
-export const getProjectWhereConditions = (req: Request) => {
+export const getProjectWhereConditions = async (req: Request) => {
   // default to only show projects created by the user
   let projectWhereConditions = {
     createdBy: req.user!.did,
   } as any;
 
   // if the user has the permission to view all projects, show all projects
-  if (ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) {
+  if (await ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) {
     projectWhereConditions = {};
   }
 
   return projectWhereConditions;
 };
 
-export const checkProjectPermission = ({ req, project }: { req: Request; project: Project | null | undefined }) => {
+export const checkProjectPermission = async ({
+  req,
+  project,
+}: {
+  req: Request;
+  project: Project | null | undefined;
+}) => {
   if (
     project?.createdBy === req.user?.did ||
-    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles) ||
-    ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)
+    (await ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensureViewAllProjectsRoles)) ||
+    (await ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles))
   ) {
     return true;
   }
@@ -256,7 +262,7 @@ export const checkProjectLimit = async ({ req }: { req: Request }) => {
     // `+1`: 把正在创建的项目 (未存储到数据库) 也算在内
     const used = count + 1;
     if (
-      !ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles) &&
+      !(await ensureComponentCallOrRolesMatch(req, Config.serviceModePermissionMap.ensurePromptsAdminRoles)) &&
       !quotaChecker.checkProjectLimit(used, await getUserPassports(req.user?.did))
     ) {
       throw new RuntimeError(
@@ -279,7 +285,7 @@ export interface CreateOrUpdateAgentInputSecretPayload {
 export function projectRoutes(router: Router) {
   router.get('/projects', session(), ensureComponentCallOrPromptsEditor(), async (req, res) => {
     const list = await Project.findAll({
-      where: { ...getProjectWhereConditions(req) },
+      where: { ...(await getProjectWhereConditions(req)) },
       order: [
         ['pinnedAt', 'DESC'],
         ['updatedAt', 'DESC'],
@@ -429,7 +435,7 @@ export function projectRoutes(router: Router) {
       working: query.working,
     });
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     let agents: Assistant[] | undefined;
 
@@ -488,7 +494,7 @@ export function projectRoutes(router: Router) {
         rejectOnEmpty: new NotFoundError('No such project'),
       });
 
-      checkProjectPermission({ req, project });
+      await checkProjectPermission({ req, project });
 
       const secrets = await AgentInputSecret.findAll({ where: { projectId }, attributes: { exclude: ['secret'] } });
 
@@ -504,7 +510,7 @@ export function projectRoutes(router: Router) {
       where: { id: projectId },
       rejectOnEmpty: new NotFoundError('No such project'),
     });
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const extra = await ProjectExtra.findByPk(projectId);
     res.json({ secret: extra?.npmPackageSecret });
@@ -518,7 +524,7 @@ export function projectRoutes(router: Router) {
       where: { id: projectId },
       rejectOnEmpty: new NotFoundError('No such project'),
     });
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const [extra] = await ProjectExtra.upsert({ id: projectId, npmPackageSecret: nanoid() });
     res.json({ secret: extra.npmPackageSecret });
@@ -602,7 +608,7 @@ export function projectRoutes(router: Router) {
         rejectOnEmpty: new NotFoundError('No such project'),
       });
 
-      checkProjectPermission({ req, project });
+      await checkProjectPermission({ req, project });
 
       await Promise.all(
         input.secrets.map((item) =>
@@ -823,7 +829,7 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const { pinned, gitType, gitAutoSync, didSpaceAutoSync, name, description } =
       await updateProjectSchema.validateAsync(req.body, {
@@ -885,7 +891,7 @@ export function projectRoutes(router: Router) {
       return;
     }
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     await project.destroy();
     projectCronManager.destroyProjectJobs(projectId);
@@ -913,7 +919,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-      checkProjectPermission({ req, project });
+      await checkProjectPermission({ req, project });
 
       const input = await addProjectGitRemoteSchema.validateAsync(req.body, { stripUnknown: true });
 
@@ -952,7 +958,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
 
@@ -973,7 +979,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const branches = await repository.listBranches();
@@ -998,7 +1004,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
     const remote = (await repository.listRemotes()).find((i) => i.remote === defaultRemote);
@@ -1030,7 +1036,7 @@ export function projectRoutes(router: Router) {
 
     const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-    checkProjectPermission({ req, project });
+    await checkProjectPermission({ req, project });
 
     const repository = await getRepository({ projectId });
 
@@ -1245,7 +1251,7 @@ export function projectRoutes(router: Router) {
 
       const project = await Project.findByPk(projectId, { rejectOnEmpty: new NotFoundError('Project not found') });
 
-      checkProjectPermission({ req, project });
+      await checkProjectPermission({ req, project });
 
       const repo = await ProjectRepo.load({ projectId });
       const { filename, hash } = await repo.uploadAsset({ type: input.type, ref, source: input.source });

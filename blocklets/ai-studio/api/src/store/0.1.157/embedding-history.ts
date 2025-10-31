@@ -1,4 +1,4 @@
-import Database from '@blocklet/sdk/lib/database';
+import { Database } from '@blocklet/sdk/lib/database';
 
 export interface EmbeddingHistory {
   _id?: string;

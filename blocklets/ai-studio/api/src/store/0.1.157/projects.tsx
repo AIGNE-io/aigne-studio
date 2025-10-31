@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { Repository } from '@blocklet/co-git/repository';
-import Database from '@blocklet/sdk/lib/database';
+import { Database } from '@blocklet/sdk/lib/database';
 import sortBy from 'lodash/sortBy';
 import { nanoid } from 'nanoid';
 import { parse, stringify } from 'yaml';

@@ -1,3 +1,15 @@
+## 0.6.1 (2025-10-29)
+
+- fix: update package to latest
+
+## 0.6.0 (2025-10-29)
+
+- fix: update package
+
+## 0.5.27 (2025-10-28)
+
+- fix: update package
+
 ## 0.5.26 (2025-10-11)
 
 - fix: agent editor crash
@@ -40,7 +52,7 @@
 
 ## 0.5.16 (2025-9-2)
 
-- chore: bump deps to fix csrf token mismatch 
+- chore: bump deps to fix csrf token mismatch
 
 ## 0.5.15 (2025-8-28)
 
