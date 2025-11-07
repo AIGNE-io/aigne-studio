@@ -1,3 +1,7 @@
+## 0.7.1 (2025-11-7)
+
+- fix: update package to latest
+
 ## 0.7.0 (2025-11-6)
 
 - fix: update package to latest
