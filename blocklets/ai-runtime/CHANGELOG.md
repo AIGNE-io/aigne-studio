@@ -1,3 +1,7 @@
+## 0.7.2 (2025-11-10)
+
+- fix: update hook timeout
+
 ## 0.7.1 (2025-11-7)
 
 - fix: update package to latest
