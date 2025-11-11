@@ -1,3 +1,7 @@
+## 0.7.3 (2025-11-11)
+
+- fix: update aigne-code-reviewer to latest
+
 ## 0.7.2 (2025-11-10)
 
 - fix: update hook timeout
