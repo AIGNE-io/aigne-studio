@@ -4,7 +4,7 @@
 
 ## 0.7.2 (2025-11-10)
 
-- fix: update hook timeout
+- fix: update hook timeout during service startup
 
 ## 0.7.1 (2025-11-7)
 
