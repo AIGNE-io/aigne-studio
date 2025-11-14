@@ -1,6 +1,6 @@
 {
   "name": "ai-runtime",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "dev": "cross-env COMPONENT_STORE_URL=https://test.store.blocklet.dev blocklet dev",
@@ -36,7 +36,7 @@
     "@arcblock/ux": "^3.2.6",
     "@arcblock/vc": "^1.27.6",
     "@blocklet/ai-runtime": "workspace:^",
-    "@blocklet/aigne-hub": "^0.6.5",
+    "@blocklet/aigne-hub": "^0.6.6",
     "@blocklet/aigne-sdk": "workspace:^",
     "@blocklet/constant": "^1.17.2",
     "@blocklet/dataset-sdk": "workspace:^",
@@ -126,7 +126,7 @@
     "typescript": "^5.5.4",
     "vite": "^7.0.6",
     "vite-node": "^3.2.4",
-    "vite-plugin-blocklet": "^0.12.2",
+    "vite-plugin-blocklet": "^0.12.3",
     "vite-plugin-svgr": "^4.3.0",
     "vite-tsconfig-paths": "^5.1.4",
     "zx": "^8.1.4"

@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -149,7 +149,7 @@
   "dependencies": {
     "@abtnode/client": "^1.16.49-beta-20250819-084933-3bcbd851",
     "@arcblock/did-connect-react": "^3.2.6",
-    "@blocklet/aigne-hub": "^0.6.5",
+    "@blocklet/aigne-hub": "^0.6.6",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.17.2",
     "@blocklet/dataset-sdk": "workspace:^",
