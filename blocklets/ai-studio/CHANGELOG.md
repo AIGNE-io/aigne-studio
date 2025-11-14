@@ -1,3 +1,7 @@
+## 0.7.4 (2025-11-14)
+
+- fix: update package to latest
+
 ## 0.7.3 (2025-11-11)
 
 - fix: update aigne-code-reviewer to latest
