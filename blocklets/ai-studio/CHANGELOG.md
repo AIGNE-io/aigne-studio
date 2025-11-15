@@ -1,3 +1,19 @@
+## 0.7.6 (2025-11-15)
+
+## 0.7.5 (2025-11-15)
+
+## 0.7.4 (2025-11-14)
+
+- fix: update package to latest
+
+## 0.7.3 (2025-11-11)
+
+- fix: update aigne-code-reviewer to latest
+
+## 0.7.2 (2025-11-10)
+
+- fix: update hook timeout
+
 ## 0.7.1 (2025-11-7)
 
 - fix: update package to latest
