@@ -59,7 +59,7 @@
     "dayjs": "^1.11.13",
     "eventsource-parser": "^2.0.1",
     "generic-pool": "^3.9.0",
-    "glob": "^10.4.5",
+    "glob": "^11.1.0",
     "lru-cache": "^10.4.3",
     "nanoid": "^3.3.7",
     "queue": "^7.0.0",
