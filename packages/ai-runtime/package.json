@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -148,16 +148,16 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.49-beta-20250819-084933-3bcbd851",
-    "@arcblock/did-connect-react": "^3.2.6",
-    "@blocklet/aigne-hub": "^0.6.6",
+    "@arcblock/did-connect-react": "^3.2.8",
+    "@blocklet/aigne-hub": "^0.6.17",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/constant": "^1.17.2",
+    "@blocklet/constant": "^1.17.3-beta-20251123-232619-53258789",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.17.2",
-    "@blocklet/logger": "^1.17.2",
-    "@blocklet/pages-kit": "^0.7.18",
+    "@blocklet/js-sdk": "^1.17.3-beta-20251123-232619-53258789",
+    "@blocklet/logger": "^1.17.3-beta-20251123-232619-53258789",
+    "@blocklet/pages-kit": "^0.7.25",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.17.2",
+    "@blocklet/sdk": "^1.17.3-beta-20251123-232619-53258789",
     "@blocklet/uploader": "^0.3.11",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
@@ -223,7 +223,7 @@
     "@blocklet/pages-kit": "^0.6.46"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.2.6",
+    "@arcblock/ux": "^3.2.8",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",
