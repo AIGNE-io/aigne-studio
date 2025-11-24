@@ -8,19 +8,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - edited
-      - synchronize
-    branches:
-      - master
-      - main
-      - dev
 
 jobs:
-  Deploy:
+  publish:
     runs-on: ubuntu-latest
 
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
