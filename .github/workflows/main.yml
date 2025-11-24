@@ -4,9 +4,20 @@ env:
   NODE_OPTIONS: '--max_old_space_size=8192'
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+    branches:
+      - master
+      - main
+      - dev
 
 jobs:
   Deploy:
@@ -25,7 +36,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.16.0
           cache: pnpm
 
       - name: Install dependencies
@@ -42,7 +53,7 @@ jobs:
           echo "publish version ${VERSION}"
           pnpm publish --filter "@blocklet/*" --filter --access public --no-git-checks
 
-      - name: Blocklet workflow
+      - name: Publish to test store
         if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-runtime]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
@@ -66,7 +77,7 @@ jobs:
           deploy-app-did: zNKq56yExCXmaQpir9nFRu9aPFSYvSoKQr1e
           deploy-mount-point: /ai-runtime
 
-      - name: Blocklet workflow
+      - name: Deploy to staging server
         if: "! contains(toJSON(github.event.commits.*.message), '[skip ai-studio]')"
         env:
           COMPONENT_STORE_URL: ${{ secrets.STORE_ENDPOINT_TEST }}
