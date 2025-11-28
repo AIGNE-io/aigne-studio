@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/dataset-sdk",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "The SDK for processing dataset protocol",
   "publishConfig": {
     "access": "public"
@@ -95,8 +95,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/constant": "^1.17.3-beta-20251123-232619-53258789",
-    "@blocklet/sdk": "^1.17.3-beta-20251123-232619-53258789",
+    "@blocklet/constant": "^1.17.3",
+    "@blocklet/sdk": "^1.17.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "ajv": "^8.17.1",
