@@ -58,7 +58,8 @@
     "@mui/material": "^7.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^6.26.1"
+    "react-router-dom": "^6.26.1",
+    "@blocklet/ui-react": "^3.2.19"
   },
   "devDependencies": {
     "@arcblock/did-connect-react": "^3.2.19",
