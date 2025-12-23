@@ -1,3 +1,7 @@
+## 0.7.11 (2025-12-23)
+
+- chore: update package
+
 ## 0.7.10 (2025-12-23)
 
 - chore: update package

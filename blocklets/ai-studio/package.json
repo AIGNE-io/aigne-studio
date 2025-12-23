@@ -1,6 +1,6 @@
 {
   "name": "ai-studio",
-  "version": "0.7.10",
+  "version": "0.7.11",
   "author": "Arcblock <blocklet@arcblock.io> https://github.com/blocklet",
   "scripts": {
     "debug": "bn-dev",
@@ -49,7 +49,6 @@
     "@blocklet/did-space-js": "^1.2.11",
     "@blocklet/did-space-react": "^1.2.11",
     "@blocklet/discuss-kit": "^2.5.35",
-    "@blocklet/discuss-kit-ux": "^2.5.35",
     "@blocklet/editor": "^2.5.35",
     "@blocklet/js-sdk": "^1.17.6",
     "@blocklet/logger": "^1.17.6",
