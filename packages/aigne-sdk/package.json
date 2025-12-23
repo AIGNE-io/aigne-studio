@@ -122,7 +122,7 @@
     "react-router-dom": "^6.26.1"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.2.8",
+    "@arcblock/ux": "^3.2.19",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",

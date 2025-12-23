@@ -148,7 +148,7 @@
   },
   "dependencies": {
     "@abtnode/client": "^1.16.49-beta-20250819-084933-3bcbd851",
-    "@arcblock/did-connect-react": "^3.2.8",
+    "@arcblock/did-connect-react": "^3.2.19",
     "@blocklet/aigne-hub": "^0.6.17",
     "@blocklet/co-git": "workspace:^",
     "@blocklet/constant": "^1.17.3-beta-20251123-232619-53258789",
@@ -223,7 +223,7 @@
     "@blocklet/pages-kit": "^0.6.46"
   },
   "devDependencies": {
-    "@arcblock/ux": "^3.2.8",
+    "@arcblock/ux": "^3.2.19",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@jest/globals": "^29.7.0",
