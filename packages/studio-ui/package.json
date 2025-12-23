@@ -51,7 +51,6 @@
     "@arcblock/did-connect-react": "^3.1.5",
     "@arcblock/react-hooks": "^3.1.5",
     "@arcblock/ux": "^3.1.5",
-    "@blocklet/ui-react": "^3.1.5",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^7.2.0",
@@ -64,7 +63,7 @@
   "devDependencies": {
     "@arcblock/did-connect-react": "^3.2.19",
     "@arcblock/ux": "^3.2.19",
-    "@blocklet/ui-react": "^3.2.8",
+    "@blocklet/ui-react": "^3.2.19",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^7.2.0",

@@ -95,8 +95,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@blocklet/constant": "^1.17.3-beta-20251123-232619-53258789",
-    "@blocklet/sdk": "^1.17.3-beta-20251123-232619-53258789",
+    "@blocklet/constant": "^1.17.6",
+    "@blocklet/sdk": "^1.17.6",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.6",
     "ajv": "^8.17.1",
