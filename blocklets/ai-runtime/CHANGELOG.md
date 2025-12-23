@@ -1,3 +1,7 @@
+## 0.7.8 (2025-12-23)
+
+- fix: update package to latest (#1866)
+
 ## 0.7.7 (2025-11-24)
 
 - chore: update deps
