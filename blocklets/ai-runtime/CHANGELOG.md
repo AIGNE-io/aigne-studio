@@ -1,6 +1,10 @@
-## 0.7.8 (2025-12-23)
+## 0.7.9 (2025-12-15)
 
-- fix: update package to latest (#1866)
+- fix: package update
+
+## 0.7.8 (2025-11-28)
+
+- fix: update package to latest
 
 ## 0.7.7 (2025-11-24)
 
