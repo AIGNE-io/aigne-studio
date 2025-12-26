@@ -1,3 +1,7 @@
+## 0.7.12 (2025-12-26)
+
+- chore: update deps
+
 ## 0.7.11 (2025-12-23)
 
 - chore: update package
