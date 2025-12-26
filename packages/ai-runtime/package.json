@@ -1,6 +1,6 @@
 {
   "name": "@blocklet/ai-runtime",
-  "version": "0.7.11",
+  "version": "0.7.12",
   "description": "Runtime for AI Kits",
   "publishConfig": {
     "access": "public"
@@ -151,13 +151,13 @@
     "@arcblock/did-connect-react": "^3.2.19",
     "@blocklet/aigne-hub": "^0.7.9",
     "@blocklet/co-git": "workspace:^",
-    "@blocklet/constant": "^1.17.6",
+    "@blocklet/constant": "^1.17.7-beta-20251225-073259-cb6ecf68",
     "@blocklet/dataset-sdk": "workspace:^",
-    "@blocklet/js-sdk": "^1.17.6",
-    "@blocklet/logger": "^1.17.6",
+    "@blocklet/js-sdk": "^1.17.7-beta-20251225-073259-cb6ecf68",
+    "@blocklet/logger": "^1.17.7-beta-20251225-073259-cb6ecf68",
     "@blocklet/pages-kit": "^0.7.36",
     "@blocklet/quickjs": "workspace:^",
-    "@blocklet/sdk": "^1.17.6",
+    "@blocklet/sdk": "^1.17.7-beta-20251225-073259-cb6ecf68",
     "@blocklet/uploader": "^0.3.18",
     "@iconify-icons/tabler": "^1.2.95",
     "@iconify/react": "^5.0.2",
