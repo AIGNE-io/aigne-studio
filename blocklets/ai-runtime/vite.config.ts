@@ -19,7 +19,13 @@ export default defineConfig(() => {
         '@arcblock/did-connect': '@arcblock/did-connect-react',
       },
     },
-    plugins: [tsconfigPaths(), react(), createBlockletPlugin()],
+    plugins: [
+      tsconfigPaths(),
+      react(),
+      createBlockletPlugin({
+        chunkSizeLimit: 6144,
+      }),
+    ],
     build: { commonjsOptions: { transformMixedEsModules: true } },
     server: { fs: { allow: [join(__dirname, '../..'), join(__dirname, '../../..', 'pages-kit')] } },
   };
