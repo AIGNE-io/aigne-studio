@@ -12,7 +12,14 @@ import Session from '@api/store/models/session';
 import { getSupportedImagesModels, getSupportedModels } from '@blocklet/ai-runtime/api/ai-runtime/models';
 import { defaultImageModel, defaultTextModel } from '@blocklet/ai-runtime/common';
 import { parseIdentity, stringifyIdentity } from '@blocklet/ai-runtime/common/aid';
-import { CallAI, CallAIImage, RunAssistantCallback, RuntimeExecutor, nextTaskId } from '@blocklet/ai-runtime/core';
+import {
+  CallAI,
+  CallAIImage,
+  GetAgent,
+  RunAssistantCallback,
+  RuntimeExecutor,
+  nextTaskId,
+} from '@blocklet/ai-runtime/core';
 import {
   AssistantResponseType,
   ImageAssistant,
@@ -171,7 +178,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     projectId: string;
     agentId: string;
   }) => {
-    return executor!.context.getAgent({
+    return (executor as RuntimeExecutor)!.context.getAgent({
       aid: stringifyIdentity({
         blockletDid,
         projectId,
@@ -192,12 +199,13 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       });
 
       return (
-        await executor!.context
+        await (executor as RuntimeExecutor)!.context
           .executor(adapterAgent, {
             inputs: {
               ...input,
               model: (agent as PromptAssistant).model,
-              [adapterAgent.parameters?.find((i) => i.type === 'llmInputMessages' && !i.hidden)?.key!]: input.messages,
+              [adapterAgent.parameters?.find((i: any) => i.type === 'llmInputMessages' && !i.hidden)?.key!]:
+                input.messages,
             },
             taskId: nextTaskId(),
             parentTaskId: taskId,
@@ -245,7 +253,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         agentId: adapter.agent.id,
       });
 
-      const result = await executor!.context
+      const result = await (executor as RuntimeExecutor)!.context
         .executor(adapterAgent, {
           inputs: { ...input, ...(agent.type === 'image' ? agent.modelSettings : {}) },
           taskId: nextTaskId(),
@@ -407,7 +415,15 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
           working: input.working,
           appUrl: input.appUrl,
         },
-        getSecret: ({ targetProjectId, targetAgentId, targetInputKey }) =>
+        getSecret: ({
+          targetProjectId,
+          targetAgentId,
+          targetInputKey,
+        }: {
+          targetProjectId: string;
+          targetAgentId: string;
+          targetInputKey: string;
+        }) =>
           Secrets.findOne({
             where: { projectId, targetProjectId, targetAgentId, targetInputKey },
             rejectOnEmpty: new RuntimeError(RuntimeErrorType.MissingSecretError, 'Missing required secret'),
@@ -415,9 +431,13 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         callback: emit,
         callAI,
         callAIImage,
-        getMemoryVariables: (options) =>
-          getMemoryVariables({ ...options, working: options.projectId === projectId ? input.working : undefined }),
-        getAgent: (options) => {
+        getMemoryVariables: (options: {
+          blockletDid?: string;
+          projectId: string;
+          projectRef?: string;
+          working?: boolean;
+        }) => getMemoryVariables({ ...options, working: options.projectId === projectId ? input.working : undefined }),
+        getAgent: ((options) => {
           const identity = parseIdentity(options.aid, { rejectWhenError: true });
 
           return getAgent({
@@ -429,19 +449,29 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
             }),
             working: identity.projectId === projectId ? input.working : undefined,
           } as Parameters<typeof getAgent>[0]);
-        },
+        }) as GetAgent,
         entryProjectId: projectId,
         user: userId ? { ...req.user, id: userId, did: userId } : undefined,
         sessionId,
         messageId: history.id,
         clientTime: input.inputs?.$clientTime || new Date().toISOString(),
-        queryCache: ({ aid, cacheKey }) => {
+        queryCache: ({ aid, cacheKey }: { aid: string; cacheKey: string }) => {
           const { blockletDid, projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
           return ExecutionCache.findOne({
             where: omitBy({ blockletDid, projectId, projectRef, agentId, cacheKey }, (v) => v === undefined),
           });
         },
-        setCache: ({ aid, cacheKey, inputs, outputs }) => {
+        setCache: ({
+          aid,
+          cacheKey,
+          inputs,
+          outputs,
+        }: {
+          aid: string;
+          cacheKey: string;
+          inputs: { [key: string]: any };
+          outputs: { objects: any[] };
+        }) => {
           const { blockletDid, projectId, projectRef, agentId } = parseIdentity(aid, { rejectWhenError: true });
 
           return ExecutionCache.create({ blockletDid, projectId, projectRef, agentId, cacheKey, inputs, outputs });
@@ -531,7 +561,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     }
     res.end();
   } finally {
-    await executor?.context.destroy();
+    await (executor as RuntimeExecutor)?.context.destroy();
   }
 
   await history?.update({
