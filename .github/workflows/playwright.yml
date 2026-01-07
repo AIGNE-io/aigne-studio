@@ -45,7 +45,7 @@ jobs:
       - name: Bundle blocklets
         run: |
           pnpm build:libs
-          pnpm -F ai-studio bundle
+          # pnpm -F ai-studio bundle
           pnpm -F ai-runtime bundle
 
       - name: Upload bundle artifacts
