@@ -14,6 +14,8 @@ import { LogicAgentExecutor } from './logic';
 import { McpAgentExecutor } from './mcp-client';
 
 export class RuntimeExecutor extends AgentExecutorBase<GetAgentResult> {
+  declare public readonly context: ExecutorContext;
+
   constructor(
     context: Omit<ConstructorParameters<typeof ExecutorContext>[0], 'executor'>,
     agent: GetAgentResult,
