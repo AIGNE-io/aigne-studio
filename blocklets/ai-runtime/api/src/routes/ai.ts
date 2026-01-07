@@ -178,7 +178,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     projectId: string;
     agentId: string;
   }) => {
-    return (executor as RuntimeExecutor)!.context.getAgent({
+    return executor!.context.getAgent({
       aid: stringifyIdentity({
         blockletDid,
         projectId,
@@ -199,7 +199,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
       });
 
       return (
-        await (executor as RuntimeExecutor)!.context
+        await executor!.context
           .executor(adapterAgent, {
             inputs: {
               ...input,
@@ -253,7 +253,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
         agentId: adapter.agent.id,
       });
 
-      const result = await (executor as RuntimeExecutor)!.context
+      const result = await executor!.context
         .executor(adapterAgent, {
           inputs: { ...input, ...(agent.type === 'image' ? agent.modelSettings : {}) },
           taskId: nextTaskId(),
@@ -561,7 +561,7 @@ router.post('/call', middlewares.session({ componentCall: true }), compression()
     }
     res.end();
   } finally {
-    await (executor as RuntimeExecutor)?.context.destroy();
+    await executor?.context.destroy();
   }
 
   await history?.update({
