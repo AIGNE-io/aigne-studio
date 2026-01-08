@@ -65,6 +65,10 @@ export default defineConfig(({ mode }) => {
       embedExternals: ['react', '@arcblock/ux/lib/Locale/context', '@arcblock/did-connect-react/lib/Session'],
       // 并发打包 embed 的数量
       embedBuildConcurrency: 3,
+      nodePolyfillsOptions: {
+        include: ['crypto'],
+      },
+      chunkSizeLimit: 6144,
     }),
     svgr(),
     codeInspectorPlugin({

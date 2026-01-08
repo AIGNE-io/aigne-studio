@@ -15,7 +15,6 @@ export default function ExploreAdminRoutes() {
   }, [session.user]);
 
   return (
-    // @ts-ignore
     <AdminLayout
       footerProps={{ className: 'dashboard-footer' }}
       sx={{ bgcolor: 'background.paper' }}
@@ -26,6 +25,7 @@ export default function ExploreAdminRoutes() {
       headerAddons={undefined}
       sessionManagerProps={undefined}
       links={undefined}>
+      {/* @ts-expect-error FIXME: remove after ux issue #1136 is solved */}
       <ErrorBoundary>
         <Routes>
           <Route index element={<Navigate to="explore" replace />} />

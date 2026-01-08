@@ -1,3 +1,32 @@
+## 0.7.13 (2026-1-5)
+
+- feat: add verify script
+- chore: update deps
+
+## 0.7.12 (2025-12-26)
+
+- chore: update deps
+
+## 0.7.11 (2025-12-23)
+
+- chore: update package
+
+## 0.7.10 (2025-12-23)
+
+- chore: update package
+
+## 0.7.9 (2025-12-15)
+
+- fix: package update
+
+## 0.7.8 (2025-11-28)
+
+- fix: update package to latest
+
+## 0.7.7 (2025-11-24)
+
+- chore: update deps
+
 ## 0.7.6 (2025-11-15)
 
 ## 0.7.5 (2025-11-15)
