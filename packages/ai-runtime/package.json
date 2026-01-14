@@ -179,7 +179,7 @@
     "fastq": "^1.17.1",
     "file-saver": "^2.0.5",
     "fs-extra": "^11.2.0",
-    "html2pdf.js": "^0.10.2",
+    "html2pdf.js": "^0.14.0",
     "isomorphic-dompurify": "^2.16.0",
     "joi": "^17.13.3",
     "js-base64": "^3.7.7",
